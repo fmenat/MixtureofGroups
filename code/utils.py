@@ -1,0 +1,212 @@
+from sklearn.metrics import confusion_matrix,f1_score
+from sklearn.preprocessing import normalize
+import itertools, keras
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.cm as cm
+from scipy.stats import entropy
+
+def fill_true_identity(matrix):
+    """ Fill diagonal entries of one confusion matrix"""
+    indexs = np.arange(matrix.shape[1])
+    for i,row in enumerate(matrix):
+        matrix[i,i] = 1-np.sum(matrix[i][np.delete(indexs,i)]) #fill diagonal to sum 1
+
+def plot_confusion_matrix(conf, classes,title="Estimated",text=True):
+    """
+    This function prints and plots the confusion matrix.
+    Normalization can be applied by setting `normalize=True`.
+    """
+    plt.imshow(conf, interpolation='nearest', cmap=cm.YlOrRd)
+    plt.colorbar()
+    tick_marks = np.arange(len(classes))
+    plt.xticks(tick_marks, classes, rotation=45)
+    plt.yticks(tick_marks, classes)
+    thresh = conf.max() / 2.
+    if text:
+        for i, j in itertools.product(range(conf.shape[0]), range(conf.shape[1])):
+            plt.text(j, i, format(conf[i, j], '.2f'),
+                     horizontalalignment="center",
+                     color="white" if conf[i, j] > thresh else "black")
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
+    plt.title(title)
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_confusion_keras(model,x,y,classes):
+    y_pred_ohe = model.predict_classes(x)
+    conf_matrix = confusion_matrix(y_true=y, y_pred=y_pred_ohe)
+    conf_matrix = normalize(conf_matrix, axis=1, norm='l1')
+    plot_confusion_matrix(conf_matrix,classes)
+
+def calculate_f1_keras(model,x,y):
+    return f1_score(y_true=y, y_pred=model.predict_classes(x),average='micro')
+
+def softmax(Xs):
+    """Compute softmax values for each sets of scores in x."""
+    values =[]
+    for x in Xs:
+        e_x = np.exp(x - np.max(x))
+        values.append(e_x / e_x.sum())
+    return np.asarray(values)
+
+def distance_2_centroid(matrixs):
+    """ Calculate inertia of all the confusion matrixs, based on Jensen-Shannon Divergence"""
+    value = 0.
+    center = np.mean(matrixs,axis=0)
+    for m in range(matrixs.shape[0]):
+        aux = 0.5*matrixs[m] + 0.5*center
+        value += 0.5*KL_confmatrixs(aux,matrixs[m]) + 0.5*KL_confmatrixs(aux,center) #Jensen-shanon
+    return value
+
+def calculate_diagional_mean(conf_matrix):
+    """Calculate the Mean of the diagional of the confusion matrixs"""
+    aux = []
+    for l in range(len(conf_matrix)):
+        aux.append(conf_matrix[l,l])
+    return np.mean(aux)
+
+def calculateKL_matrixs(confs_pred,confs_true):
+    M_p = confs_pred.shape[0] #number of matrices on pred
+    M_t = confs_true.shape[0] #number of matrices on true
+    Kls = np.zeros(M_t)
+    if  M_p == M_t:
+        for m1 in range(M_t): #true
+            Kls[m1] = KL_confmatrixs(confs_pred[m1],confs_true[m1])
+        return Kls
+    else:
+        print("ERROR! There are %d real and %d predicted conf matrices"%(M_t,M_p))
+
+
+def calculateJS_matrixs(confs_pred,confs_true):
+    M_p = confs_pred.shape[0] #number of matrices on pred
+    M_t = confs_true.shape[0] #number of matrices on true
+    JSs = np.zeros(M_t)
+    if  M_p == M_t:
+        for m1 in range(M_t): #true
+        	aux = 0.5*confs_pred[m1] + 0.5*confs_true[m1]
+        	JSs[m1] = 0.5*KL_confmatrixs(aux,confs_pred[m1]) + 0.5*KL_confmatrixs(aux,confs_true[m1])    
+        return JSs
+    else:
+        print("ERROR! There are %d real and %d predicted conf matrices"%(M_t,M_p))
+        
+def compare_conf_mats(pred_conf_mat,true_conf_mat=[]):
+    classes = np.arange(pred_conf_mat[0].shape[0])
+    sp = plt.subplot(1,2,2)
+    plt.imshow(pred_conf_mat, interpolation='nearest', cmap=cm.YlOrRd)
+    plt.title("Estimated")
+    plt.xticks(np.arange(len(classes)), classes, rotation=45)
+    plt.yticks(np.arange(len(classes)), classes)
+    #plt.ylabel('True label')
+    #plt.xlabel('Predicted label')
+    plt.tight_layout()
+
+    if len(true_conf_mat) != 0:
+	    sp1 = plt.subplot(1,2,1)
+	    plt.imshow(true_conf_mat, interpolation='nearest', cmap=cm.YlOrRd)
+	    plt.title("True")
+	    plt.xticks(np.arange(len(classes)), classes, rotation=45)
+	    plt.yticks(np.arange(len(classes)), classes)
+	    #plt.ylabel('True label')
+	    #plt.xlabel('Predicted label')
+	    plt.tight_layout()
+    plt.show()
+
+def KL_confmatrixs(conf_pred,conf_true):
+    """
+        * Sum of KL between rows of confusion matrix: sum_z KL_y(p(y|z)|q(y|z))
+    """ #mmean or sum??
+    return np.mean([entropy(conf_true[j_z], conf_pred[j_z]) for j_z in range(conf_pred.shape[0])])
+
+def Entropy_confmatrix(conf_ma):
+    """
+        * Mean of entropy on rows of confusion matrix: mean H(q(y|z))
+    """
+    return np.mean([entropy(conf_ma[j_z]) for j_z in range(conf_ma.shape[0])])
+
+def findmatch_confindexs(confs_pred,confs_true):
+    """
+        * Find all match between all the confusion matrices, based on KL between confs
+        * Work with same conf matrices and if predicted is less than true
+    """
+    M_p = confs_pred.shape[0] #number of matrices on pred
+    M_t = confs_true.shape[0] #number of matrices on true
+    print("There are %d real and %d predicted Conf matrices"%(M_t,M_p))
+    order_KLs = np.zeros((M_t,M_p))
+    indexs_tuple = []
+    for m1 in range(M_t): #true
+        for m2 in range(M_p): #prediction
+            order_KLs[m1,m2] = KL_confmatrixs(confs_pred[m2],confs_true[m1])
+            indexs_tuple.append([m1,m2])
+    match_founded = {} #find best match on real conf matrixs
+    if M_p <= M_t:
+        for valor in np.argsort(order_KLs.flatten()): #find the minimum divergence/distance
+            if indexs_tuple[valor][0] not in  match_founded: #if real conf not match up yet
+                match_founded[indexs_tuple[valor][0]] =  [indexs_tuple[valor][1]]
+    elif M_p>M_t: #find similars--close to cluster
+        for m2 in range(M_p):
+            valor = np.argmin(order_KLs[:,m2]) #find centroid on true (minimum divergence/distance)
+            if valor not in  match_founded: #if real conf not match up yet
+                match_founded[valor] =  [m2]
+            else:
+                match_founded[valor].append(m2)
+        #in this type of search a true matrix could not be found
+        cannot_found = M_t - len(match_founded.keys())
+        if cannot_found > 0:
+            print("%d real conf matrices cannot be found"%(cannot_found) )
+            for m1 in range(M_t):
+                if m1 not in match_founded:
+                    match_founded[m1] = []
+    return match_founded
+
+class EarlyStopRelative(keras.callbacks.EarlyStopping):
+    def __init__(self,
+                 monitor='val_loss',
+                 min_delta=0,
+                 patience=0,
+                 verbose=0,
+                 mode='auto',
+                 baseline=None,
+                restore_best_weights=False):
+        super(EarlyStopRelative,self).__init__(monitor,min_delta,patience,verbose,mode,baseline,restore_best_weights)
+        
+        
+    def on_train_begin(self, logs=None):
+        # Allow instances to be re-used
+        self.wait = 0
+        self.stopped_epoch = 0
+        if self.baseline is not None:
+            self.best = self.baseline
+        else:
+            self.best = np.Inf if self.monitor_op == np.less else -np.Inf
+        self.best2 = self.best
+        self.best3 = self.best
+        self.b_before = self.best
+
+    def on_epoch_end(self, epoch, logs=None):
+        current = self.get_monitor_value(logs)        
+        if current is None:
+            return
+
+        if epoch==0:
+            self.best = current
+            return
+        
+        delta_conv = np.abs(self.best-current)/self.best #relative
+        if self.monitor_op(-self.min_delta, delta_conv):
+            self.best = current
+            self.wait = 0
+            if self.restore_best_weights:
+                self.best_weights = self.model.get_weights()
+        else:
+            self.wait += 1
+            if self.wait >= self.patience:
+                self.stopped_epoch = epoch
+                self.model.stop_training = True
+                if self.restore_best_weights:
+                    if self.verbose > 0:
+                        print('Restoring model weights from the end of '
+                              'the best epoch')
+                    self.model.set_weights(self.best_weights)
