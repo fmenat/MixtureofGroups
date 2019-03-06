@@ -25,12 +25,13 @@ class Evaluation_metrics(object):
             self.tested_model = class_infered.base_model
         #and what about raykar or anothers
 
-    def calculate_metrics(self,Z=[],Z_pred=[],y_o=[],yo_pred=[],conf_pred=[],conf_true=[],y_o_groups=[]):
+    def calculate_metrics(self,Z=[],Z_pred=[],y_o=[],yo_pred=[],conf_pred=[],conf_true=[],y_o_groups=[],plot=True):
         if len(yo_pred)!=0:
-            self.T = yo_pred.shape[0]        
+            self.T = yo_pred.shape[0]  
+            
         to_return = []
         if self.which == 'our1' and len(conf_pred) == self.M: 
-            to_return.append(self.report_results_wt_annot(conf_pred)) #intrisic metrics
+            to_return.append(self.report_results_wt_annot(conf_pred,plot)) #intrisic metrics
             
         if len(Z) != 0: #if we have Ground Truth
             if self.which == 'our1' and len(y_o_groups) != 0 and len(conf_pred) == self.M:  #test set usually
@@ -40,7 +41,7 @@ class Evaluation_metrics(object):
                     to_return = [] #clean
                 to_return.append(t_aux)
                 
-            t = self.report_results(Z_pred, Z, conf_pred, conf_true)
+            t = self.report_results(Z_pred, Z, conf_pred, conf_true,plot)
             if len(y_o) != 0 and len(yo_pred)!= 0: #if we have annotations and GT: maybe training set
                 value_add = self.rmse_accuracies(Z, y_o, yo_pred)
                 t["Average RMSE"] = np.mean(value_add)
@@ -49,12 +50,13 @@ class Evaluation_metrics(object):
         else: #if we dont have GT
             if len(y_o) != 0 and len(yo_pred) !=0: #If we have annotations but no GT: maybe trainig set
                 to_return.append(self.report_results_wt_GT(y_o,yo_pred))
-                    
-        for table in to_return:
-            print("A result\n",tabulate(table, headers='keys', tablefmt='psql'))
+                
+        if plot:         
+            for table in to_return:
+                print("A result\n",tabulate(table, headers='keys', tablefmt='psql'))
         return to_return
          
-    def report_results(self,y_pred,y_true,conf_pred=[],conf_true=[]):
+    def report_results(self,y_pred,y_true,conf_pred=[],conf_true=[],plot=True):
         """
             *Calculate metrics related to model and to confusion matrixs
             Needed: ground truth, for confusion matrix need annotations.
@@ -74,7 +76,7 @@ class Evaluation_metrics(object):
                 diagional_elements_pred = (diagional_elements_pred-np.mean(diagional_elements_pred))/(np.std(diagional_elements_pred)+1e-10)
                 diagional_elements_true = (diagional_elements_true-np.mean(diagional_elements_true))/(np.std(diagional_elements_true)+1e-10)
                 pearson_corr.append(pearsonr(diagional_elements_pred, diagional_elements_true)[0])
-                if np.random.rand() >0.5 and sampled_plot < 15:
+                if np.random.rand() >0.5 and sampled_plot < 15 and plot:
                     compare_conf_mats(conf_pred[m], conf_true[m])
                     sampled_plot+=1
                     print("KL divergence: %.4f\tPearson Correlation between diagonals: %.4f"%(KLs_founded[m],pearson_corr[-1]))        
@@ -141,7 +143,7 @@ class Evaluation_metrics(object):
         t["F1 (micro)"] = f1_s
         return t
         
-    def report_results_wt_annot(self,conf_matrixs):
+    def report_results_wt_annot(self,conf_matrixs,plot=True):
         """Calculate Intrinsic measure of only the confusion matrices infered """
         t = pd.DataFrame()#Table()
         identity_matrixs = np.asarray([np.identity(conf_matrixs.shape[1]) for m in range(len(conf_matrixs))])
@@ -151,8 +153,8 @@ class Evaluation_metrics(object):
         entropies = []
         mean_diagional = []
         for m in range(self.M):
-            #compare_conf_mats(conf_matrixs[m])
-            plot_confusion_matrix(conf_matrixs[m], np.arange(conf_matrixs[m].shape[0]),title="Group "+str(m),text=False)
+            if plot:
+                plot_confusion_matrix(conf_matrixs[m], np.arange(conf_matrixs[m].shape[0]),title="Group "+str(m),text=False)
             #New Instrisic measure
             entropies.append(Entropy_confmatrix(conf_matrixs[m]))
             mean_diagional.append(calculate_diagional_mean(conf_matrixs[m]))
@@ -164,7 +166,8 @@ class Evaluation_metrics(object):
         t["I similar % (JS)"] = 1-JSs_identity/np.log(2) #value betweeon [0,1]
         #t["Matrix-norm to identity"] = pendiente...
         inertia = distance_2_centroid(conf_matrixs)
-        print("Inertia:",inertia)
+        if plot:
+            print("Inertia:",inertia)
         return t
 
 

@@ -170,7 +170,7 @@ class EarlyStopRelative(keras.callbacks.EarlyStopping):
                  mode='auto',
                  baseline=None,
                 restore_best_weights=False):
-        super(EarlyStopRelative,self).__init__(monitor,min_delta,patience,verbose,mode,baseline,restore_best_weights)
+        super(EarlyStopRelative,self).__init__(monitor,min_delta,patience,verbose,mode)
         
         
     def on_train_begin(self, logs=None):

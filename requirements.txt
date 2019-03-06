@@ -9,7 +9,6 @@ backcall==0.1.0
 backports.weakref==1.0rc1
 beautifulsoup4==4.7.1
 bleach==1.5.0
-boto==2.48.0
 boto3==1.7.48
 botocore==1.10.48
 bs4==0.0.1
@@ -26,7 +25,7 @@ cycler==0.10.0
 Cython==0.28.2
 dask==0.19.4
 decorator==4.3.0
-docutils==0.14
+#docutils==0.14
 entrypoints==0.2.3
 gast==0.2.0
 gatspy==0.3
@@ -60,8 +59,8 @@ Markdown==2.6.11
 MarkupSafe==1.0
 matplotlib==2.2.2
 mistune==0.8.3
-mkl-fft==1.0.0
-mkl-random==1.0.1
+#mkl-fft==1.0.0
+#mkl-random==1.0.1
 more-itertools==4.1.0
 nbconvert==5.3.1
 nbformat==4.4.0
@@ -101,11 +100,11 @@ pytest-doctestplus==0.1.2
 pytest-openfiles==0.2.0
 pytest-remotedata==0.2.0
 python-dateutil==2.7.2
-pytz==2018.4
+#pytz==2018.4
 PyYAML==3.12
 pyzmq==17.0.0
 qtconsole==4.3.1
-recurrentshop==1.0.0
+#recurrentshop==1.0.0
 requests==2.18.4
 s3transfer==0.1.13
 scikit-fuzzy==0.4.0
@@ -113,7 +112,6 @@ scikit-learn==0.19.1
 scipy==1.0.1
 seaborn==0.8.1
 Send2Trash==1.5.0
-seq2seq==1.0.0
 simplegeneric==0.8.1
 six==1.11.0
 smart-open==1.6.0
