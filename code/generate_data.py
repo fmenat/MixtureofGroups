@@ -86,6 +86,17 @@ class SinteticData(object):
                         #sample trough confusion matrix 
                         yo = np.argmax( np.random.multinomial(1, sample_prob) )
                         sintetic_annotators[i,t] = yo
+                        
+            if np.sum( sintetic_annotators[i,:] != -1)  == 0: #avoid data not labeled
+                t_rand = np.random.randint(0,Tmax)
+                g = sintetic_annotators_group[t_rand] #in discrete value, g {0,1,...,M}
+                if hard:
+                    sample_prob = self.conf_matrix[g[0],z,:]
+                else: #soft
+                    sample_prob = np.tensordot(g[:], self.conf_matrix[:,z,:], axes=[[0],[0]]) #mixture
+
+                sintetic_annotators[i,t_rand] = np.argmax( np.random.multinomial(1, sample_prob) )
+                
         #clean the annotators that do not label
         mask_label = np.where(np.sum(sintetic_annotators,axis=0) != sintetic_annotators.shape[0]*-1)[0]
         sintetic_annotators = sintetic_annotators[:,mask_label]

@@ -161,7 +161,7 @@ def findmatch_confindexs(confs_pred,confs_true):
                     match_founded[m1] = []
     return match_founded
 
-class EarlyStopRelative(keras.callbacks.EarlyStopping):
+class EarlyStopRelative(keras.callbacks.Callback):
     def __init__(self,
                  monitor='val_loss',
                  min_delta=0,
@@ -170,17 +170,45 @@ class EarlyStopRelative(keras.callbacks.EarlyStopping):
                  mode='auto',
                  baseline=None,
                 restore_best_weights=False):
-        super(EarlyStopRelative,self).__init__(monitor,min_delta,patience,verbose,mode)
+        super(EarlyStopRelative,self).__init__()
+        
+        self.monitor = monitor
+        self.baseline = baseline
+        self.patience = patience
+        self.verbose = verbose
+        self.min_delta = min_delta
+        self.wait = 0
+        self.stopped_epoch = 0
+        self.restore_best_weights = restore_best_weights
+        self.best_weights = None
+
+        if mode not in ['auto', 'min', 'max']:
+            warnings.warn('EarlyStopping mode %s is unknown, '
+                          'fallback to auto mode.' % mode,
+                          RuntimeWarning)
+            mode = 'auto'
+
+        if mode == 'min':
+            self.monitor_op = np.less
+        elif mode == 'max':
+            self.monitor_op = np.greater
+        else:
+            if 'acc' in self.monitor:
+                self.monitor_op = np.greater
+            else:
+                self.monitor_op = np.less
+
+        if self.monitor_op == np.greater:
+            self.min_delta *= 1
+        else:
+            self.min_delta *= -1
         
         
     def on_train_begin(self, logs=None):
         # Allow instances to be re-used
         self.wait = 0
         self.stopped_epoch = 0
-        if self.baseline is not None:
-            self.best = self.baseline
-        else:
-            self.best = np.Inf if self.monitor_op == np.less else -np.Inf
+        self.best = np.Inf if self.monitor_op == np.less else -np.Inf
         self.best2 = self.best
         self.best3 = self.best
         self.b_before = self.best
@@ -198,15 +226,18 @@ class EarlyStopRelative(keras.callbacks.EarlyStopping):
         if self.monitor_op(-self.min_delta, delta_conv):
             self.best = current
             self.wait = 0
-            if self.restore_best_weights:
-                self.best_weights = self.model.get_weights()
         else:
             self.wait += 1
             if self.wait >= self.patience:
                 self.stopped_epoch = epoch
                 self.model.stop_training = True
-                if self.restore_best_weights:
-                    if self.verbose > 0:
-                        print('Restoring model weights from the end of '
-                              'the best epoch')
-                    self.model.set_weights(self.best_weights)
+                
+    def get_monitor_value(self, logs):
+        monitor_value = logs.get(self.monitor)
+        if monitor_value is None:
+            warnings.warn(
+                'Early stopping conditioned on metric `%s` '
+                'which is not available. Available metrics are: %s' %
+                (self.monitor, ','.join(list(logs.keys()))), RuntimeWarning
+            )
+        return monitor_value

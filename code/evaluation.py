@@ -7,8 +7,9 @@ import numpy as np
 from .utils import *
 
 class Evaluation_metrics(object):
-    def __init__(self,class_infered,which='our1',N=None):
+    def __init__(self,class_infered,which='our1',N=None,plot=True):
         self.which=which
+        self.plot = plot
         if self.which == 'our1':
             self.M = class_infered.M
             self.N = class_infered.N
@@ -25,13 +26,13 @@ class Evaluation_metrics(object):
             self.tested_model = class_infered.base_model
         #and what about raykar or anothers
 
-    def calculate_metrics(self,Z=[],Z_pred=[],y_o=[],yo_pred=[],conf_pred=[],conf_true=[],y_o_groups=[],plot=True):
+    def calculate_metrics(self,Z=[],Z_pred=[],y_o=[],yo_pred=[],conf_pred=[],conf_true=[],y_o_groups=[]):
         if len(yo_pred)!=0:
             self.T = yo_pred.shape[0]  
             
         to_return = []
         if self.which == 'our1' and len(conf_pred) == self.M: 
-            to_return.append(self.report_results_wt_annot(conf_pred,plot)) #intrisic metrics
+            to_return.append(self.report_results_wt_annot(conf_pred,self.plot)) #intrisic metrics
             
         if len(Z) != 0: #if we have Ground Truth
             if self.which == 'our1' and len(y_o_groups) != 0 and len(conf_pred) == self.M:  #test set usually
@@ -41,7 +42,7 @@ class Evaluation_metrics(object):
                     to_return = [] #clean
                 to_return.append(t_aux)
                 
-            t = self.report_results(Z_pred, Z, conf_pred, conf_true,plot)
+            t = self.report_results(Z_pred, Z, conf_pred, conf_true,self.plot)
             if len(y_o) != 0 and len(yo_pred)!= 0: #if we have annotations and GT: maybe training set
                 value_add = self.rmse_accuracies(Z, y_o, yo_pred)
                 t["Average RMSE"] = np.mean(value_add)
@@ -51,7 +52,7 @@ class Evaluation_metrics(object):
             if len(y_o) != 0 and len(yo_pred) !=0: #If we have annotations but no GT: maybe trainig set
                 to_return.append(self.report_results_wt_GT(y_o,yo_pred))
                 
-        if plot:         
+        if self.plot:         
             for table in to_return:
                 print("A result\n",tabulate(table, headers='keys', tablefmt='psql'))
         return to_return
