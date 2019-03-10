@@ -58,19 +58,18 @@ def softmax(Xs):
 
 def distance_2_centroid(matrixs):
     """ Calculate inertia of all the confusion matrixs, based on Jensen-Shannon Divergence"""
-    value = 0.
-    center = np.mean(matrixs,axis=0)
-    for m in range(matrixs.shape[0]):
-        aux = 0.5*matrixs[m] + 0.5*center
-        value += 0.5*KL_confmatrixs(aux,matrixs[m]) + 0.5*KL_confmatrixs(aux,center) #Jensen-shanon
-    return value
+    value = []
+    for m1 in range(matrixs.shape[0]):
+        for m2 in range(m1+1,matrixs.shape[1]):
+            value.append(JS_confmatrixs(matrixs[m1],matrixs[m2]))
+    #center = np.mean(matrixs,axis=0)
+    #for m in range(matrixs.shape[0]):
+    #value.append(JS_confmatrixs(matrixs[m],center))
+    return np.mean(value)
 
 def calculate_diagional_mean(conf_matrix):
     """Calculate the Mean of the diagional of the confusion matrixs"""
-    aux = []
-    for l in range(len(conf_matrix)):
-        aux.append(conf_matrix[l,l])
-    return np.mean(aux)
+    return np.mean([conf_matrix[l,l] for l in range(len(conf_matrix)) ])
 
 def calculateKL_matrixs(confs_pred,confs_true):
     M_p = confs_pred.shape[0] #number of matrices on pred
@@ -83,15 +82,13 @@ def calculateKL_matrixs(confs_pred,confs_true):
     else:
         print("ERROR! There are %d real and %d predicted conf matrices"%(M_t,M_p))
 
-
 def calculateJS_matrixs(confs_pred,confs_true):
     M_p = confs_pred.shape[0] #number of matrices on pred
     M_t = confs_true.shape[0] #number of matrices on true
     JSs = np.zeros(M_t)
     if  M_p == M_t:
         for m1 in range(M_t): #true
-        	aux = 0.5*confs_pred[m1] + 0.5*confs_true[m1]
-        	JSs[m1] = 0.5*KL_confmatrixs(aux,confs_pred[m1]) + 0.5*KL_confmatrixs(aux,confs_true[m1])    
+            JSs[m1] = JS_confmatrixs(confs_pred[m1],confs_true[m1])
         return JSs
     else:
         print("ERROR! There are %d real and %d predicted conf matrices"%(M_t,M_p))
@@ -120,10 +117,22 @@ def compare_conf_mats(pred_conf_mat,true_conf_mat=[]):
 
 def KL_confmatrixs(conf_pred,conf_true):
     """
-        * Sum of KL between rows of confusion matrix: sum_z KL_y(p(y|z)|q(y|z))
+        * mean of KL between rows of confusion matrix: 1/K sum_z KL_y(p(y|z)|q(y|z))
     """ #mmean or sum??
-    return np.mean([entropy(conf_true[j_z], conf_pred[j_z]) for j_z in range(conf_pred.shape[0])])
+    conf_pred = np.clip(conf_pred,1e-7,1.)
+    conf_true = np.clip(conf_true,1e-7,1.)
+    return np.mean([entropy(conf_true[j_z,:], conf_pred[j_z,:]) for j_z in range(conf_pred.shape[0])])
 
+def JS_confmatrixs(conf_pred,conf_true):
+    """
+        * Jensen-Shannon Divergence between rows of confusion matrix (arithmetic average)
+    """
+    conf_pred = np.clip(conf_pred,1e-7,1.)
+    conf_true = np.clip(conf_true,1e-7,1.)
+    aux = 0.5*conf_pred + 0.5*conf_true
+    return 0.5*KL_confmatrixs(aux,conf_pred) + 0.5*KL_confmatrixs(aux,conf_true)    
+    
+    
 def Entropy_confmatrix(conf_ma):
     """
         * Mean of entropy on rows of confusion matrix: mean H(q(y|z))
