@@ -41,7 +41,7 @@ class LabelInference(object): #no predictive model
         # https://github.com/dallascard/dawid_skene
         aux = dawid_skene.run(self.annotations,tol=self.Tol, max_iter=100, init='average')
         (_, _, _, _, class_marginals, error_rates, groundtruth_estimate) = aux
-        return groundtruth_estimate
+        return groundtruth_estimate, error_rates
     
     def train(self):
         if 'mv' in type_inf.lower() or 'majority voting' in type_inf.lower(): 

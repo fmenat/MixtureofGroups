@@ -97,11 +97,6 @@ def run(responses, tol=0.00001, max_iter=100, init='average'):
     #[nPatients, nObservers, nClasses] = np.shape(counts)
     #for k in range(nObservers):
     #    print(class_marginals * error_rates[k,:,:])
-
-    np.set_printoptions(precision=4, suppress=True)    
-    print("Patient classes")
-    for i in range(10):
-        print(patients[i], patient_classes[i,:] )
         
     return (patients, observers, classes, counts, class_marginals, error_rates, patient_classes) 
  

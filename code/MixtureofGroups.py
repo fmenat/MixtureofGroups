@@ -5,6 +5,7 @@ from sklearn.mixture import BayesianGaussianMixture, GaussianMixture
 from sklearn.cluster import DBSCAN,AffinityPropagation, MiniBatchKMeans
 from sklearn.preprocessing import StandardScaler
 from sklearn import metrics
+from sklearn.metrics import f1_score
 import gc, keras, time, sys
 
 from .learning_models import LogisticRegression_Sklearn,LogisticRegression_Keras,MLP_Keras
@@ -323,8 +324,8 @@ class GroupMixtureOpt(object): #optimized version
                 print("Tol1: %.5f\tTol2: %.5f\tTol3: %.5f\t"%(tol,tol2,tol3),end='',flush=True)
             old_betas = self.betas.flatten().copy()         
             old_alphas = self.alphas.copy()
-            if val:
-                print("F1: %.4f"%(f1_score(Z_train, predictions.argmax(axis=1),average='micro')),end='',flush=True)
+            #if val:
+            #    print("F1: %.4f"%(f1_score(Z_train, predictions.argmax(axis=1),average='micro')),end='',flush=True)
             self.current_iter+=1
             print("")
             if self.current_iter>max_iter or (tol<=tolerance and tol2<=tolerance and tol3<=tolerance):
