@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.stats import entropy
-from sklearn.decomposition import KernelPCA
+from sklearn.decomposition import KernelPCA, PCA
 from sklearn.mixture import BayesianGaussianMixture, GaussianMixture
 from sklearn.cluster import DBSCAN,AffinityPropagation, MiniBatchKMeans, KMeans
 from sklearn.preprocessing import StandardScaler
