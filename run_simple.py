@@ -21,6 +21,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import keras, time, sys, os, gc
+from sklearn.metrics import confusion_matrix
 from keras.models import clone_model
 
 DTYPE_OP = 'float32'
@@ -127,8 +128,10 @@ elif scenario == 6:
 
 
 results_softmv_train = []
+results_softmv_train_A = [] #for Global KL
 results_softmv_test = []
 results_hardmv_train = []
+results_hardmv_train_A = [] #for Global KL
 results_hardmv_test = []
 results_ds_train = []
 results_ds_test = []
@@ -241,10 +244,13 @@ for _ in range(20): #repetitions
     prob_Yzt = get_confusionM(Z_train_p,y_obs_categorical)
     Z_train_pred = Z_train_p.argmax(axis=1)
     results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix)
+    prob_Yzt = np.tile(confusion_matrix(y_true=Z_train,y_pred=Z_train_pred), (T,1,1) )
+    results1_A = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix)
     Z_test_pred = evaluate.tested_model.predict_classes(Xstd_test)
     results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred)
     
     results_softmv_train += results1
+    results_softmv_train_A += results1_A
     results_softmv_test += results2
 
     evaluate = Evaluation_metrics(model_mvhard,'keras',Xstd_train.shape[0],plot=False)
@@ -252,16 +258,18 @@ for _ in range(20): #repetitions
     prob_Yzt = get_confusionM(Z_train_p,y_obs_categorical)
     Z_train_pred = Z_train_p.argmax(axis=1)
     results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix)
+    prob_Yzt = np.tile(confusion_matrix(y_true=Z_train,y_pred=Z_train_pred), (T,1,1) )
+    results1_A = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix)
     Z_test_pred = evaluate.tested_model.predict_classes(Xstd_test)
     results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred)
     
     results_hardmv_train += results1
+    results_hardmv_train_A += results1_A
     results_hardmv_test += results2
 
     evaluate = Evaluation_metrics(model_ds,'keras',Xstd_train.shape[0],plot=False)
-    Z_train_p = evaluate.tested_model.predict(Xstd_train)
-    prob_Yzt = get_confusionM(Z_train_p,y_obs_categorical)
-    Z_train_pred = Z_train_p.argmax(axis=1)
+    Z_train_pred = evaluate.tested_model.predict_classes(Xstd_train)
+    prob_Yzt = ds_conf
     results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix)
     Z_test_pred = evaluate.tested_model.predict_classes(Xstd_test)
     results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred)
@@ -348,9 +356,11 @@ gc.collect()
 
 #plot measures    
 get_mean_dataframes(results_softmv_train).to_csv("synthetic_softMV_train_s"+str(scenario)+".csv",index=False)
+get_mean_dataframes(results_softmv_train_A).to_csv("synthetic_softMV_trainG_s"+str(scenario)+".csv",index=False)
 get_mean_dataframes(results_softmv_test).to_csv("synthetic_softMV_test_s"+str(scenario)+".csv",index=False)
 
 get_mean_dataframes(results_hardmv_train).to_csv("synthetic_hardMV_train_s"+str(scenario)+".csv",index=False)
+get_mean_dataframes(results_hardmv_train_A).to_csv("synthetic_hardMV_trainG_s"+str(scenario)+".csv",index=False)
 get_mean_dataframes(results_hardmv_test).to_csv("synthetic_hardMV_test_s"+str(scenario)+".csv",index=False)
 
 get_mean_dataframes(results_ds_train).to_csv("synthetic_DS_train_s"+str(scenario)+".csv",index=False)

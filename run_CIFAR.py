@@ -14,13 +14,14 @@ scenario = opts.scenario  #arg
 BATCH_SIZE = 128
 EPOCHS_BASE = 50
 OPT = 'adam' #optimizer for neural network 
-TOL = 1e-2 #tolerance for relative variation of parameters
+TOL = 3e-2 #tolerance for relative variation of parameters
 
 
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import keras, time, sys, os, gc
+from sklearn.metrics import confusion_matrix
 from keras.models import clone_model
 
 DTYPE_OP = 'float32'
@@ -31,20 +32,15 @@ if DTYPE_OP == 'float64':
 elif DTYPE_OP == 'float32':
     keras.backend.set_epsilon(np.finfo(np.float32).eps)
     
-### Load Data
-X_train = np.loadtxt(path+"/synthetic/simple/datasim_X_train.csv",delimiter=',')
-Z_train = np.loadtxt(path+"/synthetic/simple/datasim_Z_train.csv",dtype='int') #groudn truth
-
-X_test = np.loadtxt(path+"/synthetic/simple/datasim_X_test.csv",delimiter=',')
-Z_test = np.loadtxt(path+"/synthetic/simple/datasim_Z_test.csv",dtype='int') #groudn truth
-
+### Load Data and preprocess
+from keras.datasets import cifar10
+(X_train, Z_train), (X_test, Z_test) = cifar10.load_data()
 print("Input shape:",X_train.shape)
 
-from sklearn.preprocessing import StandardScaler
-std= StandardScaler(with_mean=True) #matrices sparse with_mean=False
-std.fit(X_train)
-Xstd_train = std.transform(X_train)
-Xstd_test = std.transform(X_test)
+Xstd_train = X_train.astype(DTYPE_OP)/255
+Xstd_test = X_test.astype(DTYPE_OP)/255
+Z_train = Z_train[:,0]
+Z_test = Z_test[:,0]
 
 from code.learning_models import LogisticRegression_Sklearn,LogisticRegression_Keras,MLP_Keras
 from code.learning_models import default_CNN,default_RNN,default_RNNw_emb,CNN_simple, RNN_simple #deep learning
@@ -63,7 +59,7 @@ ourCallback = EarlyStopRelative(monitor='loss',patience=1,min_delta=TOL)
 #upper bound model
 Z_train_onehot = keras.utils.to_categorical(Z_train)
 
-model_UB = MLP_Keras(Xstd_train.shape[1:],Z_train_onehot.shape[1],8,1,BN=False,drop=0.2)
+model_UB = default_CNN(Xstd_train.shape[1:],Z_train_onehot.shape[1])
 model_UB.compile(loss='categorical_crossentropy',optimizer=OPT)
 model_UB.fit(Xstd_train,Z_train_onehot,epochs=EPOCHS_BASE,batch_size=BATCH_SIZE,verbose=0,callbacks=[ourCallback])
 
@@ -101,10 +97,10 @@ GenerateData = SinteticData()
 
 #CONFUSION MATRIX CHOOSE
 if scenario == 1 or scenario == 3 or scenario == 4 or scenario == 5 or scenario == 6:
-    GenerateData.set_probas(asfile=True,file_matrix=path+'/synthetic/simple/matrix_datasim_normal.csv',file_groups =path+'/synthetic/simple/groups_datasim_normal.csv')
+    GenerateData.set_probas(asfile=True,file_matrix=path+'/synthetic/CIFAR/matrix_datasim_normal.csv',file_groups =path+'/synthetic/CIFAR/groups_datasim_normal.csv')
 
 elif scenario == 2 or scenario == 7: #bad MV
-    GenerateData.set_probas(asfile=True,file_matrix=path+'/synthetic/simple/matrix_datasim_badMV.csv',file_groups =path+'/synthetic/simple/groups_datasim_badMV.csv')
+    GenerateData.set_probas(asfile=True,file_matrix=path+'/synthetic/CIFAR/matrix_datasim_badMV.csv',file_groups =path+'/synthetic/CIFAR/groups_datasim_badMV.csv')
 
 real_conf_matrix = GenerateData.conf_matrix.copy()
 
@@ -127,8 +123,10 @@ elif scenario == 6:
 
 
 results_softmv_train = []
+results_softmv_train_A = [] #for Global KL
 results_softmv_test = []
 results_hardmv_train = []
+results_hardmv_train_A = [] #for Global KL
 results_hardmv_test = []
 results_ds_train = []
 results_ds_test = []
@@ -166,6 +164,8 @@ for _ in range(20): #repetitions
     print("Classes: ",K)
     
     ############# EXECUTE ALGORITHMS #############################
+    
+    ## algunos explotan en escenario 5 y 6, cuales??
 
     label_I = LabelInference(y_obs,TOL,type_inf = 'all')  #Infer Labels
 
@@ -196,7 +196,7 @@ for _ in range(20): #repetitions
     y_obs_categorical = set_representation(y_obs,'onehot') 
     
     raykarMC = RaykarMC(Xstd_train.shape[1:],y_obs_categorical.shape[-1],T,epochs=1,optimizer=OPT,DTYPE_OP=DTYPE_OP)
-    raykarMC.define_model('mlp',8,1,BatchN=False,drop=0.2)
+    raykarMC.define_model("default cnn")
     logL_hist = raykarMC.stable_train(Xstd_train,y_obs_categorical,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL)
     print("Trained model over Raykar")
 
@@ -213,23 +213,23 @@ for _ in range(20): #repetitions
     print("Normalized entropy (0-1) of repeats annotations:",np.mean(aux))
     
     gMixture1 = GroupMixtureOpt(Xstd_train.shape[1:],Kl=r_obs.shape[1],M=M_seted,epochs=1,pre_init=5,optimizer=OPT,dtype_op=DTYPE_OP) 
-    gMixture1.define_model("mlp",8,1,BatchN=False,drop=0.2)
+    gMixture1.define_model("default cnn")
     gMixture1.lambda_random = False #lambda=1     
-    logL_hists,i  = gMixture1.multiples_run(1,Xstd_train,r_obs,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL*2
+    logL_hists,i  = gMixture1.multiples_run(1,Xstd_train,r_obs,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL
                                        ,cluster=True,bulk_annotators=[y_obs_categorical,annotators_pca])
     print("Trained model over Ours (1)")
     
     gMixture2 = GroupMixtureOpt(Xstd_train.shape[1:],Kl=r_obs.shape[1],M=M_seted,epochs=1,pre_init=5,optimizer=OPT,dtype_op=DTYPE_OP) 
-    gMixture2.define_model("mlp",8,1,BatchN=False,drop=0.2)
+    gMixture2.define_model("default cnn")
     gMixture2.lambda_random = True #lambda random
-    logL_hists,i = gMixture2.multiples_run(1,Xstd_train,r_obs,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL*2
+    logL_hists,i = gMixture2.multiples_run(1,Xstd_train,r_obs,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL
                                        ,cluster=True,bulk_annotators=[y_obs_categorical,annotators_pca])
     print("Trained model over Ours (2)")
     
     gMixture3 = GroupMixtureOpt(Xstd_train.shape[1:],Kl=r_obs.shape[1],M=M_seted,epochs=1,pre_init=5,optimizer=OPT,dtype_op=DTYPE_OP) 
-    gMixture3.define_model("mlp",8,1,BatchN=False,drop=0.2)
+    gMixture3.define_model("default cnn")
     gMixture3.lambda_random = True #with lambda random --necessary
-    logL_hists,i = gMixture3.multiples_run(1,Xstd_train,r_obs,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL*2
+    logL_hists,i = gMixture3.multiples_run(1,Xstd_train,r_obs,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL
                                    ,cluster=True)
     print("Trained model over Ours (3)")
 
@@ -241,10 +241,13 @@ for _ in range(20): #repetitions
     prob_Yzt = get_confusionM(Z_train_p,y_obs_categorical)
     Z_train_pred = Z_train_p.argmax(axis=1)
     results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix)
+    prob_Yzt = np.tile(confusion_matrix(y_true=Z_train,y_pred=Z_train_pred), (T,1,1) )
+    results1_A = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix)
     Z_test_pred = evaluate.tested_model.predict_classes(Xstd_test)
     results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred)
     
     results_softmv_train += results1
+    results_softmv_train_A += results1_A
     results_softmv_test += results2
 
     evaluate = Evaluation_metrics(model_mvhard,'keras',Xstd_train.shape[0],plot=False)
@@ -252,16 +255,18 @@ for _ in range(20): #repetitions
     prob_Yzt = get_confusionM(Z_train_p,y_obs_categorical)
     Z_train_pred = Z_train_p.argmax(axis=1)
     results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix)
+    prob_Yzt = np.tile(confusion_matrix(y_true=Z_train,y_pred=Z_train_pred), (T,1,1) )
+    results1_A = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix)
     Z_test_pred = evaluate.tested_model.predict_classes(Xstd_test)
     results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred)
     
     results_hardmv_train += results1
+    results_hardmv_train_A += results1_A
     results_hardmv_test += results2
 
     evaluate = Evaluation_metrics(model_ds,'keras',Xstd_train.shape[0],plot=False)
-    Z_train_p = evaluate.tested_model.predict(Xstd_train)
-    prob_Yzt = get_confusionM(Z_train_p,y_obs_categorical)
-    Z_train_pred = Z_train_p.argmax(axis=1)
+    Z_train_pred = evaluate.tested_model.predict_classes(Xstd_train)
+    prob_Yzt = ds_conf
     results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix)
     Z_test_pred = evaluate.tested_model.predict_classes(Xstd_test)
     results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred)
@@ -343,34 +348,35 @@ for _ in range(20): #repetitions
     
     print("All Performance Measured")
     
-del GenerateData
 gc.collect()
 
 #plot measures    
-get_mean_dataframes(results_softmv_train).to_csv("synthetic_softMV_train_s"+str(scenario)+".csv",index=False)
-get_mean_dataframes(results_softmv_test).to_csv("synthetic_softMV_test_s"+str(scenario)+".csv",index=False)
+get_mean_dataframes(results_softmv_train).to_csv("simCIFAR_softMV_train_s"+str(scenario)+".csv",index=False)
+get_mean_dataframes(results_softmv_train_A).to_csv("simCIFAR_softMV_trainG_s"+str(scenario)+".csv",index=False)
+get_mean_dataframes(results_softmv_test).to_csv("simCIFAR_softMV_test_s"+str(scenario)+".csv",index=False)
 
-get_mean_dataframes(results_hardmv_train).to_csv("synthetic_hardMV_train_s"+str(scenario)+".csv",index=False)
-get_mean_dataframes(results_hardmv_test).to_csv("synthetic_hardMV_test_s"+str(scenario)+".csv",index=False)
+get_mean_dataframes(results_hardmv_train).to_csv("simCIFAR_hardMV_train_s"+str(scenario)+".csv",index=False)
+get_mean_dataframes(results_hardmv_train_A).to_csv("simCIFAR_hardMV_trainG_s"+str(scenario)+".csv",index=False)
+get_mean_dataframes(results_hardmv_test).to_csv("simCIFAR_hardMV_test_s"+str(scenario)+".csv",index=False)
 
-get_mean_dataframes(results_ds_train).to_csv("synthetic_DS_train_s"+str(scenario)+".csv",index=False)
-get_mean_dataframes(results_ds_test).to_csv("synthetic_DS_test_s"+str(scenario)+".csv",index=False)
+get_mean_dataframes(results_ds_train).to_csv("simCIFAR_DS_train_s"+str(scenario)+".csv",index=False)
+get_mean_dataframes(results_ds_test).to_csv("simCIFAR_DS_test_s"+str(scenario)+".csv",index=False)
 
-get_mean_dataframes(results_raykar_train).to_csv("synthetic_Raykar_train_s"+str(scenario)+".csv",index=False)
-get_mean_dataframes(results_raykar_trainA).to_csv("synthetic_Raykar_trainAnn_s"+str(scenario)+".csv",index=False)
-get_mean_dataframes(results_raykar_test).to_csv("synthetic_Raykar_test_s"+str(scenario)+".csv",index=False)
+get_mean_dataframes(results_raykar_train).to_csv("simCIFAR_Raykar_train_s"+str(scenario)+".csv",index=False)
+get_mean_dataframes(results_raykar_trainA).to_csv("simCIFAR_Raykar_trainAnn_s"+str(scenario)+".csv",index=False)
+get_mean_dataframes(results_raykar_test).to_csv("simCIFAR_Raykar_test_s"+str(scenario)+".csv",index=False)
 
-get_mean_dataframes(results_ours1_train).to_csv("synthetic_Ours1_train_s"+str(scenario)+".csv",index=False)
-get_mean_dataframes(results_ours1_trainA).to_csv("synthetic_Ours1_trainAnn_s"+str(scenario)+".csv",index=False)
-get_mean_dataframes(results_ours1_test).to_csv("synthetic_Ours1_test_s"+str(scenario)+".csv",index=False)
-get_mean_dataframes(results_ours1_testA).to_csv("synthetic_Ours1_testAux_s"+str(scenario)+".csv",index=False)
+get_mean_dataframes(results_ours1_train).to_csv("simCIFAR_Ours1_train_s"+str(scenario)+".csv",index=False)
+get_mean_dataframes(results_ours1_trainA).to_csv("simCIFAR_Ours1_trainAnn_s"+str(scenario)+".csv",index=False)
+get_mean_dataframes(results_ours1_test).to_csv("simCIFAR_Ours1_test_s"+str(scenario)+".csv",index=False)
+get_mean_dataframes(results_ours1_testA).to_csv("simCIFAR_Ours1_testAux_s"+str(scenario)+".csv",index=False)
 
-get_mean_dataframes(results_ours2_train).to_csv("synthetic_Ours2_train_s"+str(scenario)+".csv",index=False)
-get_mean_dataframes(results_ours2_trainA).to_csv("synthetic_Ours2_trainAnn_s"+str(scenario)+".csv",index=False)
-get_mean_dataframes(results_ours2_test).to_csv("synthetic_Ours2_test_s"+str(scenario)+".csv",index=False)
-get_mean_dataframes(results_ours2_testA).to_csv("synthetic_Ours2_testAux_s"+str(scenario)+".csv",index=False)
+get_mean_dataframes(results_ours2_train).to_csv("simCIFAR_Ours2_train_s"+str(scenario)+".csv",index=False)
+get_mean_dataframes(results_ours2_trainA).to_csv("simCIFAR_Ours2_trainAnn_s"+str(scenario)+".csv",index=False)
+get_mean_dataframes(results_ours2_test).to_csv("simCIFAR_Ours2_test_s"+str(scenario)+".csv",index=False)
+get_mean_dataframes(results_ours2_testA).to_csv("simCIFAR_Ours2_testAux_s"+str(scenario)+".csv",index=False)
 
-get_mean_dataframes(results_ours3_train).to_csv("synthetic_Ours3_train_s"+str(scenario)+".csv",index=False)
-get_mean_dataframes(results_ours3_trainA).to_csv("synthetic_Ours3_trainAnn_s"+str(scenario)+".csv",index=False)
-get_mean_dataframes(results_ours3_test).to_csv("synthetic_Ours3_test_s"+str(scenario)+".csv",index=False)
-get_mean_dataframes(results_ours3_testA).to_csv("synthetic_Ours3_testAux_s"+str(scenario)+".csv",index=False)
+get_mean_dataframes(results_ours3_train).to_csv("simCIFAR_Ours3_train_s"+str(scenario)+".csv",index=False)
+get_mean_dataframes(results_ours3_trainA).to_csv("simCIFAR_Ours3_trainAnn_s"+str(scenario)+".csv",index=False)
+get_mean_dataframes(results_ours3_test).to_csv("simCIFAR_Ours3_test_s"+str(scenario)+".csv",index=False)
+get_mean_dataframes(results_ours3_testA).to_csv("simCIFAR_Ours3_testAux_s"+str(scenario)+".csv",index=False)
