@@ -13,12 +13,13 @@ from .learning_models import default_CNN,default_RNN,default_RNNw_emb,CNN_simple
 from .representation import *
 from .utils import softmax
 
-def aux_clusterize_annotators(data_to_cluster,M,DTYPE_OP='float32',option="softmax inv",l=0.005):
+def aux_clusterize_annotators(data_to_cluster,M,DTYPE_OP='float32',option="fuzzy",l=0.005):
     """ Get p(g=m|t)  based on a proyection of the annotator "t"  """
     std = StandardScaler()
-    data_to_cluster = std.fit_transform(data_to_cluster)
+    data_to_cluster = std.fit_transform(data_to_cluster) #sacar
         
-    kmeans = KMeans(M,init='k-means++', n_jobs=-1,random_state=0)  #MiniBatchKMeans(n_clusters=M, random_state=0,init='k-means++',batch_size=128)
+    kmeans = MiniBatchKMeans(n_clusters=M, random_state=0,init='k-means++',batch_size=128)
+    #KMeans(M,init='k-means++', n_jobs=-1,random_state=0)
     kmeans.fit(data_to_cluster)
     distances = kmeans.transform(data_to_cluster)
 
@@ -26,7 +27,7 @@ def aux_clusterize_annotators(data_to_cluster,M,DTYPE_OP='float32',option="softm
         probas_t = np.zeros_like(distances,dtype=DTYPE_OP)
         for t in range(probas_t.shape[0]):
             for m in range(probas_t.shape[1]):
-                m_fuzzy = 1.2
+                m_fuzzy = 1.1
                 probas_t[t,m] = 1/np.sum( (distances[t,m]/(distances[t,:]+keras.backend.epsilon()))**(2/(m_fuzzy-1)) )
     elif option == "softmax":
         probas_t = softmax(-(distances+keras.backend.epsilon())/l).astype(DTYPE_OP)
@@ -40,7 +41,7 @@ def aux_clusterize_annotators(data_to_cluster,M,DTYPE_OP='float32',option="softm
         #probas_t = model.predict_proba(data_to_cluster).astype(DTYPE_OP)
     return probas_t
             
-def clusterize_annotators(y_o,M,no_label=-1,bulk=True,cluster_type='loss',data=[],model=None,DTYPE_OP='float32',BATCH_SIZE=64,option="softmax inv",l=0.005):
+def clusterize_annotators(y_o,M,no_label=-1,bulk=True,cluster_type='loss',data=[],model=None,DTYPE_OP='float32',BATCH_SIZE=64,option="fuzzy",l=0.005):
     if bulk: 
         if len(y_o.shape) == 2:
             M_itj = categorical_representation(y_o,no_label =no_label)
@@ -93,7 +94,8 @@ def project_and_cluster(y_o,M_to_try=20,anothers_visions=True,DTYPE_OP='float32'
     K = np.max(y_o)+1    
     data_to_cluster = M_itj.transpose(1,0,2).reshape(M_itj.shape[1],M_itj.shape[0]*M_itj.shape[2])
 
-    kpca_model = KernelPCA(n_components=8, kernel='rbf', n_jobs=-1) #componentes a proyectar?
+    #kpca_model = KernelPCA(n_components=4, kernel='rbf', n_jobs=-1) #componentes a proyectar?
+    kpca_model = PCA(n_components=4)
     plot_data = kpca_model.fit_transform(data_to_cluster).astype(DTYPE_OP)
     to_return = [plot_data]
     
