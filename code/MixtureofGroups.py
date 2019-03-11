@@ -2,7 +2,7 @@ import numpy as np
 from scipy.stats import entropy
 from sklearn.decomposition import KernelPCA
 from sklearn.mixture import BayesianGaussianMixture, GaussianMixture
-from sklearn.cluster import DBSCAN,AffinityPropagation, MiniBatchKMeans
+from sklearn.cluster import DBSCAN,AffinityPropagation, MiniBatchKMeans, KMeans
 from sklearn.preprocessing import StandardScaler
 from sklearn import metrics
 from sklearn.metrics import f1_score
@@ -13,12 +13,12 @@ from .learning_models import default_CNN,default_RNN,default_RNNw_emb,CNN_simple
 from .representation import *
 from .utils import softmax
 
-def aux_clusterize_annotators(data_to_cluster,M,DTYPE_OP='float32',option="softmax",l=0.05):
+def aux_clusterize_annotators(data_to_cluster,M,DTYPE_OP='float32',option="softmax inv",l=0.005):
     """ Get p(g=m|t)  based on a proyection of the annotator "t"  """
     std = StandardScaler()
     data_to_cluster = std.fit_transform(data_to_cluster)
         
-    kmeans = MiniBatchKMeans(n_clusters=M, random_state=0,init='k-means++',batch_size=128)
+    kmeans = KMeans(M,init='k-means++', n_jobs=-1,random_state=0)  #MiniBatchKMeans(n_clusters=M, random_state=0,init='k-means++',batch_size=128)
     kmeans.fit(data_to_cluster)
     distances = kmeans.transform(data_to_cluster)
 
@@ -26,7 +26,7 @@ def aux_clusterize_annotators(data_to_cluster,M,DTYPE_OP='float32',option="softm
         probas_t = np.zeros_like(distances,dtype=DTYPE_OP)
         for t in range(probas_t.shape[0]):
             for m in range(probas_t.shape[1]):
-                m_fuzzy = 2
+                m_fuzzy = 1.2
                 probas_t[t,m] = 1/np.sum( (distances[t,m]/(distances[t,:]+keras.backend.epsilon()))**(2/(m_fuzzy-1)) )
     elif option == "softmax":
         probas_t = softmax(-(distances+keras.backend.epsilon())/l).astype(DTYPE_OP)
@@ -40,12 +40,12 @@ def aux_clusterize_annotators(data_to_cluster,M,DTYPE_OP='float32',option="softm
         #probas_t = model.predict_proba(data_to_cluster).astype(DTYPE_OP)
     return probas_t
             
-def clusterize_annotators(y_o,M,no_label=-1,bulk=True,cluster_type='loss',data=[],model=None,DTYPE_OP='float32',BATCH_SIZE=64,option="softmax",l=0.05):
+def clusterize_annotators(y_o,M,no_label=-1,bulk=True,cluster_type='loss',data=[],model=None,DTYPE_OP='float32',BATCH_SIZE=64,option="softmax inv",l=0.005):
     if bulk: 
         if len(y_o.shape) == 2:
             M_itj = categorical_representation(y_o,no_label =no_label)
         else:
-            M_itj = y_o
+            M_itj = y_o.copy()
         mask_nan = M_itj.sum(axis=1,keepdims=True) == 0
         mask_nan = np.tile(mask_nan,(1,M_itj.shape[1],1))
         M_itj[mask_nan] = 1
@@ -53,7 +53,7 @@ def clusterize_annotators(y_o,M,no_label=-1,bulk=True,cluster_type='loss',data=[
         M_itj_norm = M_itj_norm.astype(DTYPE_OP)
         
         if len(data) != 0:
-            data_to_cluster = data #annotators_pca
+            data_to_cluster = data.copy() #annotators_pca
         else:
             data_to_cluster = M_itj.transpose(1,0,2).reshape(M_itj.shape[1],M_itj.shape[0]*M_itj.shape[2])
             
@@ -84,39 +84,36 @@ def clusterize_annotators(y_o,M,no_label=-1,bulk=True,cluster_type='loss',data=[
         alphas_init = probas_t.reshape(mv_hard.shape[0],mv_hard.shape[1],M)
     return alphas_init
 
-def project_and_cluster(y_o,M_to_try=20,anothers_visions=True,return_projected=True,DTYPE_OP='float32'):
+def project_and_cluster(y_o,M_to_try=20,anothers_visions=True,DTYPE_OP='float32',printed=True):
     ###another way to cluster..
     if len(y_o.shape) == 2:
         M_itj = categorical_representation(y_o,no_label =-1)
     else:
-        M_itj = y_o
+        M_itj = y_o.copy()
     K = np.max(y_o)+1    
     data_to_cluster = M_itj.transpose(1,0,2).reshape(M_itj.shape[1],M_itj.shape[0]*M_itj.shape[2])
-    #normalize?
-    std = StandardScaler()
-    data_to_cluster = std.fit_transform(data_to_cluster)
-    
-    kpca_model = KernelPCA(n_components=4, kernel='rbf', n_jobs=-1) #componentes a proyectar?
-    plot_data = kpca_model.fit_transform(data_to_cluster).astype(DTYPE_OP)
 
-    model = BayesianGaussianMixture(n_components=M_to_try,max_iter=200)
-    model.fit(plot_data)
-    M_founded = len(set(np.argmax(model.predict_proba(plot_data),axis=1))) 
-    print("Bayesian gaussian mixture say is %d clusters "%M_founded)
+    kpca_model = KernelPCA(n_components=8, kernel='rbf', n_jobs=-1) #componentes a proyectar?
+    plot_data = kpca_model.fit_transform(data_to_cluster).astype(DTYPE_OP)
+    to_return = [plot_data]
     
-    if anothers_visions:
-        X_sim = metrics.pairwise_distances(plot_data,metric='euclidean',n_jobs=-1)
-        #dos indicadores de numero de cluster
-        model = DBSCAN(eps=np.mean(X_sim), min_samples=5, metric='precomputed', n_jobs=-1)
-        model.fit(X_sim)
-        print("DBSCAN say is %d clusters"%len(set(model.labels_)))
-        model = AffinityPropagation(affinity='precomputed')
-        model.fit(X_sim)
-        print("Affinity Propagation say is %d clusters"%len(set(model.labels_)))
-    
-    to_return = [M_founded]        
-    if return_projected:
-        to_return.append(plot_data)
+    if printed:
+        model = BayesianGaussianMixture(n_components=M_to_try)
+        model.fit(plot_data)
+        M_founded = len(set(np.argmax(model.predict_proba(plot_data),axis=1))) 
+        print("Bayesian gaussian mixture say is %d clusters "%M_founded)
+
+        if anothers_visions:
+            X_sim = metrics.pairwise_distances(plot_data,metric='euclidean',n_jobs=-1)
+            #dos indicadores de numero de cluster
+            model = DBSCAN(eps=np.mean(X_sim), min_samples=5, metric='precomputed', n_jobs=-1)
+            model.fit(X_sim)
+            print("DBSCAN say is %d clusters"%len(set(model.labels_)))
+            model = AffinityPropagation(affinity='precomputed')
+            model.fit(X_sim)
+            print("Affinity Propagation say is %d clusters"%len(set(model.labels_)))
+
+        to_return.append( M_founded )
     return to_return
 
 

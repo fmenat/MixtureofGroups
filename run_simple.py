@@ -101,16 +101,15 @@ GenerateData = SinteticData()
 
 #CONFUSION MATRIX CHOOSE
 if scenario == 1 or scenario == 3 or scenario == 4 or scenario == 5 or scenario == 6:
-    GenerateData.set_probas(asfile=True,file_matrix=path+'/synthetic/simple/matrix_datasim_normal.csv',file_groups =path+'/synthetic/simple/groups_datasim.csv')
+    GenerateData.set_probas(asfile=True,file_matrix=path+'/synthetic/simple/matrix_datasim_normal.csv',file_groups =path+'/synthetic/simple/groups_datasim_normal.csv')
 
 elif scenario == 2 or scenario == 7: #bad MV
-    GenerateData.set_probas(asfile=True,file_matrix=path+'/synthetic/simple/matrix_datasim_badMV.csv',file_groups =path+'/synthetic/simple/groups_datasim.csv')
+    GenerateData.set_probas(asfile=True,file_matrix=path+'/synthetic/simple/matrix_datasim_badMV.csv',file_groups =path+'/synthetic/simple/groups_datasim_badMV.csv')
 
 real_conf_matrix = GenerateData.conf_matrix.copy()
 
-
 #ANNOTATOR DENSITY CHOOSE
-if scenario == 1 or scenario ==2 or scneario == 3:
+if scenario == 1 or scenario ==2 or scenario == 3:
     Tmax = 100
     T_data = 10 
     
@@ -149,7 +148,7 @@ results_ours3_trainA = []
 results_ours3_test = []
 results_ours3_testA = []
 
-for _ in range(5): #repetitions
+for _ in range(20): #repetitions
     print("New Synthetic data is being generated...",flush=True,end='')
     if scenario == 3: #soft
         y_obs, groups_annot = GenerateData.sintetic_annotate_data(Z_train,Tmax,T_data,deterministic=False,hard=False)
@@ -180,17 +179,17 @@ for _ in range(5): #repetitions
         
     model_mvsoft = clone_model(model_UB) 
     model_mvsoft.compile(loss='categorical_crossentropy',optimizer=OPT)
-    model_mvsoft.fit(Xstd_train, mv_probas, epochs=EPOCHS_BASE,batch_size=BATCH_SIZE,verbose=0)
+    model_mvsoft.fit(Xstd_train, mv_probas, epochs=EPOCHS_BASE,batch_size=BATCH_SIZE,verbose=0,callbacks=[ourCallback])
     print("Trained model over soft-MV")
 
     model_mvhard = clone_model(model_UB) 
     model_mvhard.compile(loss='categorical_crossentropy',optimizer=OPT)
-    model_mvhard.fit(Xstd_train, mv_onehot, epochs=EPOCHS_BASE,batch_size=BATCH_SIZE,verbose=0)
+    model_mvhard.fit(Xstd_train, mv_onehot, epochs=EPOCHS_BASE,batch_size=BATCH_SIZE,verbose=0,callbacks=[ourCallback])
     print("Trained model over hard-MV")
 
     model_ds = clone_model(model_UB) 
     model_ds.compile(loss='categorical_crossentropy',optimizer=OPT)
-    model_ds.fit(Xstd_train, ds_labels, epochs=EPOCHS_BASE,batch_size=BATCH_SIZE,verbose=0)
+    model_ds.fit(Xstd_train, ds_labels, epochs=EPOCHS_BASE,batch_size=BATCH_SIZE,verbose=0,callbacks=[ourCallback])
     print("Trained model over D&S")
 
     #get representation needed for Raykar
@@ -207,7 +206,7 @@ for _ in range(5): #repetitions
     print("shape:",r_obs.shape)
     
     #pre analysis
-    M_ffff,annotators_pca = project_and_cluster(y_obs_categorical,return_projected=True,DTYPE_OP=DTYPE_OP)
+    annotators_pca = project_and_cluster(y_obs_categorical,DTYPE_OP=DTYPE_OP,printed=False)[0]
     print("Annotators PCA of annotations shape: ",annotators_pca.shape)
 
     aux = [entropy(example)/np.log(r_obs.shape[1]) for example in mv_probas]
@@ -353,9 +352,6 @@ get_mean_dataframes(results_softmv_test).to_csv("synthetic_softMV_test_s"+str(sc
 
 get_mean_dataframes(results_hardmv_train).to_csv("synthetic_hardMV_train_s"+str(scenario)+".csv",index=False)
 get_mean_dataframes(results_hardmv_test).to_csv("synthetic_hardMV_test_s"+str(scenario)+".csv",index=False)
-
-get_mean_dataframes(results_ds_train).to_csv("synthetic_DS_train_s"+str(scenario)+".csv",index=False)
-get_mean_dataframes(results_ds_test).to_csv("synthetic_DS_test_s"+str(scenario)+".csv",index=False)
 
 get_mean_dataframes(results_ds_train).to_csv("synthetic_DS_train_s"+str(scenario)+".csv",index=False)
 get_mean_dataframes(results_ds_test).to_csv("synthetic_DS_test_s"+str(scenario)+".csv",index=False)

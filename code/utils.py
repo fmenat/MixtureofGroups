@@ -6,15 +6,9 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from scipy.stats import entropy
 
-#def fill_true_identity(matrix):
-#    """ Fill diagonal entries of one confusion matrix"""
-#    indexs = np.arange(matrix.shape[1])
-#    for i,row in enumerate(matrix):
-#        matrix[i,i] = 1-np.sum(matrix[i][np.delete(indexs,i)]) #fill diagonal to sum 1
-
 def get_confusionM(pred,y_ann):
     aux = np.tensordot(pred, y_ann, axes=[[0],[0]]).transpose(1,0,2)
-    return aux/ np.sum(aux, axis=-1)[:,:,None] #normalize
+    return aux/np.sum(aux, axis=-1)[:,:,None] #normalize
 
 def plot_confusion_matrix(conf, classes,title="Estimated",text=True):
     """
