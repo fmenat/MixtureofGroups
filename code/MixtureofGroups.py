@@ -13,7 +13,7 @@ from .learning_models import default_CNN,default_RNN,default_RNNw_emb,CNN_simple
 from .representation import *
 from .utils import softmax
 
-def aux_clusterize_annotators(data_to_cluster,M,DTYPE_OP='float32',option="fuzzy",l=0.005):
+def aux_clusterize_annotators(data_to_cluster,M,DTYPE_OP='float32',option="softmax inv",l=0.005):
     """ Get p(g=m|t)  based on a proyection of the annotator "t"  """
     std = StandardScaler()
     data_to_cluster = std.fit_transform(data_to_cluster) #sacar
@@ -41,7 +41,7 @@ def aux_clusterize_annotators(data_to_cluster,M,DTYPE_OP='float32',option="fuzzy
         #probas_t = model.predict_proba(data_to_cluster).astype(DTYPE_OP)
     return probas_t
             
-def clusterize_annotators(y_o,M,no_label=-1,bulk=True,cluster_type='loss',data=[],model=None,DTYPE_OP='float32',BATCH_SIZE=64,option="fuzzy",l=0.005):
+def clusterize_annotators(y_o,M,no_label=-1,bulk=True,cluster_type='loss',data=[],model=None,DTYPE_OP='float32',BATCH_SIZE=64,option="softmax inv",l=0.005):
     if bulk: 
         if len(y_o.shape) == 2:
             M_itj = categorical_representation(y_o,no_label =no_label)
