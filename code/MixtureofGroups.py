@@ -28,7 +28,7 @@ def aux_clusterize_annotators(data_to_cluster,M,DTYPE_OP='float32',option="fuzzy
         for t in range(probas_t.shape[0]):
             for m in range(probas_t.shape[1]):
                 m_fuzzy = 1.1
-                probas_t[t,m] = 1/(np.sum( (distances[t,m]/(distances[t,:]+keras.backend.epsilon()))**(2/(m_fuzzy-1)) ) + keras.backend.epsilon())
+                probas_t[t,m] = 1/(np.sum( np.power((distances[t,m]/(distances[t,:]+keras.backend.epsilon())), 2/(m_fuzzy-1) ) + keras.backend.epsilon())
     elif option == "softmax":
         probas_t = softmax(-(distances+keras.backend.epsilon())/l).astype(DTYPE_OP)
     elif option == "softmax inv":
