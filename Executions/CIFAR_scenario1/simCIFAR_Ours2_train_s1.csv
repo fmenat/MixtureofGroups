@@ -1,0 +1,2 @@
+,Accuracy,F1 (micro),Average KL,Average PearsonCorr,Average RMSE
+Global,0.85882,0.85882,0.2900037813717616,-0.420840675956092,0.04318148041725528

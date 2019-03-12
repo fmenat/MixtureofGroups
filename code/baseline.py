@@ -39,7 +39,7 @@ class LabelInference(object): #no predictive model
         
     def DS_labels(self):
         # https://github.com/dallascard/dawid_skene
-        aux = dawid_skene.run(self.annotations,tol=self.Tol, max_iter=100, init='average')
+        aux = dawid_skene.run(self.annotations,tol=self.Tol, max_iter=50, init='average')
         (_, _, _, _, class_marginals, error_rates, groundtruth_estimate) = aux
         return groundtruth_estimate, error_rates
     

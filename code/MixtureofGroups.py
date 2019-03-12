@@ -43,6 +43,7 @@ def aux_clusterize_annotators(data_to_cluster,M,DTYPE_OP='float32',option="softm
     return probas_t
             
 def clusterize_annotators(y_o,M,no_label=-1,bulk=True,cluster_type='loss',data=[],model=None,DTYPE_OP='float32',BATCH_SIZE=64,option="softmax inv",l=0.005):
+    start_time = time.time()
     if bulk: 
         if len(y_o.shape) == 2:
             M_itj = categorical_representation(y_o,no_label =no_label)
@@ -70,7 +71,7 @@ def clusterize_annotators(y_o,M,no_label=-1,bulk=True,cluster_type='loss',data=[
         aux_model = keras.models.clone_model(model)
         aux_model.compile(loss='categorical_crossentropy',optimizer=model.optimizer)
         aux_model.fit(data, mv_hard, batch_size=BATCH_SIZE,epochs=30,verbose=0)
-        predicted = aux_model.predict(data)
+        predicted = aux_model.predict(data,verbose=0)
         data_to_cluster = []
         if cluster_type=='loss': #cluster respecto to loss function
             for i in range(mv_hard.shape[0]):
@@ -84,6 +85,7 @@ def clusterize_annotators(y_o,M,no_label=-1,bulk=True,cluster_type='loss',data=[
         probas_t = aux_clusterize_annotators(data_to_cluster,M,DTYPE_OP,option,l)
         print("Clustering Done!")
         alphas_init = probas_t.reshape(mv_hard.shape[0],mv_hard.shape[1],M)
+    print("Get init alphas in %f mins"%((time.time()-start_time)/60.) )
     return alphas_init
 
 def project_and_cluster(y_o,M_to_try=20,anothers_visions=True,DTYPE_OP='float32',printed=True):
@@ -373,7 +375,7 @@ class GroupMixtureOpt(object): #optimized version
         
         if cluster: # do annotator clustering
             if len(bulk_annotators) == 0:
-                alphas_clusterized = clusterize_annotators(r,M=self.M,bulk=False,cluster_type='loss',data=X,model=self.base_model) #clusteriza en base aloss
+                alphas_clusterized = clusterize_annotators(r,M=self.M,bulk=False,cluster_type='loss',data=X,model=self.base_model,DTYPE_OP=self.DTYPE_OP,BATCH_SIZE=batch_size) #clusteriza en base aloss
             else:
                 alphas_clusterized = clusterize_annotators(bulk_annotators[0],M=self.M,no_label=-1,data=bulk_annotators[1])
             self.set_alpha(alphas_clusterized)

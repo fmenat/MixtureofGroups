@@ -64,7 +64,7 @@ ourCallback = EarlyStopRelative(monitor='loss',patience=1,min_delta=TOL)
 #upper bound model
 Z_train_onehot = keras.utils.to_categorical(Z_train)
 
-model_UB = MLP_Keras(Xstd_train.shape[1:],Z_train_onehot.shape[1],8,1,BN=False,drop=0.2)
+model_UB = MLP_Keras(Xstd_train.shape[1:],Z_train_onehot.shape[1],8,1,BN=False,drop=0.2) #what about bn true?
 model_UB.compile(loss='categorical_crossentropy',optimizer=OPT)
 model_UB.fit(Xstd_train,Z_train_onehot,epochs=EPOCHS_BASE,batch_size=BATCH_SIZE,verbose=0,callbacks=[ourCallback])
 

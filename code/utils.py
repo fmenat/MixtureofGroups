@@ -54,7 +54,7 @@ def distance_2_centroid(matrixs):
     """ Calculate inertia of all the confusion matrixs, based on Jensen-Shannon Divergence"""
     value = []
     for m1 in range(matrixs.shape[0]):
-        for m2 in range(m1+1,matrixs.shape[1]):
+        for m2 in range(m1+1,matrixs.shape[0]):
             value.append(JS_confmatrixs(matrixs[m1],matrixs[m2]))
     #center = np.mean(matrixs,axis=0)
     #for m in range(matrixs.shape[0]):
