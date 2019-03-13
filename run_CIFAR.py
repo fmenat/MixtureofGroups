@@ -65,14 +65,15 @@ model_UB.compile(loss='categorical_crossentropy',optimizer=OPT)
 model_UB.fit(Xstd_train,Z_train_onehot,epochs=EPOCHS_BASE,batch_size=BATCH_SIZE,verbose=0,callbacks=[ourCallback])
 
 evaluate = Evaluation_metrics(model_UB,'keras',Xstd_train.shape[0],plot=False)
-Z_train_pred = evaluate.tested_model.predict_classes(Xstd_train,verbose=0)
+Z_train_pred = model_UB.predict_classes(Xstd_train,verbose=0)
 results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred)
-Z_test_pred = evaluate.tested_model.predict_classes(Xstd_test,verbose=0)
+Z_test_pred = model_UB.predict_classes(Xstd_test,verbose=0)
 results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred)
 
 results1[0].to_csv("simCIFAR_UpperBound_train.csv",index=False)
 results2[0].to_csv("simCIFAR_UpperBound_test.csv",index=False)
-
+del evaluate,Z_train_pred,Z_test_pred,results1,results2
+gc.collect()
 
 def get_mean_dataframes(df_values):
     if df_values[0].iloc[:,0].dtype == object:
@@ -244,13 +245,13 @@ for _ in range(10): #repetitions
     ################## MEASURE PERFORMANCE ##################################
     
     evaluate = Evaluation_metrics(model_mvsoft,'keras',Xstd_train.shape[0],plot=False)
-    Z_train_p = evaluate.tested_model.predict(Xstd_train,verbose=0)
+    Z_train_p = model_mvsoft.predict(Xstd_train,verbose=0)
     prob_Yzt = get_confusionM(Z_train_p,y_obs_categorical)
     Z_train_pred = Z_train_p.argmax(axis=1)
     results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix)
     prob_Yzt = np.tile(confusion_matrix(y_true=Z_train,y_pred=Z_train_pred), (T,1,1) )
     results1_A = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix)
-    Z_test_pred = evaluate.tested_model.predict_classes(Xstd_test,verbose=0)
+    Z_test_pred = model_mvsoft.predict_classes(Xstd_test,verbose=0)
     results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred)
     
     results_softmv_train += results1
@@ -258,13 +259,13 @@ for _ in range(10): #repetitions
     results_softmv_test += results2
 
     evaluate = Evaluation_metrics(model_mvhard,'keras',Xstd_train.shape[0],plot=False)
-    Z_train_p = evaluate.tested_model.predict(Xstd_train,verbose=0)
+    Z_train_p = model_mvhard.predict(Xstd_train,verbose=0)
     prob_Yzt = get_confusionM(Z_train_p,y_obs_categorical)
     Z_train_pred = Z_train_p.argmax(axis=1)
     results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix)
     prob_Yzt = np.tile(confusion_matrix(y_true=Z_train,y_pred=Z_train_pred), (T,1,1) )
     results1_A = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix)
-    Z_test_pred = evaluate.tested_model.predict_classes(Xstd_test,verbose=0)
+    Z_test_pred = model_mvhard.predict_classes(Xstd_test,verbose=0)
     results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred)
     
     results_hardmv_train += results1
@@ -272,23 +273,22 @@ for _ in range(10): #repetitions
     results_hardmv_test += results2
 
     evaluate = Evaluation_metrics(model_ds,'keras',Xstd_train.shape[0],plot=False)
-    Z_train_pred = evaluate.tested_model.predict_classes(Xstd_train,verbose=0)
-    prob_Yzt = ds_conf
-    results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix)
-    Z_test_pred = evaluate.tested_model.predict_classes(Xstd_test,verbose=0)
+    Z_train_pred = model_ds.predict_classes(Xstd_train,verbose=0)
+    results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=ds_conf,conf_true=confe_matrix)
+    Z_test_pred = model_ds.predict_classes(Xstd_test,verbose=0)
     results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred)
     
     results_ds_train += results1
     results_ds_test += results2
     
     evaluate = Evaluation_metrics(raykarMC,'raykar',plot=False)
-    Z_train_pred = evaluate.tested_model.predict_classes(Xstd_train,verbose=0)
+    Z_train_pred = raykarMC.base_model.predict_classes(Xstd_train,verbose=0)
     prob_Yzt = raykarMC.get_confusionM()
     prob_Yxt = raykarMC.get_predictions_annot(Xstd_train)
     results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix,y_o=y_obs,yo_pred=prob_Yxt)
     results1_aux = evaluate.calculate_metrics(y_o=y_obs,yo_pred=prob_Yxt)
 
-    Z_test_pred = evaluate.tested_model.predict_classes(Xstd_test,verbose=0)
+    Z_test_pred = raykarMC.base_model.predict_classes(Xstd_test,verbose=0)
     results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred)
     
     results_raykar_train += results1
@@ -298,14 +298,14 @@ for _ in range(10): #repetitions
     evaluate = Evaluation_metrics(gMixture1,'our1',plot=False) 
     aux = gMixture1.calculate_extra_components(Xstd_train,y_obs,T=T,calculate_pred_annotator=True)
     predictions_m,prob_Gt,prob_Yzt,prob_Yxt =  aux #to evaluate...
-    Z_train_pred = evaluate.tested_model.predict_classes(Xstd_train,verbose=0)
+    Z_train_pred = gMixture1.base_model.predict_classes(Xstd_train,verbose=0)
     y_o_groups = predictions_m.argmax(axis=-1)
     results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix,y_o=y_obs,yo_pred=prob_Yxt, y_o_groups=y_o_groups)
     results1_aux = evaluate.calculate_metrics(y_o=y_obs,yo_pred=prob_Yxt)
 
     c_M = gMixture1.get_confusionM()
     y_o_groups = gMixture1.get_predictions_groups(Xstd_test).argmax(axis=-1) #obtain p(y^o|x,g=m) and then argmax
-    Z_test_pred = evaluate.tested_model.predict_classes(Xstd_test,verbose=0)
+    Z_test_pred = gMixture1.base_model.predict_classes(Xstd_test,verbose=0)
     results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred,conf_pred=c_M, y_o_groups=y_o_groups)
     
     results_ours1_train  += results1
@@ -316,14 +316,14 @@ for _ in range(10): #repetitions
     evaluate = Evaluation_metrics(gMixture2,'our1',plot=False) 
     aux = gMixture2.calculate_extra_components(Xstd_train,y_obs,T=T,calculate_pred_annotator=True)
     predictions_m,prob_Gt,prob_Yzt,prob_Yxt =  aux #to evaluate...
-    Z_train_pred = evaluate.tested_model.predict_classes(Xstd_train,verbose=0)
+    Z_train_pred = gMixture2.base_model.predict_classes(Xstd_train,verbose=0)
     y_o_groups = predictions_m.argmax(axis=-1)
     results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix,y_o=y_obs,yo_pred=prob_Yxt, y_o_groups=y_o_groups)
     results1_aux = evaluate.calculate_metrics(y_o=y_obs,yo_pred=prob_Yxt)
 
     c_M = gMixture2.get_confusionM()
     y_o_groups = gMixture2.get_predictions_groups(Xstd_test).argmax(axis=-1) #obtain p(y^o|x,g=m) and then argmax
-    Z_test_pred = evaluate.tested_model.predict_classes(Xstd_test,verbose=0)
+    Z_test_pred = gMixture2.base_model.predict_classes(Xstd_test,verbose=0)
     results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred,conf_pred=c_M, y_o_groups=y_o_groups)
     
     results_ours2_train += results1
@@ -334,14 +334,14 @@ for _ in range(10): #repetitions
     evaluate = Evaluation_metrics(gMixture3,'our1',plot=False) 
     aux = gMixture3.calculate_extra_components(Xstd_train,y_obs,T=T,calculate_pred_annotator=True)
     predictions_m,prob_Gt,prob_Yzt,prob_Yxt =  aux #to evaluate...
-    Z_train_pred = evaluate.tested_model.predict_classes(Xstd_train,verbose=0)
+    Z_train_pred = gMixture3.base_model.predict_classes(Xstd_train,verbose=0)
     y_o_groups = predictions_m.argmax(axis=-1)
     results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix,y_o=y_obs,yo_pred=prob_Yxt, y_o_groups=y_o_groups)
     results1_aux = evaluate.calculate_metrics(y_o=y_obs,yo_pred=prob_Yxt)
 
     c_M = gMixture3.get_confusionM()
     y_o_groups = gMixture3.get_predictions_groups(Xstd_test).argmax(axis=-1) #obtain p(y^o|x,g=m) and then argmax
-    Z_test_pred = evaluate.tested_model.predict_classes(Xstd_test,verbose=0)
+    Z_test_pred = gMixture3.base_model.predict_classes(Xstd_test,verbose=0)
     results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred,conf_pred=c_M, y_o_groups=y_o_groups)
 
     results_ours3_train +=  results1
@@ -350,8 +350,8 @@ for _ in range(10): #repetitions
     results_ours3_test.append(results2[1])
     
     print("All Performance Measured")
-    
-gc.collect()
+    del model_mvsoft,model_mvhard,model_ds
+    gc.collect()
 
 #plot measures    
 get_mean_dataframes(results_softmv_train).to_csv("simCIFAR_softMV_train_s"+str(scenario)+".csv",index=False)

@@ -14,16 +14,16 @@ class Evaluation_metrics(object):
             self.M = class_infered.M
             self.N = class_infered.N
             self.Kl = class_infered.Kl
-            self.tested_model = class_infered.base_model
+            #self.tested_model = class_infered.base_model
         elif self.which == 'keras':
             self.Kl = class_infered.output_shape[-1]
             self.N = N
-            self.tested_model = class_infered
+            #self.tested_model = class_infered
         elif self.which == 'raykar':
             self.T = class_infered.T
             self.Kl = class_infered.Kl
             self.N = class_infered.N
-            self.tested_model = class_infered.base_model
+            #self.tested_model = class_infered.base_model
         #and what about raykar or anothers
 
     def calculate_metrics(self,Z=[],Z_pred=[],y_o=[],yo_pred=[],conf_pred=[],conf_true=[],y_o_groups=[]):

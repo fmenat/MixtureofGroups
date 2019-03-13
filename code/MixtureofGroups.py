@@ -17,7 +17,7 @@ from .utils import softmax
 def aux_clusterize_annotators(data_to_cluster,M,DTYPE_OP='float32',option="softmax inv",l=0.005):
     # Get p(g=m|t)  based on a proyection of the annotator "t" 
     std = StandardScaler()
-    data_to_cluster = std.fit_transform(data_to_cluster) #sacar
+    data_to_cluster = std.fit_transform(data_to_cluster) 
         
     kmeans = MiniBatchKMeans(n_clusters=M, random_state=0,init='k-means++',batch_size=128)
     #KMeans(M,init='k-means++', n_jobs=-1,random_state=0)
@@ -94,13 +94,13 @@ def project_and_cluster(y_o,M_to_try=20,anothers_visions=True,DTYPE_OP='float32'
         M_itj = categorical_representation(y_o,no_label =-1)
     else:
         M_itj = y_o.copy()
-    K = np.max(y_o)+1    
     data_to_cluster = M_itj.transpose(1,0,2).reshape(M_itj.shape[1],M_itj.shape[0]*M_itj.shape[2])
-
+    data_to_cluster = data_to_cluster.astype(DTYPE_OP)
+    
     #kpca_model = KernelPCA(n_components=4, kernel='rbf', n_jobs=-1) #componentes a proyectar?
     #kpca_model = TruncatedSVD(n_components=4)
     kpca_model = PCA(n_components=4)
-    plot_data = kpca_model.fit_transform(data_to_cluster).astype(DTYPE_OP)
+    plot_data = kpca_model.fit_transform(data_to_cluster)
     to_return = [plot_data]
     
     if printed:
@@ -216,9 +216,9 @@ class GroupMixtureOpt(object): #optimized version
         mv_probs = keras.utils.to_categorical(self.mv_probs_j.argmax(axis=1)) # one-hot
         self.base_model.fit(X,mv_probs,batch_size=self.batch_size,epochs=self.pre_init,verbose=0)
         print(" Done!")
-        mv_probs = self.base_model.predict(X,verbose=0) 
+        #mv_probs = self.base_model.predict(X,verbose=0) 
         #reset optimizer but hold weights--necessary for stability 
-        self.base_model.compile(loss='categorical_crossentropy',optimizer=self.optimizer)
+        #self.base_model.compile(loss='categorical_crossentropy',optimizer=self.optimizer)
 
         #-------> Initialize p(z=gamma|xi,y=j,g): Combination of mv and belive observable
         lambda_group = np.ones((self.M),dtype=self.DTYPE_OP) 
@@ -231,7 +231,7 @@ class GroupMixtureOpt(object): #optimized version
             onehot = np.tile(self.Keps, self.Kl)
             onehot[j_ob] = 1. #all belive in the observable
             for m in range(self.M):                
-                Zijm[:,j_ob,m,:] = lambda_group[m]*mv_probs + (1-lambda_group[m])*onehot 
+                Zijm[:,j_ob,m,:] = lambda_group[m]*self.mv_probs_j + (1-lambda_group[m])*onehot 
           
         #-------> init q_ij      
         self.Qij_mgamma = self.alpha_init[:,:,:,None]*Zijm
