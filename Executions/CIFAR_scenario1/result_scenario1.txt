@@ -136,3 +136,1807 @@ Iter 15/50
 M step: done,  E step: done //  (in 11.43 sec)	logL: -879130.907	Tol1: 0.00178	Tol2: 0.03216	Tol3: 0.00130	
 Iter 16/50
 M step: done,  E step: done //  (in 11.46 sec)	logL: -877399.730	Tol1: 0.00197	Tol2: 0.02603	Tol3: 0.00162	
+Finished training!
+Trained model over Ours (3)
+All Performance Measured
+New Synthetic data is being generated...Done! 
+Shape (data,annotators):  (50000, 100)
+Classes:  10
+Representation for Raykar/MV/D&S in 0.181758 mins
+Iter	log-likelihood	delta-CM	delta-ER	delta-LL
+1 	 -737452.0734094534
+2 	 -717185.9097404631 	0.1073	0.345841	0.027481
+3 	 -715838.9015516243 	0.0436	0.105517	0.001878
+4 	 -715660.391870408 	0.0231	0.059695	0.000249
+5 	 -715617.2834239778 	0.0121	0.040550	0.000060
+6 	 -715603.0071604522 	0.0075	0.026845	0.000020
+Class marginals
+[0.1  0.1  0.1  0.09 0.1  0.11 0.1  0.1  0.1  0.1 ]
+ACC MV on train: 0.83262
+Trained model over soft-MV
+Trained model over hard-MV
+Trained model over D&S
+Initializing new EM...
+Betas shape:  (100, 10, 10)
+Q estimate shape:  (50000, 10)
+Iter 1/50 
+M step: done,  E step: done //  (in 17.14 sec)	logL: -729560.312	
+Iter 2/50 
+M step: done,  E step: done //  (in 14.87 sec)	logL: -681748.625	Tol1: 0.06553	Tol2: 0.33344	
+Iter 3/50 
+M step: done,  E step: done //  (in 14.91 sec)	logL: -675313.562	Tol1: 0.00944	Tol2: 0.07811	
+Iter 4/50 
+M step: done,  E step: done //  (in 14.94 sec)	logL: -673175.562	Tol1: 0.00317	Tol2: 0.02962	
+Finished training!
+Trained model over Raykar
+Representation for Our in 0.001176 mins
+shape: (50000, 10)
+Projection of annotations in 0.066758 mins
+Annotators PCA of annotations shape:  (100, 4)
+Clustering Done!
+Get init alphas in 0.012857 mins
+Initializing new EM...
+Pre-train network on 5 epochs... Done!
+Lambda by group:  [1. 1. 1. 1.]
+Alphas:  (4,)
+MV init:  (50000, 10)
+Betas:  (4, 10, 10)
+Q estimate:  (50000, 10, 4, 10)
+Iter 1/50
+M step: done,  E step: done //  (in 13.94 sec)	logL: -942962.382	
+Iter 2/50
+M step: done,  E step: done //  (in 11.80 sec)	logL: -938085.880	Tol1: 0.00517	Tol2: 0.21586	Tol3: 0.04453	
+Iter 3/50
+M step: done,  E step: done //  (in 11.60 sec)	logL: -926484.581	Tol1: 0.01237	Tol2: 0.12190	Tol3: 0.01621	
+Iter 4/50
+M step: done,  E step: done //  (in 11.47 sec)	logL: -917019.345	Tol1: 0.01022	Tol2: 0.07753	Tol3: 0.00391	
+Iter 5/50
+M step: done,  E step: done //  (in 11.72 sec)	logL: -910873.338	Tol1: 0.00670	Tol2: 0.05675	Tol3: 0.00282	
+Iter 6/50
+M step: done,  E step: done //  (in 11.75 sec)	logL: -905582.905	Tol1: 0.00581	Tol2: 0.03817	Tol3: 0.00050	
+Iter 7/50
+M step: done,  E step: done //  (in 11.49 sec)	logL: -901791.379	Tol1: 0.00419	Tol2: 0.02779	Tol3: 0.00067	
+Finished training!
+Trained model over Ours (1)
+Clustering Done!
+Get init alphas in 0.012598 mins
+Initializing new EM...
+Pre-train network on 5 epochs... Done!
+Lambda by group:  [0.96 0.48 0.73 0.89]
+Alphas:  (4,)
+MV init:  (50000, 10)
+Betas:  (4, 10, 10)
+Q estimate:  (50000, 10, 4, 10)
+Iter 1/50
+M step: done,  E step: done //  (in 13.99 sec)	logL: -934462.775	
+Iter 2/50
+M step: done,  E step: done //  (in 11.83 sec)	logL: -914811.643	Tol1: 0.02103	Tol2: 0.15370	Tol3: 0.03520	
+Iter 3/50
+M step: done,  E step: done //  (in 11.59 sec)	logL: -911341.095	Tol1: 0.00379	Tol2: 0.07558	Tol3: 0.01313	
+Iter 4/50
+M step: done,  E step: done //  (in 11.62 sec)	logL: -904112.192	Tol1: 0.00793	Tol2: 0.07608	Tol3: 0.00482	
+Iter 5/50
+M step: done,  E step: done //  (in 11.79 sec)	logL: -897468.695	Tol1: 0.00735	Tol2: 0.06847	Tol3: 0.00321	
+Iter 6/50
+M step: done,  E step: done //  (in 11.79 sec)	logL: -892190.201	Tol1: 0.00588	Tol2: 0.07077	Tol3: 0.00237	
+Iter 7/50
+M step: done,  E step: done //  (in 11.58 sec)	logL: -891162.911	Tol1: 0.00115	Tol2: 0.04006	Tol3: 0.00067	
+Iter 8/50
+M step: done,  E step: done //  (in 11.62 sec)	logL: -889294.434	Tol1: 0.00210	Tol2: 0.04894	Tol3: 0.00132	
+Iter 9/50
+M step: done,  E step: done //  (in 11.62 sec)	logL: -889029.363	Tol1: 0.00030	Tol2: 0.03741	Tol3: 0.00267	
+Iter 10/50
+M step: done,  E step: done //  (in 11.63 sec)	logL: -886039.090	Tol1: 0.00336	Tol2: 0.05640	Tol3: 0.00217	
+Iter 11/50
+M step: done,  E step: done //  (in 11.65 sec)	logL: -883611.528	Tol1: 0.00274	Tol2: 0.04510	Tol3: 0.00030	
+Iter 12/50
+M step: done,  E step: done //  (in 11.56 sec)	logL: -883563.091	Tol1: 0.00005	Tol2: 0.03159	Tol3: 0.00322	
+Iter 13/50
+M step: done,  E step: done //  (in 11.74 sec)	logL: -883523.663	Tol1: 0.00004	Tol2: 0.04095	Tol3: 0.00234	
+Iter 14/50
+M step: done,  E step: done //  (in 11.66 sec)	logL: -880471.558	Tol1: 0.00345	Tol2: 0.04370	Tol3: 0.00129	
+Iter 15/50
+M step: done,  E step: done //  (in 11.55 sec)	logL: -878453.477	Tol1: 0.00229	Tol2: 0.03053	Tol3: 0.00080	
+Iter 16/50
+M step: done,  E step: done //  (in 11.89 sec)	logL: -878448.430	Tol1: 0.00001	Tol2: 0.03746	Tol3: 0.00077	
+Iter 17/50
+M step: done,  E step: done //  (in 11.73 sec)	logL: -883702.983	Tol1: 0.00598	Tol2: 0.03416	Tol3: 0.00073	
+Iter 18/50
+M step: done,  E step: done //  (in 11.87 sec)	logL: -879197.215	Tol1: 0.00510	Tol2: 0.05417	Tol3: 0.00086	
+Iter 19/50
+M step: done,  E step: done //  (in 11.58 sec)	logL: -880931.370	Tol1: 0.00197	Tol2: 0.04579	Tol3: 0.00274	
+Iter 20/50
+M step: done,  E step: done //  (in 11.58 sec)	logL: -876709.112	Tol1: 0.00479	Tol2: 0.06081	Tol3: 0.00138	
+Iter 21/50
+M step: done,  E step: done //  (in 11.59 sec)	logL: -878413.318	Tol1: 0.00194	Tol2: 0.04621	Tol3: 0.00144	
+Iter 22/50
+M step: done,  E step: done //  (in 11.80 sec)	logL: -873968.802	Tol1: 0.00506	Tol2: 0.05022	Tol3: 0.00405	
+Iter 23/50
+M step: done,  E step: done //  (in 11.68 sec)	logL: -872193.488	Tol1: 0.00203	Tol2: 0.03361	Tol3: 0.00137	
+Iter 24/50
+M step: done,  E step: done //  (in 11.69 sec)	logL: -870957.820	Tol1: 0.00142	Tol2: 0.03956	Tol3: 0.00338	
+Iter 25/50
+M step: done,  E step: done //  (in 11.63 sec)	logL: -868812.316	Tol1: 0.00246	Tol2: 0.02244	Tol3: 0.00209	
+Finished training!
+Trained model over Ours (2)
+Clustering Done!
+Get init alphas in 3.820674 mins
+Initializing new EM...
+Pre-train network on 5 epochs... Done!
+Lambda by group:  [0.77 0.45 0.84 0.61]
+Alphas:  (4,)
+MV init:  (50000, 10)
+Betas:  (4, 10, 10)
+Q estimate:  (50000, 10, 4, 10)
+Iter 1/50
+M step: done,  E step: done //  (in 14.16 sec)	logL: -921874.683	
+Iter 2/50
+M step: done,  E step: done //  (in 11.65 sec)	logL: -912464.156	Tol1: 0.01021	Tol2: 0.11440	Tol3: 0.00661	
+Iter 3/50
+M step: done,  E step: done //  (in 11.75 sec)	logL: -903322.367	Tol1: 0.01002	Tol2: 0.07962	Tol3: 0.00398	
+Iter 4/50
+M step: done,  E step: done //  (in 11.78 sec)	logL: -898594.404	Tol1: 0.00523	Tol2: 0.07330	Tol3: 0.00204	
+Iter 5/50
+M step: done,  E step: done //  (in 11.75 sec)	logL: -896377.945	Tol1: 0.00247	Tol2: 0.08014	Tol3: 0.00564	
+Iter 6/50
+M step: done,  E step: done //  (in 11.77 sec)	logL: -894297.882	Tol1: 0.00232	Tol2: 0.06993	Tol3: 0.01144	
+Iter 7/50
+M step: done,  E step: done //  (in 11.89 sec)	logL: -887994.871	Tol1: 0.00705	Tol2: 0.05777	Tol3: 0.00666	
+Iter 8/50
+M step: done,  E step: done //  (in 11.95 sec)	logL: -888137.742	Tol1: 0.00016	Tol2: 0.05737	Tol3: 0.00166	
+Iter 9/50
+M step: done,  E step: done //  (in 11.82 sec)	logL: -885536.319	Tol1: 0.00293	Tol2: 0.05958	Tol3: 0.00473	
+Iter 10/50
+M step: done,  E step: done //  (in 11.69 sec)	logL: -882760.476	Tol1: 0.00313	Tol2: 0.05279	Tol3: 0.00216	
+Iter 11/50
+M step: done,  E step: done //  (in 11.84 sec)	logL: -878129.766	Tol1: 0.00525	Tol2: 0.06772	Tol3: 0.00099	
+Iter 12/50
+M step: done,  E step: done //  (in 11.67 sec)	logL: -875148.814	Tol1: 0.00339	Tol2: 0.05176	Tol3: 0.00227	
+Iter 13/50
+M step: done,  E step: done //  (in 11.86 sec)	logL: -872722.815	Tol1: 0.00277	Tol2: 0.05208	Tol3: 0.00509	
+Iter 14/50
+M step: done,  E step: done //  (in 11.87 sec)	logL: -871695.399	Tol1: 0.00118	Tol2: 0.03968	Tol3: 0.00420	
+Iter 15/50
+M step: done,  E step: done //  (in 11.61 sec)	logL: -875255.522	Tol1: 0.00408	Tol2: 0.02987	Tol3: 0.00360	
+Finished training!
+Trained model over Ours (3)
+All Performance Measured
+New Synthetic data is being generated...Done! 
+Shape (data,annotators):  (50000, 100)
+Classes:  10
+Representation for Raykar/MV/D&S in 0.173916 mins
+Iter	log-likelihood	delta-CM	delta-ER	delta-LL
+1 	 -740254.3217812751
+2 	 -720515.9482022431 	0.1194	0.348129	0.026664
+3 	 -719128.618493952 	0.0429	0.111134	0.001925
+4 	 -718935.2845439623 	0.0242	0.061530	0.000269
+5 	 -718885.1997673194 	0.0137	0.041589	0.000070
+6 	 -718867.6086156224 	0.0085	0.027715	0.000024
+Class marginals
+[0.1  0.1  0.1  0.09 0.1  0.11 0.1  0.1  0.1  0.1 ]
+ACC MV on train: 0.82396
+Trained model over soft-MV
+Trained model over hard-MV
+Trained model over D&S
+Initializing new EM...
+Betas shape:  (100, 10, 10)
+Q estimate shape:  (50000, 10)
+Iter 1/50 
+M step: done,  E step: done //  (in 18.13 sec)	logL: -732002.500	
+Iter 2/50 
+M step: done,  E step: done //  (in 15.32 sec)	logL: -686757.312	Tol1: 0.06181	Tol2: 0.33419	
+Iter 3/50 
+M step: done,  E step: done //  (in 15.38 sec)	logL: -679976.375	Tol1: 0.00987	Tol2: 0.07708	
+Iter 4/50 
+M step: done,  E step: done //  (in 15.55 sec)	logL: -677860.062	Tol1: 0.00311	Tol2: 0.03342	
+Iter 5/50 
+M step: done,  E step: done //  (in 15.62 sec)	logL: -678105.562	Tol1: 0.00036	Tol2: 0.02401	
+Finished training!
+Trained model over Raykar
+Representation for Our in 0.001179 mins
+shape: (50000, 10)
+Projection of annotations in 0.067116 mins
+Annotators PCA of annotations shape:  (100, 4)
+Clustering Done!
+Get init alphas in 0.011761 mins
+Initializing new EM...
+Pre-train network on 5 epochs... Done!
+Lambda by group:  [1. 1. 1. 1.]
+Alphas:  (4,)
+MV init:  (50000, 10)
+Betas:  (4, 10, 10)
+Q estimate:  (50000, 10, 4, 10)
+Iter 1/50
+M step: done,  E step: done //  (in 14.72 sec)	logL: -950018.689	
+Iter 2/50
+M step: done,  E step: done //  (in 12.00 sec)	logL: -928982.103	Tol1: 0.02214	Tol2: 0.20563	Tol3: 0.04414	
+Iter 3/50
+M step: done,  E step: done //  (in 11.79 sec)	logL: -926708.977	Tol1: 0.00245	Tol2: 0.08199	Tol3: 0.01299	
+Iter 4/50
+M step: done,  E step: done //  (in 12.01 sec)	logL: -921107.530	Tol1: 0.00604	Tol2: 0.06102	Tol3: 0.00578	
+Iter 5/50
+M step: done,  E step: done //  (in 11.91 sec)	logL: -932513.273	Tol1: 0.01238	Tol2: 0.06668	Tol3: 0.00148	
+Iter 6/50
+M step: done,  E step: done //  (in 11.78 sec)	logL: -926169.604	Tol1: 0.00680	Tol2: 0.09509	Tol3: 0.00346	
+Iter 7/50
+M step: done,  E step: done //  (in 12.11 sec)	logL: -917582.350	Tol1: 0.00927	Tol2: 0.04000	Tol3: 0.00065	
+Iter 8/50
+M step: done,  E step: done //  (in 11.99 sec)	logL: -911163.241	Tol1: 0.00700	Tol2: 0.05264	Tol3: 0.00168	
+Iter 9/50
+M step: done,  E step: done //  (in 11.79 sec)	logL: -908614.520	Tol1: 0.00280	Tol2: 0.03340	Tol3: 0.00256	
+Iter 10/50
+M step: done,  E step: done //  (in 11.86 sec)	logL: -908288.592	Tol1: 0.00036	Tol2: 0.03055	Tol3: 0.00060	
+Iter 11/50
+M step: done,  E step: done //  (in 11.74 sec)	logL: -906017.225	Tol1: 0.00250	Tol2: 0.02430	Tol3: 0.00050	
+Finished training!
+Trained model over Ours (1)
+Clustering Done!
+Get init alphas in 0.011759 mins
+Initializing new EM...
+Pre-train network on 5 epochs... Done!
+Lambda by group:  [0.17 0.73 0.67 0.69]
+Alphas:  (4,)
+MV init:  (50000, 10)
+Betas:  (4, 10, 10)
+Q estimate:  (50000, 10, 4, 10)
+Iter 1/50
+M step: done,  E step: done //  (in 14.88 sec)	logL: -939826.781	
+Iter 2/50
+M step: done,  E step: done //  (in 12.01 sec)	logL: -929238.094	Tol1: 0.01127	Tol2: 0.11558	Tol3: 0.01349	
+Iter 3/50
+M step: done,  E step: done //  (in 12.04 sec)	logL: -930459.820	Tol1: 0.00131	Tol2: 0.09261	Tol3: 0.00190	
+Iter 4/50
+M step: done,  E step: done //  (in 11.79 sec)	logL: -916129.741	Tol1: 0.01540	Tol2: 0.20570	Tol3: 0.02136	
+Iter 5/50
+M step: done,  E step: done //  (in 11.87 sec)	logL: -913045.718	Tol1: 0.00337	Tol2: 0.08474	Tol3: 0.00300	
+Iter 6/50
+M step: done,  E step: done //  (in 11.85 sec)	logL: -906440.556	Tol1: 0.00723	Tol2: 0.11320	Tol3: 0.00561	
+Iter 7/50
+M step: done,  E step: done //  (in 11.74 sec)	logL: -917080.245	Tol1: 0.01174	Tol2: 0.06547	Tol3: 0.00536	
+Iter 8/50
+M step: done,  E step: done //  (in 11.88 sec)	logL: -904067.537	Tol1: 0.01419	Tol2: 0.10847	Tol3: 0.00504	
+Iter 9/50
+M step: done,  E step: done //  (in 11.84 sec)	logL: -900766.824	Tol1: 0.00365	Tol2: 0.05627	Tol3: 0.00295	
+Iter 10/50
+M step: done,  E step: done //  (in 11.88 sec)	logL: -909256.956	Tol1: 0.00943	Tol2: 0.04532	Tol3: 0.00274	
+Iter 11/50
+M step: done,  E step: done //  (in 12.13 sec)	logL: -905569.562	Tol1: 0.00406	Tol2: 0.08812	Tol3: 0.00536	
+Iter 12/50
+M step: done,  E step: done //  (in 12.07 sec)	logL: -898325.675	Tol1: 0.00800	Tol2: 0.04674	Tol3: 0.00257	
+Iter 13/50
+M step: done,  E step: done //  (in 12.12 sec)	logL: -892878.578	Tol1: 0.00606	Tol2: 0.06505	Tol3: 0.00353	
+Iter 14/50
+M step: done,  E step: done //  (in 12.05 sec)	logL: -892772.415	Tol1: 0.00012	Tol2: 0.03479	Tol3: 0.00179	
+Iter 15/50
+M step: done,  E step: done //  (in 11.90 sec)	logL: -892058.224	Tol1: 0.00080	Tol2: 0.05176	Tol3: 0.00218	
+Iter 16/50
+M step: done,  E step: done //  (in 12.07 sec)	logL: -889832.236	Tol1: 0.00250	Tol2: 0.03041	Tol3: 0.00371	
+Iter 17/50
+M step: done,  E step: done //  (in 11.90 sec)	logL: -891631.016	Tol1: 0.00202	Tol2: 0.04218	Tol3: 0.00260	
+Iter 18/50
+M step: done,  E step: done //  (in 11.85 sec)	logL: -888517.351	Tol1: 0.00349	Tol2: 0.03626	Tol3: 0.00265	
+Iter 19/50
+M step: done,  E step: done //  (in 11.96 sec)	logL: -884930.883	Tol1: 0.00404	Tol2: 0.02980	Tol3: 0.00148	
+Finished training!
+Trained model over Ours (2)
+Clustering Done!
+Get init alphas in 3.877560 mins
+Initializing new EM...
+Pre-train network on 5 epochs... Done!
+Lambda by group:  [0.64 0.37 0.94 0.88]
+Alphas:  (4,)
+MV init:  (50000, 10)
+Betas:  (4, 10, 10)
+Q estimate:  (50000, 10, 4, 10)
+Iter 1/50
+M step: done,  E step: done //  (in 15.41 sec)	logL: -929853.013	
+Iter 2/50
+M step: done,  E step: done //  (in 11.92 sec)	logL: -923106.013	Tol1: 0.00726	Tol2: 0.11230	Tol3: 0.01817	
+Iter 3/50
+M step: done,  E step: done //  (in 12.19 sec)	logL: -918893.207	Tol1: 0.00456	Tol2: 0.07176	Tol3: 0.00110	
+Iter 4/50
+M step: done,  E step: done //  (in 12.02 sec)	logL: -914208.089	Tol1: 0.00510	Tol2: 0.08847	Tol3: 0.00432	
+Iter 5/50
+M step: done,  E step: done //  (in 11.99 sec)	logL: -914575.311	Tol1: 0.00040	Tol2: 0.05416	Tol3: 0.00869	
+Iter 6/50
+M step: done,  E step: done //  (in 12.06 sec)	logL: -910630.600	Tol1: 0.00431	Tol2: 0.05553	Tol3: 0.00615	
+Iter 7/50
+M step: done,  E step: done //  (in 11.87 sec)	logL: -904783.222	Tol1: 0.00642	Tol2: 0.04726	Tol3: 0.00400	
+Iter 8/50
+M step: done,  E step: done //  (in 11.84 sec)	logL: -906094.326	Tol1: 0.00145	Tol2: 0.04659	Tol3: 0.00144	
+Iter 9/50
+M step: done,  E step: done //  (in 11.85 sec)	logL: -901431.457	Tol1: 0.00515	Tol2: 0.07702	Tol3: 0.00257	
+Iter 10/50
+M step: done,  E step: done //  (in 12.06 sec)	logL: -902774.030	Tol1: 0.00149	Tol2: 0.05054	Tol3: 0.00638	
+Iter 11/50
+M step: done,  E step: done //  (in 12.08 sec)	logL: -901988.041	Tol1: 0.00087	Tol2: 0.05367	Tol3: 0.00341	
+Iter 12/50
+M step: done,  E step: done //  (in 11.99 sec)	logL: -900026.852	Tol1: 0.00217	Tol2: 0.06531	Tol3: 0.01090	
+Iter 13/50
+M step: done,  E step: done //  (in 12.03 sec)	logL: -894338.541	Tol1: 0.00632	Tol2: 0.03443	Tol3: 0.00068	
+Iter 14/50
+M step: done,  E step: done //  (in 12.14 sec)	logL: -891323.659	Tol1: 0.00337	Tol2: 0.02797	Tol3: 0.00297	
+Finished training!
+Trained model over Ours (3)
+All Performance Measured
+New Synthetic data is being generated...Done! 
+Shape (data,annotators):  (50000, 100)
+Classes:  10
+Representation for Raykar/MV/D&S in 0.172954 mins
+Iter	log-likelihood	delta-CM	delta-ER	delta-LL
+1 	 -736058.18920158
+2 	 -714621.9163791579 	0.1011	0.354828	0.029123
+3 	 -713236.0271439143 	0.0430	0.108330	0.001939
+4 	 -713038.7494599906 	0.0227	0.061081	0.000277
+5 	 -712986.5420146213 	0.0128	0.039036	0.000073
+6 	 -712967.8263618302 	0.0077	0.023810	0.000026
+Class marginals
+[0.1  0.1  0.1  0.09 0.1  0.11 0.1  0.1  0.1  0.1 ]
+ACC MV on train: 0.84144
+Trained model over soft-MV
+Trained model over hard-MV
+Trained model over D&S
+Initializing new EM...
+Betas shape:  (100, 10, 10)
+Q estimate shape:  (50000, 10)
+Iter 1/50 
+M step: done,  E step: done //  (in 19.85 sec)	logL: -726685.000	
+Iter 2/50 
+M step: done,  E step: done //  (in 15.47 sec)	logL: -678323.062	Tol1: 0.06655	Tol2: 0.33932	
+Iter 3/50 
+M step: done,  E step: done //  (in 16.03 sec)	logL: -672305.062	Tol1: 0.00887	Tol2: 0.07993	
+Iter 4/50 
+M step: done,  E step: done //  (in 16.33 sec)	logL: -669592.625	Tol1: 0.00403	Tol2: 0.03308	
+Iter 5/50 
+M step: done,  E step: done //  (in 15.69 sec)	logL: -669114.562	Tol1: 0.00071	Tol2: 0.02125	
+Finished training!
+Trained model over Raykar
+Representation for Our in 0.001179 mins
+shape: (50000, 10)
+Projection of annotations in 0.067225 mins
+Annotators PCA of annotations shape:  (100, 4)
+Clustering Done!
+Get init alphas in 0.012398 mins
+Initializing new EM...
+Pre-train network on 5 epochs... Done!
+Lambda by group:  [1. 1. 1. 1.]
+Alphas:  (4,)
+MV init:  (50000, 10)
+Betas:  (4, 10, 10)
+Q estimate:  (50000, 10, 4, 10)
+Iter 1/50
+M step: done,  E step: done //  (in 15.71 sec)	logL: -948660.181	
+Iter 2/50
+M step: done,  E step: done //  (in 12.18 sec)	logL: -921696.783	Tol1: 0.02842	Tol2: 0.19713	Tol3: 0.04174	
+Iter 3/50
+M step: done,  E step: done //  (in 11.94 sec)	logL: -911092.680	Tol1: 0.01150	Tol2: 0.09943	Tol3: 0.01551	
+Iter 4/50
+M step: done,  E step: done //  (in 11.87 sec)	logL: -908689.264	Tol1: 0.00264	Tol2: 0.05563	Tol3: 0.00347	
+Iter 5/50
+M step: done,  E step: done //  (in 12.06 sec)	logL: -903150.054	Tol1: 0.00610	Tol2: 0.06695	Tol3: 0.00627	
+Iter 6/50
+M step: done,  E step: done //  (in 12.11 sec)	logL: -897003.567	Tol1: 0.00681	Tol2: 0.04049	Tol3: 0.00292	
+Iter 7/50
+M step: done,  E step: done //  (in 12.27 sec)	logL: -898491.927	Tol1: 0.00166	Tol2: 0.03376	Tol3: 0.00019	
+Iter 8/50
+M step: done,  E step: done //  (in 12.13 sec)	logL: -891409.018	Tol1: 0.00788	Tol2: 0.04110	Tol3: 0.00122	
+Iter 9/50
+M step: done,  E step: done //  (in 12.25 sec)	logL: -891126.037	Tol1: 0.00032	Tol2: 0.03798	Tol3: 0.00115	
+Iter 10/50
+M step: done,  E step: done //  (in 12.01 sec)	logL: -888542.108	Tol1: 0.00290	Tol2: 0.04239	Tol3: 0.00235	
+Iter 11/50
+M step: done,  E step: done //  (in 11.88 sec)	logL: -892155.031	Tol1: 0.00407	Tol2: 0.03908	Tol3: 0.00177	
+Iter 12/50
+M step: done,  E step: done //  (in 12.15 sec)	logL: -890595.504	Tol1: 0.00175	Tol2: 0.03377	Tol3: 0.00085	
+Iter 13/50
+M step: done,  E step: done //  (in 12.17 sec)	logL: -889643.091	Tol1: 0.00107	Tol2: 0.03730	Tol3: 0.00216	
+Iter 14/50
+M step: done,  E step: done //  (in 12.04 sec)	logL: -885089.498	Tol1: 0.00512	Tol2: 0.05041	Tol3: 0.00250	
+Iter 15/50
+M step: done,  E step: done //  (in 12.01 sec)	logL: -885833.088	Tol1: 0.00084	Tol2: 0.03426	Tol3: 0.00203	
+Iter 16/50
+M step: done,  E step: done //  (in 12.10 sec)	logL: -882195.141	Tol1: 0.00411	Tol2: 0.06505	Tol3: 0.00335	
+Iter 17/50
+M step: done,  E step: done //  (in 11.99 sec)	logL: -879201.234	Tol1: 0.00339	Tol2: 0.04341	Tol3: 0.00105	
+Iter 18/50
+M step: done,  E step: done //  (in 12.22 sec)	logL: -879159.210	Tol1: 0.00005	Tol2: 0.05183	Tol3: 0.00063	
+Iter 19/50
+M step: done,  E step: done //  (in 12.08 sec)	logL: -876984.801	Tol1: 0.00247	Tol2: 0.04420	Tol3: 0.00201	
+Iter 20/50
+M step: done,  E step: done //  (in 12.09 sec)	logL: -875276.562	Tol1: 0.00195	Tol2: 0.04110	Tol3: 0.00263	
+Iter 21/50
+M step: done,  E step: done //  (in 12.07 sec)	logL: -877271.628	Tol1: 0.00228	Tol2: 0.02959	Tol3: 0.00168	
+Finished training!
+Trained model over Ours (1)
+Clustering Done!
+Get init alphas in 0.012274 mins
+Initializing new EM...
+Pre-train network on 5 epochs... Done!
+Lambda by group:  [0.5  0.27 0.54 0.88]
+Alphas:  (4,)
+MV init:  (50000, 10)
+Betas:  (4, 10, 10)
+Q estimate:  (50000, 10, 4, 10)
+Iter 1/50
+M step: done,  E step: done //  (in 15.99 sec)	logL: -913800.681	
+Iter 2/50
+M step: done,  E step: done //  (in 12.40 sec)	logL: -908467.221	Tol1: 0.00584	Tol2: 0.10499	Tol3: 0.00470	
+Iter 3/50
+M step: done,  E step: done //  (in 12.18 sec)	logL: -902352.073	Tol1: 0.00673	Tol2: 0.10617	Tol3: 0.00714	
+Iter 4/50
+M step: done,  E step: done //  (in 12.42 sec)	logL: -904533.986	Tol1: 0.00242	Tol2: 0.10016	Tol3: 0.00968	
+Iter 5/50
+M step: done,  E step: done //  (in 12.28 sec)	logL: -894781.106	Tol1: 0.01078	Tol2: 0.12356	Tol3: 0.01156	
+Iter 6/50
+M step: done,  E step: done //  (in 12.11 sec)	logL: -892085.415	Tol1: 0.00301	Tol2: 0.06025	Tol3: 0.00262	
+Iter 7/50
+M step: done,  E step: done //  (in 12.19 sec)	logL: -885170.914	Tol1: 0.00775	Tol2: 0.08110	Tol3: 0.00488	
+Iter 8/50
+M step: done,  E step: done //  (in 12.08 sec)	logL: -883131.872	Tol1: 0.00230	Tol2: 0.05129	Tol3: 0.00155	
+Iter 9/50
+M step: done,  E step: done //  (in 12.18 sec)	logL: -884465.453	Tol1: 0.00151	Tol2: 0.03863	Tol3: 0.00542	
+Iter 10/50
+M step: done,  E step: done //  (in 12.16 sec)	logL: -884438.227	Tol1: 0.00003	Tol2: 0.05549	Tol3: 0.00661	
+Iter 11/50
+M step: done,  E step: done //  (in 12.10 sec)	logL: -887830.594	Tol1: 0.00384	Tol2: 0.06893	Tol3: 0.00593	
+Iter 12/50
+M step: done,  E step: done //  (in 11.97 sec)	logL: -876512.965	Tol1: 0.01275	Tol2: 0.08659	Tol3: 0.00752	
+Iter 13/50
+M step: done,  E step: done //  (in 12.34 sec)	logL: -873368.395	Tol1: 0.00359	Tol2: 0.08636	Tol3: 0.00500	
+Iter 14/50
+M step: done,  E step: done //  (in 12.07 sec)	logL: -870908.487	Tol1: 0.00282	Tol2: 0.05933	Tol3: 0.00204	
+Iter 15/50
+M step: done,  E step: done //  (in 12.01 sec)	logL: -871167.186	Tol1: 0.00030	Tol2: 0.04912	Tol3: 0.00201	
+Iter 16/50
+M step: done,  E step: done //  (in 11.97 sec)	logL: -867956.315	Tol1: 0.00369	Tol2: 0.04440	Tol3: 0.00489	
+Iter 17/50
+M step: done,  E step: done //  (in 12.24 sec)	logL: -866949.933	Tol1: 0.00116	Tol2: 0.02081	Tol3: 0.00140	
+Finished training!
+Trained model over Ours (2)
+Clustering Done!
+Get init alphas in 3.952396 mins
+Initializing new EM...
+Pre-train network on 5 epochs... Done!
+Lambda by group:  [0.93 0.28 0.34 0.69]
+Alphas:  (4,)
+MV init:  (50000, 10)
+Betas:  (4, 10, 10)
+Q estimate:  (50000, 10, 4, 10)
+Iter 1/50
+M step: done,  E step: done //  (in 16.25 sec)	logL: -926658.163	
+Iter 2/50
+M step: done,  E step: done //  (in 12.45 sec)	logL: -915196.558	Tol1: 0.01237	Tol2: 0.09891	Tol3: 0.00746	
+Iter 3/50
+M step: done,  E step: done //  (in 12.21 sec)	logL: -910759.204	Tol1: 0.00485	Tol2: 0.09225	Tol3: 0.00543	
+Iter 4/50
+M step: done,  E step: done //  (in 12.05 sec)	logL: -900948.901	Tol1: 0.01077	Tol2: 0.10207	Tol3: 0.00379	
+Iter 5/50
+M step: done,  E step: done //  (in 12.12 sec)	logL: -899129.132	Tol1: 0.00202	Tol2: 0.10196	Tol3: 0.00402	
+Iter 6/50
+M step: done,  E step: done //  (in 12.25 sec)	logL: -894526.463	Tol1: 0.00512	Tol2: 0.08641	Tol3: 0.00720	
+Iter 7/50
+M step: done,  E step: done //  (in 12.02 sec)	logL: -888083.298	Tol1: 0.00720	Tol2: 0.08741	Tol3: 0.00478	
+Iter 8/50
+M step: done,  E step: done //  (in 12.29 sec)	logL: -885534.470	Tol1: 0.00287	Tol2: 0.06829	Tol3: 0.00607	
+Iter 9/50
+M step: done,  E step: done //  (in 12.25 sec)	logL: -881005.306	Tol1: 0.00511	Tol2: 0.06155	Tol3: 0.00481	
+Iter 10/50
+M step: done,  E step: done //  (in 12.13 sec)	logL: -880034.723	Tol1: 0.00110	Tol2: 0.05633	Tol3: 0.00371	
+Iter 11/50
+M step: done,  E step: done //  (in 12.02 sec)	logL: -879254.568	Tol1: 0.00089	Tol2: 0.04557	Tol3: 0.00536	
+Iter 12/50
+M step: done,  E step: done //  (in 12.15 sec)	logL: -878685.516	Tol1: 0.00065	Tol2: 0.05373	Tol3: 0.00320	
+Iter 13/50
+M step: done,  E step: done //  (in 12.21 sec)	logL: -874440.251	Tol1: 0.00483	Tol2: 0.07361	Tol3: 0.00423	
+Iter 14/50
+M step: done,  E step: done //  (in 11.77 sec)	logL: -873008.295	Tol1: 0.00164	Tol2: 0.05208	Tol3: 0.00075	
+Iter 15/50
+M step: done,  E step: done //  (in 12.26 sec)	logL: -873027.517	Tol1: 0.00002	Tol2: 0.04709	Tol3: 0.00349	
+Iter 16/50
+M step: done,  E step: done //  (in 12.14 sec)	logL: -870891.520	Tol1: 0.00245	Tol2: 0.04617	Tol3: 0.00420	
+Iter 17/50
+M step: done,  E step: done //  (in 12.15 sec)	logL: -869514.410	Tol1: 0.00158	Tol2: 0.04923	Tol3: 0.00067	
+Iter 18/50
+M step: done,  E step: done //  (in 12.20 sec)	logL: -869994.261	Tol1: 0.00055	Tol2: 0.06558	Tol3: 0.00820	
+Iter 19/50
+M step: done,  E step: done //  (in 12.41 sec)	logL: -868606.036	Tol1: 0.00160	Tol2: 0.03934	Tol3: 0.00294	
+Iter 20/50
+M step: done,  E step: done //  (in 11.69 sec)	logL: -869655.799	Tol1: 0.00121	Tol2: 0.05587	Tol3: 0.00232	
+Iter 21/50
+M step: done,  E step: done //  (in 12.18 sec)	logL: -864896.558	Tol1: 0.00547	Tol2: 0.05585	Tol3: 0.00558	
+Iter 22/50
+M step: done,  E step: done //  (in 12.02 sec)	logL: -862566.670	Tol1: 0.00269	Tol2: 0.03213	Tol3: 0.00146	
+Iter 23/50
+M step: done,  E step: done //  (in 12.43 sec)	logL: -863200.726	Tol1: 0.00074	Tol2: 0.02572	Tol3: 0.00095	
+Finished training!
+Trained model over Ours (3)
+All Performance Measured
+New Synthetic data is being generated...Done! 
+Shape (data,annotators):  (50000, 100)
+Classes:  10
+Representation for Raykar/MV/D&S in 0.175302 mins
+Iter	log-likelihood	delta-CM	delta-ER	delta-LL
+1 	 -734568.9183874158
+2 	 -712577.3952547894 	0.1190	0.358083	0.029938
+3 	 -711148.3455213333 	0.0424	0.113120	0.002005
+4 	 -710965.2182574895 	0.0222	0.065432	0.000258
+5 	 -710922.445794699 	0.0124	0.042068	0.000060
+6 	 -710907.9510893321 	0.0076	0.026324	0.000020
+Class marginals
+[0.1  0.1  0.1  0.09 0.1  0.11 0.1  0.1  0.1  0.1 ]
+ACC MV on train: 0.8399
+Trained model over soft-MV
+Trained model over hard-MV
+Trained model over D&S
+Initializing new EM...
+Betas shape:  (100, 10, 10)
+Q estimate shape:  (50000, 10)
+Iter 1/50 
+M step: done,  E step: done //  (in 20.28 sec)	logL: -727776.500	
+Iter 2/50 
+M step: done,  E step: done //  (in 16.74 sec)	logL: -676975.750	Tol1: 0.06980	Tol2: 0.34143	
+Iter 3/50 
+M step: done,  E step: done //  (in 15.80 sec)	logL: -671622.000	Tol1: 0.00791	Tol2: 0.08263	
+Iter 4/50 
+M step: done,  E step: done //  (in 16.72 sec)	logL: -667702.562	Tol1: 0.00584	Tol2: 0.03185	
+Iter 5/50 
+M step: done,  E step: done //  (in 15.87 sec)	logL: -664611.688	Tol1: 0.00463	Tol2: 0.02119	
+Finished training!
+Trained model over Raykar
+Representation for Our in 0.001203 mins
+shape: (50000, 10)
+Projection of annotations in 0.066781 mins
+Annotators PCA of annotations shape:  (100, 4)
+Clustering Done!
+Get init alphas in 0.011647 mins
+Initializing new EM...
+Pre-train network on 5 epochs... Done!
+Lambda by group:  [1. 1. 1. 1.]
+Alphas:  (4,)
+MV init:  (50000, 10)
+Betas:  (4, 10, 10)
+Q estimate:  (50000, 10, 4, 10)
+Iter 1/50
+M step: done,  E step: done //  (in 16.82 sec)	logL: -936892.371	
+Iter 2/50
+M step: done,  E step: done //  (in 12.34 sec)	logL: -914861.503	Tol1: 0.02351	Tol2: 0.20906	Tol3: 0.04905	
+Iter 3/50
+M step: done,  E step: done //  (in 12.27 sec)	logL: -910380.764	Tol1: 0.00490	Tol2: 0.08393	Tol3: 0.01680	
+Iter 4/50
+M step: done,  E step: done //  (in 12.40 sec)	logL: -906243.014	Tol1: 0.00455	Tol2: 0.06388	Tol3: 0.00288	
+Iter 5/50
+M step: done,  E step: done //  (in 12.30 sec)	logL: -913614.252	Tol1: 0.00813	Tol2: 0.04610	Tol3: 0.00162	
+Iter 6/50
+M step: done,  E step: done //  (in 12.54 sec)	logL: -903677.947	Tol1: 0.01088	Tol2: 0.10202	Tol3: 0.00884	
+Iter 7/50
+M step: done,  E step: done //  (in 12.39 sec)	logL: -898198.568	Tol1: 0.00606	Tol2: 0.07958	Tol3: 0.00544	
+Iter 8/50
+M step: done,  E step: done //  (in 12.37 sec)	logL: -903171.230	Tol1: 0.00554	Tol2: 0.05497	Tol3: 0.00392	
+Iter 9/50
+M step: done,  E step: done //  (in 12.47 sec)	logL: -894836.769	Tol1: 0.00923	Tol2: 0.06814	Tol3: 0.00495	
+Iter 10/50
+M step: done,  E step: done //  (in 12.16 sec)	logL: -892675.066	Tol1: 0.00242	Tol2: 0.03596	Tol3: 0.00091	
+Iter 11/50
+M step: done,  E step: done //  (in 12.44 sec)	logL: -887641.007	Tol1: 0.00564	Tol2: 0.03513	Tol3: 0.00362	
+Iter 12/50
+M step: done,  E step: done //  (in 12.22 sec)	logL: -886961.052	Tol1: 0.00077	Tol2: 0.04683	Tol3: 0.00201	
+Iter 13/50
+M step: done,  E step: done //  (in 12.39 sec)	logL: -883051.176	Tol1: 0.00441	Tol2: 0.04222	Tol3: 0.00110	
+Iter 14/50
+M step: done,  E step: done //  (in 12.22 sec)	logL: -882521.902	Tol1: 0.00060	Tol2: 0.03631	Tol3: 0.00265	
+Iter 15/50
+M step: done,  E step: done //  (in 12.13 sec)	logL: -883098.187	Tol1: 0.00065	Tol2: 0.04792	Tol3: 0.00176	
+Iter 16/50
+M step: done,  E step: done //  (in 12.47 sec)	logL: -880488.780	Tol1: 0.00295	Tol2: 0.02599	Tol3: 0.00077	
+Finished training!
+Trained model over Ours (1)
+Clustering Done!
+Get init alphas in 0.011860 mins
+Initializing new EM...
+Pre-train network on 5 epochs... Done!
+Lambda by group:  [0.3  0.56 0.45 0.82]
+Alphas:  (4,)
+MV init:  (50000, 10)
+Betas:  (4, 10, 10)
+Q estimate:  (50000, 10, 4, 10)
+Iter 1/50
+M step: done,  E step: done //  (in 17.00 sec)	logL: -920818.726	
+Iter 2/50
+M step: done,  E step: done //  (in 12.29 sec)	logL: -918817.987	Tol1: 0.00217	Tol2: 0.09922	Tol3: 0.00603	
+Iter 3/50
+M step: done,  E step: done //  (in 12.14 sec)	logL: -912521.641	Tol1: 0.00685	Tol2: 0.14662	Tol3: 0.01386	
+Iter 4/50
+M step: done,  E step: done //  (in 12.56 sec)	logL: -900527.847	Tol1: 0.01314	Tol2: 0.10582	Tol3: 0.00151	
+Iter 5/50
+M step: done,  E step: done //  (in 12.48 sec)	logL: -902031.781	Tol1: 0.00167	Tol2: 0.04824	Tol3: 0.00237	
+Iter 6/50
+M step: done,  E step: done //  (in 12.29 sec)	logL: -893417.211	Tol1: 0.00955	Tol2: 0.06947	Tol3: 0.00368	
+Iter 7/50
+M step: done,  E step: done //  (in 12.35 sec)	logL: -890624.705	Tol1: 0.00313	Tol2: 0.06243	Tol3: 0.00423	
+Iter 8/50
+M step: done,  E step: done //  (in 12.20 sec)	logL: -896634.587	Tol1: 0.00675	Tol2: 0.05526	Tol3: 0.00113	
+Iter 9/50
+M step: done,  E step: done //  (in 12.19 sec)	logL: -887344.625	Tol1: 0.01036	Tol2: 0.08239	Tol3: 0.00479	
+Iter 10/50
+M step: done,  E step: done //  (in 12.51 sec)	logL: -895351.916	Tol1: 0.00902	Tol2: 0.06748	Tol3: 0.00453	
+Iter 11/50
+M step: done,  E step: done //  (in 12.50 sec)	logL: -898829.768	Tol1: 0.00388	Tol2: 0.07981	Tol3: 0.00455	
+Iter 12/50
+M step: done,  E step: done //  (in 12.33 sec)	logL: -891084.111	Tol1: 0.00862	Tol2: 0.09413	Tol3: 0.00610	
+Iter 13/50
+M step: done,  E step: done //  (in 12.37 sec)	logL: -887422.433	Tol1: 0.00411	Tol2: 0.02997	Tol3: 0.00126	
+Finished training!
+Trained model over Ours (2)
+Clustering Done!
+Get init alphas in 4.021533 mins
+Initializing new EM...
+Pre-train network on 5 epochs... Done!
+Lambda by group:  [0.3  0.62 0.59 0.84]
+Alphas:  (4,)
+MV init:  (50000, 10)
+Betas:  (4, 10, 10)
+Q estimate:  (50000, 10, 4, 10)
+Iter 1/50
+M step: done,  E step: done //  (in 17.31 sec)	logL: -919850.985	
+Iter 2/50
+M step: done,  E step: done //  (in 12.46 sec)	logL: -910266.047	Tol1: 0.01042	Tol2: 0.11513	Tol3: 0.02789	
+Iter 3/50
+M step: done,  E step: done //  (in 12.50 sec)	logL: -901383.856	Tol1: 0.00976	Tol2: 0.09018	Tol3: 0.00152	
+Iter 4/50
+M step: done,  E step: done //  (in 12.58 sec)	logL: -897301.330	Tol1: 0.00453	Tol2: 0.07856	Tol3: 0.00588	
+Iter 5/50
+M step: done,  E step: done //  (in 12.19 sec)	logL: -893025.012	Tol1: 0.00477	Tol2: 0.05832	Tol3: 0.00327	
+Iter 6/50
+M step: done,  E step: done //  (in 12.29 sec)	logL: -890128.024	Tol1: 0.00324	Tol2: 0.06667	Tol3: 0.01038	
+Iter 7/50
+M step: done,  E step: done //  (in 12.18 sec)	logL: -887461.853	Tol1: 0.00300	Tol2: 0.06916	Tol3: 0.00550	
+Iter 8/50
+M step: done,  E step: done //  (in 12.71 sec)	logL: -885144.290	Tol1: 0.00261	Tol2: 0.05843	Tol3: 0.00146	
+Iter 9/50
+M step: done,  E step: done //  (in 12.51 sec)	logL: -892396.334	Tol1: 0.00819	Tol2: 0.04448	Tol3: 0.00729	
+Iter 10/50
+M step: done,  E step: done //  (in 12.36 sec)	logL: -886949.110	Tol1: 0.00610	Tol2: 0.08451	Tol3: 0.00786	
+Iter 11/50
+M step: done,  E step: done //  (in 12.32 sec)	logL: -881159.034	Tol1: 0.00653	Tol2: 0.04281	Tol3: 0.00176	
+Iter 12/50
+M step: done,  E step: done //  (in 12.48 sec)	logL: -880710.056	Tol1: 0.00051	Tol2: 0.06073	Tol3: 0.00144	
+Iter 13/50
+M step: done,  E step: done //  (in 12.50 sec)	logL: -877665.828	Tol1: 0.00346	Tol2: 0.04039	Tol3: 0.00200	
+Iter 14/50
+M step: done,  E step: done //  (in 12.43 sec)	logL: -876010.952	Tol1: 0.00189	Tol2: 0.07024	Tol3: 0.00193	
+Iter 15/50
+M step: done,  E step: done //  (in 12.36 sec)	logL: -873423.397	Tol1: 0.00295	Tol2: 0.03836	Tol3: 0.00100	
+Iter 16/50
+M step: done,  E step: done //  (in 12.71 sec)	logL: -871057.905	Tol1: 0.00271	Tol2: 0.05305	Tol3: 0.00354	
+Iter 17/50
+M step: done,  E step: done //  (in 12.46 sec)	logL: -873388.110	Tol1: 0.00268	Tol2: 0.04523	Tol3: 0.00307	
+Iter 18/50
+M step: done,  E step: done //  (in 12.28 sec)	logL: -876895.022	Tol1: 0.00402	Tol2: 0.03960	Tol3: 0.00159	
+Iter 19/50
+M step: done,  E step: done //  (in 12.41 sec)	logL: -877209.121	Tol1: 0.00036	Tol2: 0.06669	Tol3: 0.00535	
+Iter 20/50
+M step: done,  E step: done //  (in 12.15 sec)	logL: -869854.377	Tol1: 0.00838	Tol2: 0.07101	Tol3: 0.00244	
+Iter 21/50
+M step: done,  E step: done //  (in 12.37 sec)	logL: -870318.913	Tol1: 0.00053	Tol2: 0.03127	Tol3: 0.00028	
+Iter 22/50
+M step: done,  E step: done //  (in 12.52 sec)	logL: -866648.961	Tol1: 0.00422	Tol2: 0.03055	Tol3: 0.00107	
+Iter 23/50
+M step: done,  E step: done //  (in 12.31 sec)	logL: -864152.742	Tol1: 0.00288	Tol2: 0.02640	Tol3: 0.00040	
+Finished training!
+Trained model over Ours (3)
+All Performance Measured
+New Synthetic data is being generated...Done! 
+Shape (data,annotators):  (50000, 100)
+Classes:  10
+Representation for Raykar/MV/D&S in 0.174349 mins
+Iter	log-likelihood	delta-CM	delta-ER	delta-LL
+1 	 -733763.7848062775
+2 	 -711392.0442576642 	0.1163	0.359942	0.030489
+3 	 -709993.0338272669 	0.0427	0.109901	0.001967
+4 	 -709807.28043088 	0.0214	0.062607	0.000262
+5 	 -709763.4083532612 	0.0113	0.039877	0.000062
+6 	 -709749.054939536 	0.0068	0.025280	0.000020
+Class marginals
+[0.1  0.1  0.1  0.09 0.1  0.11 0.1  0.1  0.1  0.1 ]
+ACC MV on train: 0.84686
+Trained model over soft-MV
+Trained model over hard-MV
+Trained model over D&S
+Initializing new EM...
+Betas shape:  (100, 10, 10)
+Q estimate shape:  (50000, 10)
+Iter 1/50 
+M step: done,  E step: done //  (in 21.28 sec)	logL: -724245.375	
+Iter 2/50 
+M step: done,  E step: done //  (in 15.72 sec)	logL: -674588.938	Tol1: 0.06856	Tol2: 0.34489	
+Iter 3/50 
+M step: done,  E step: done //  (in 15.45 sec)	logL: -666754.938	Tol1: 0.01161	Tol2: 0.07704	
+Iter 4/50 
+M step: done,  E step: done //  (in 15.49 sec)	logL: -665406.312	Tol1: 0.00202	Tol2: 0.02726	
+Finished training!
+Trained model over Raykar
+Representation for Our in 0.001163 mins
+shape: (50000, 10)
+Projection of annotations in 0.066668 mins
+Annotators PCA of annotations shape:  (100, 4)
+Clustering Done!
+Get init alphas in 0.012163 mins
+Initializing new EM...
+Pre-train network on 5 epochs... Done!
+Lambda by group:  [1. 1. 1. 1.]
+Alphas:  (4,)
+MV init:  (50000, 10)
+Betas:  (4, 10, 10)
+Q estimate:  (50000, 10, 4, 10)
+Iter 1/50
+M step: done,  E step: done //  (in 17.62 sec)	logL: -946459.124	
+Iter 2/50
+M step: done,  E step: done //  (in 12.44 sec)	logL: -920698.132	Tol1: 0.02722	Tol2: 0.22427	Tol3: 0.04872	
+Iter 3/50
+M step: done,  E step: done //  (in 12.45 sec)	logL: -920639.601	Tol1: 0.00006	Tol2: 0.10966	Tol3: 0.01927	
+Iter 4/50
+M step: done,  E step: done //  (in 12.40 sec)	logL: -909118.790	Tol1: 0.01251	Tol2: 0.10319	Tol3: 0.00910	
+Iter 5/50
+M step: done,  E step: done //  (in 12.72 sec)	logL: -913117.301	Tol1: 0.00440	Tol2: 0.09858	Tol3: 0.00378	
+Iter 6/50
+M step: done,  E step: done //  (in 12.60 sec)	logL: -905315.621	Tol1: 0.00854	Tol2: 0.11357	Tol3: 0.00634	
+Iter 7/50
+M step: done,  E step: done //  (in 12.64 sec)	logL: -900829.943	Tol1: 0.00495	Tol2: 0.04133	Tol3: 0.00248	
+Iter 8/50
+M step: done,  E step: done //  (in 12.63 sec)	logL: -899708.137	Tol1: 0.00125	Tol2: 0.05466	Tol3: 0.00204	
+Iter 9/50
+M step: done,  E step: done //  (in 12.83 sec)	logL: -898276.525	Tol1: 0.00159	Tol2: 0.04004	Tol3: 0.00192	
+Iter 10/50
+M step: done,  E step: done //  (in 12.45 sec)	logL: -893328.260	Tol1: 0.00551	Tol2: 0.05309	Tol3: 0.00252	
+Iter 11/50
+M step: done,  E step: done //  (in 12.39 sec)	logL: -899088.567	Tol1: 0.00645	Tol2: 0.04355	Tol3: 0.00302	
+Iter 12/50
+M step: done,  E step: done //  (in 12.60 sec)	logL: -890420.619	Tol1: 0.00964	Tol2: 0.04555	Tol3: 0.00112	
+Iter 13/50
+M step: done,  E step: done //  (in 12.58 sec)	logL: -885005.217	Tol1: 0.00608	Tol2: 0.04481	Tol3: 0.00105	
+Iter 14/50
+M step: done,  E step: done //  (in 12.47 sec)	logL: -881193.627	Tol1: 0.00431	Tol2: 0.02871	Tol3: 0.00193	
+Finished training!
+Trained model over Ours (1)
+Clustering Done!
+Get init alphas in 0.012091 mins
+Initializing new EM...
+Pre-train network on 5 epochs... Done!
+Lambda by group:  [0.81 0.22 0.15 0.64]
+Alphas:  (4,)
+MV init:  (50000, 10)
+Betas:  (4, 10, 10)
+Q estimate:  (50000, 10, 4, 10)
+Iter 1/50
+M step: done,  E step: done //  (in 17.72 sec)	logL: -938304.469	
+Iter 2/50
+M step: done,  E step: done //  (in 12.52 sec)	logL: -909060.523	Tol1: 0.03117	Tol2: 0.15307	Tol3: 0.00674	
+Iter 3/50
+M step: done,  E step: done //  (in 12.76 sec)	logL: -907355.106	Tol1: 0.00188	Tol2: 0.11409	Tol3: 0.00455	
+Iter 4/50
+M step: done,  E step: done //  (in 12.43 sec)	logL: -900471.119	Tol1: 0.00759	Tol2: 0.12300	Tol3: 0.00213	
+Iter 5/50
+M step: done,  E step: done //  (in 12.80 sec)	logL: -892138.066	Tol1: 0.00925	Tol2: 0.08576	Tol3: 0.00425	
+Iter 6/50
+M step: done,  E step: done //  (in 12.73 sec)	logL: -884410.954	Tol1: 0.00866	Tol2: 0.08585	Tol3: 0.00567	
+Iter 7/50
+M step: done,  E step: done //  (in 12.09 sec)	logL: -885186.627	Tol1: 0.00088	Tol2: 0.05574	Tol3: 0.00259	
+Iter 8/50
+M step: done,  E step: done //  (in 12.75 sec)	logL: -886013.869	Tol1: 0.00093	Tol2: 0.09200	Tol3: 0.00429	
+Iter 9/50
+M step: done,  E step: done //  (in 12.61 sec)	logL: -884094.552	Tol1: 0.00217	Tol2: 0.08912	Tol3: 0.00843	
+Iter 10/50
+M step: done,  E step: done //  (in 12.50 sec)	logL: -872749.755	Tol1: 0.01283	Tol2: 0.08718	Tol3: 0.00220	
+Iter 11/50
+M step: done,  E step: done //  (in 12.62 sec)	logL: -874844.103	Tol1: 0.00240	Tol2: 0.04847	Tol3: 0.00434	
+Iter 12/50
+M step: done,  E step: done //  (in 12.61 sec)	logL: -873746.952	Tol1: 0.00125	Tol2: 0.05683	Tol3: 0.00449	
+Iter 13/50
+M step: done,  E step: done //  (in 12.65 sec)	logL: -871791.464	Tol1: 0.00224	Tol2: 0.04825	Tol3: 0.00506	
+Iter 14/50
+M step: done,  E step: done //  (in 12.65 sec)	logL: -869719.860	Tol1: 0.00238	Tol2: 0.06995	Tol3: 0.00443	
+Iter 15/50
+M step: done,  E step: done //  (in 12.80 sec)	logL: -865219.936	Tol1: 0.00517	Tol2: 0.07780	Tol3: 0.00684	
+Iter 16/50
+M step: done,  E step: done //  (in 12.59 sec)	logL: -873054.311	Tol1: 0.00905	Tol2: 0.03941	Tol3: 0.00092	
+Iter 17/50
+M step: done,  E step: done //  (in 12.60 sec)	logL: -863736.845	Tol1: 0.01067	Tol2: 0.07403	Tol3: 0.00983	
+Iter 18/50
+M step: done,  E step: done //  (in 12.50 sec)	logL: -864154.438	Tol1: 0.00048	Tol2: 0.03235	Tol3: 0.00341	
+Iter 19/50
+M step: done,  E step: done //  (in 12.81 sec)	logL: -861265.714	Tol1: 0.00334	Tol2: 0.04895	Tol3: 0.00248	
+Iter 20/50
+M step: done,  E step: done //  (in 12.64 sec)	logL: -862586.451	Tol1: 0.00153	Tol2: 0.05750	Tol3: 0.00386	
+Iter 21/50
+M step: done,  E step: done //  (in 12.59 sec)	logL: -867803.823	Tol1: 0.00605	Tol2: 0.04532	Tol3: 0.00230	
+Iter 22/50
+M step: done,  E step: done //  (in 12.60 sec)	logL: -873098.115	Tol1: 0.00610	Tol2: 0.06749	Tol3: 0.00242	
+Iter 23/50
+M step: done,  E step: done //  (in 12.79 sec)	logL: -866301.546	Tol1: 0.00778	Tol2: 0.08408	Tol3: 0.00471	
+Iter 24/50
+M step: done,  E step: done //  (in 12.76 sec)	logL: -859592.698	Tol1: 0.00774	Tol2: 0.04812	Tol3: 0.00147	
+Iter 25/50
+M step: done,  E step: done //  (in 12.23 sec)	logL: -857023.889	Tol1: 0.00299	Tol2: 0.05044	Tol3: 0.00584	
+Iter 26/50
+M step: done,  E step: done //  (in 12.49 sec)	logL: -858644.797	Tol1: 0.00189	Tol2: 0.05025	Tol3: 0.00269	
+Iter 27/50
+M step: done,  E step: done //  (in 12.58 sec)	logL: -861220.859	Tol1: 0.00300	Tol2: 0.04230	Tol3: 0.00286	
+Iter 28/50
+M step: done,  E step: done //  (in 12.30 sec)	logL: -857620.797	Tol1: 0.00418	Tol2: 0.06762	Tol3: 0.00625	
+Iter 29/50
+M step: done,  E step: done //  (in 12.76 sec)	logL: -854993.979	Tol1: 0.00306	Tol2: 0.03526	Tol3: 0.00117	
+Iter 30/50
+M step: done,  E step: done //  (in 12.55 sec)	logL: -855112.058	Tol1: 0.00014	Tol2: 0.04445	Tol3: 0.00325	
+Iter 31/50
+M step: done,  E step: done //  (in 12.61 sec)	logL: -862346.771	Tol1: 0.00846	Tol2: 0.03655	Tol3: 0.00128	
+Iter 32/50
+M step: done,  E step: done //  (in 12.42 sec)	logL: -854979.151	Tol1: 0.00854	Tol2: 0.05357	Tol3: 0.00180	
+Iter 33/50
+M step: done,  E step: done //  (in 12.30 sec)	logL: -853894.467	Tol1: 0.00127	Tol2: 0.04873	Tol3: 0.00311	
+Iter 34/50
+M step: done,  E step: done //  (in 12.43 sec)	logL: -853695.246	Tol1: 0.00023	Tol2: 0.03125	Tol3: 0.00114	
+Iter 35/50
+M step: done,  E step: done //  (in 12.72 sec)	logL: -851984.434	Tol1: 0.00200	Tol2: 0.05530	Tol3: 0.00359	
+Iter 36/50
+M step: done,  E step: done //  (in 12.61 sec)	logL: -849613.373	Tol1: 0.00278	Tol2: 0.03644	Tol3: 0.00314	
+Iter 37/50
+M step: done,  E step: done //  (in 12.60 sec)	logL: -853181.179	Tol1: 0.00420	Tol2: 0.03587	Tol3: 0.00371	
+Iter 38/50
+M step: done,  E step: done //  (in 12.50 sec)	logL: -850334.270	Tol1: 0.00334	Tol2: 0.03389	Tol3: 0.00441	
+Iter 39/50
+M step: done,  E step: done //  (in 12.58 sec)	logL: -848891.199	Tol1: 0.00170	Tol2: 0.03250	Tol3: 0.00388	
+Iter 40/50
+M step: done,  E step: done //  (in 12.46 sec)	logL: -848942.081	Tol1: 0.00006	Tol2: 0.02338	Tol3: 0.00067	
+Finished training!
+Trained model over Ours (2)
+Clustering Done!
+Get init alphas in 4.111052 mins
+Initializing new EM...
+Pre-train network on 5 epochs... Done!
+Lambda by group:  [0.35 0.05 0.06 0.13]
+Alphas:  (4,)
+MV init:  (50000, 10)
+Betas:  (4, 10, 10)
+Q estimate:  (50000, 10, 4, 10)
+Iter 1/50
+M step: done,  E step: done //  (in 18.30 sec)	logL: -936528.788	
+Iter 2/50
+M step: done,  E step: done //  (in 12.63 sec)	logL: -921524.366	Tol1: 0.01602	Tol2: 0.24709	Tol3: 0.00055	
+Iter 3/50
+M step: done,  E step: done //  (in 12.93 sec)	logL: -925228.934	Tol1: 0.00402	Tol2: 0.21485	Tol3: 0.00443	
+Iter 4/50
+M step: done,  E step: done //  (in 12.77 sec)	logL: -898299.148	Tol1: 0.02911	Tol2: 0.20190	Tol3: 0.00344	
+Iter 5/50
+M step: done,  E step: done //  (in 12.80 sec)	logL: -890736.142	Tol1: 0.00842	Tol2: 0.16213	Tol3: 0.00251	
+Iter 6/50
+M step: done,  E step: done //  (in 12.63 sec)	logL: -890663.566	Tol1: 0.00008	Tol2: 0.15037	Tol3: 0.00365	
+Iter 7/50
+M step: done,  E step: done //  (in 12.51 sec)	logL: -893374.922	Tol1: 0.00304	Tol2: 0.13375	Tol3: 0.00736	
+Iter 8/50
+M step: done,  E step: done //  (in 12.70 sec)	logL: -885957.039	Tol1: 0.00830	Tol2: 0.18985	Tol3: 0.00529	
+Iter 9/50
+M step: done,  E step: done //  (in 12.64 sec)	logL: -877840.785	Tol1: 0.00916	Tol2: 0.10202	Tol3: 0.00571	
+Iter 10/50
+M step: done,  E step: done //  (in 12.44 sec)	logL: -874755.538	Tol1: 0.00351	Tol2: 0.11586	Tol3: 0.00360	
+Iter 11/50
+M step: done,  E step: done //  (in 12.77 sec)	logL: -870122.573	Tol1: 0.00530	Tol2: 0.10529	Tol3: 0.00367	
+Iter 12/50
+M step: done,  E step: done //  (in 12.63 sec)	logL: -867694.107	Tol1: 0.00279	Tol2: 0.06484	Tol3: 0.00135	
+Iter 13/50
+M step: done,  E step: done //  (in 12.74 sec)	logL: -869323.947	Tol1: 0.00188	Tol2: 0.08537	Tol3: 0.00294	
+Iter 14/50
+M step: done,  E step: done //  (in 12.66 sec)	logL: -864212.188	Tol1: 0.00588	Tol2: 0.09253	Tol3: 0.00315	
+Iter 15/50
+M step: done,  E step: done //  (in 12.93 sec)	logL: -864493.700	Tol1: 0.00033	Tol2: 0.10291	Tol3: 0.00196	
+Iter 16/50
+M step: done,  E step: done //  (in 12.28 sec)	logL: -858752.330	Tol1: 0.00664	Tol2: 0.06297	Tol3: 0.00261	
+Iter 17/50
+M step: done,  E step: done //  (in 12.84 sec)	logL: -858700.235	Tol1: 0.00006	Tol2: 0.05045	Tol3: 0.00101	
+Iter 18/50
+M step: done,  E step: done //  (in 12.72 sec)	logL: -856767.460	Tol1: 0.00225	Tol2: 0.06979	Tol3: 0.00166	
+Iter 19/50
+M step: done,  E step: done //  (in 12.74 sec)	logL: -854385.936	Tol1: 0.00278	Tol2: 0.06814	Tol3: 0.00257	
+Iter 20/50
+M step: done,  E step: done //  (in 12.51 sec)	logL: -851884.512	Tol1: 0.00293	Tol2: 0.05985	Tol3: 0.00238	
+Iter 21/50
+M step: done,  E step: done //  (in 12.82 sec)	logL: -849700.610	Tol1: 0.00256	Tol2: 0.04434	Tol3: 0.00137	
+Iter 22/50
+M step: done,  E step: done //  (in 12.69 sec)	logL: -849855.558	Tol1: 0.00018	Tol2: 0.06790	Tol3: 0.00277	
+Iter 23/50
+M step: done,  E step: done //  (in 12.61 sec)	logL: -850401.884	Tol1: 0.00064	Tol2: 0.06461	Tol3: 0.00211	
+Iter 24/50
+M step: done,  E step: done //  (in 12.46 sec)	logL: -851437.316	Tol1: 0.00122	Tol2: 0.06695	Tol3: 0.00437	
+Iter 25/50
+M step: done,  E step: done //  (in 12.69 sec)	logL: -847775.551	Tol1: 0.00430	Tol2: 0.05473	Tol3: 0.00210	
+Iter 26/50
+M step: done,  E step: done //  (in 12.56 sec)	logL: -845609.651	Tol1: 0.00255	Tol2: 0.06441	Tol3: 0.00435	
+Iter 27/50
+M step: done,  E step: done //  (in 12.45 sec)	logL: -843481.824	Tol1: 0.00252	Tol2: 0.06513	Tol3: 0.00026	
+Iter 28/50
+M step: done,  E step: done //  (in 12.70 sec)	logL: -842670.894	Tol1: 0.00096	Tol2: 0.04533	Tol3: 0.00151	
+Iter 29/50
+M step: done,  E step: done //  (in 12.61 sec)	logL: -842529.639	Tol1: 0.00017	Tol2: 0.04591	Tol3: 0.00115	
+Iter 30/50
+M step: done,  E step: done //  (in 12.59 sec)	logL: -842188.850	Tol1: 0.00040	Tol2: 0.05190	Tol3: 0.00118	
+Iter 31/50
+M step: done,  E step: done //  (in 12.39 sec)	logL: -842324.880	Tol1: 0.00016	Tol2: 0.03903	Tol3: 0.00278	
+Iter 32/50
+M step: done,  E step: done //  (in 12.82 sec)	logL: -843834.715	Tol1: 0.00179	Tol2: 0.05641	Tol3: 0.00258	
+Iter 33/50
+M step: done,  E step: done //  (in 12.63 sec)	logL: -842588.568	Tol1: 0.00148	Tol2: 0.03144	Tol3: 0.00148	
+Iter 34/50
+M step: done,  E step: done //  (in 12.67 sec)	logL: -842702.701	Tol1: 0.00014	Tol2: 0.07558	Tol3: 0.00206	
+Iter 35/50
+M step: done,  E step: done //  (in 12.75 sec)	logL: -838493.093	Tol1: 0.00500	Tol2: 0.05533	Tol3: 0.00050	
+Iter 36/50
+M step: done,  E step: done //  (in 12.53 sec)	logL: -838512.962	Tol1: 0.00002	Tol2: 0.05939	Tol3: 0.00297	
+Iter 37/50
+M step: done,  E step: done //  (in 12.38 sec)	logL: -838167.127	Tol1: 0.00041	Tol2: 0.04958	Tol3: 0.00102	
+Iter 38/50
+M step: done,  E step: done //  (in 12.49 sec)	logL: -837191.297	Tol1: 0.00116	Tol2: 0.05282	Tol3: 0.00118	
+Iter 39/50
+M step: done,  E step: done //  (in 12.38 sec)	logL: -838570.806	Tol1: 0.00165	Tol2: 0.04374	Tol3: 0.00139	
+Iter 40/50
+M step: done,  E step: done //  (in 12.51 sec)	logL: -836083.592	Tol1: 0.00297	Tol2: 0.06278	Tol3: 0.00063	
+Iter 41/50
+M step: done,  E step: done //  (in 12.55 sec)	logL: -837093.516	Tol1: 0.00121	Tol2: 0.05209	Tol3: 0.00066	
+Iter 42/50
+M step: done,  E step: done //  (in 12.40 sec)	logL: -838490.645	Tol1: 0.00167	Tol2: 0.04877	Tol3: 0.00131	
+Iter 43/50
+M step: done,  E step: done //  (in 12.73 sec)	logL: -835315.437	Tol1: 0.00379	Tol2: 0.06752	Tol3: 0.00208	
+Iter 44/50
+M step: done,  E step: done //  (in 12.56 sec)	logL: -834248.406	Tol1: 0.00128	Tol2: 0.03880	Tol3: 0.00160	
+Iter 45/50
+M step: done,  E step: done //  (in 12.55 sec)	logL: -835187.667	Tol1: 0.00113	Tol2: 0.03760	Tol3: 0.00050	
+Iter 46/50
+M step: done,  E step: done //  (in 12.37 sec)	logL: -832709.626	Tol1: 0.00297	Tol2: 0.03694	Tol3: 0.00267	
+Iter 47/50
+M step: done,  E step: done //  (in 12.38 sec)	logL: -833801.688	Tol1: 0.00131	Tol2: 0.03080	Tol3: 0.00141	
+Iter 48/50
+M step: done,  E step: done //  (in 12.27 sec)	logL: -834745.352	Tol1: 0.00113	Tol2: 0.04356	Tol3: 0.00176	
+Iter 49/50
+M step: done,  E step: done //  (in 12.69 sec)	logL: -832650.980	Tol1: 0.00251	Tol2: 0.04567	Tol3: 0.00203	
+Iter 50/50
+M step: done,  E step: done //  (in 12.65 sec)	logL: -831718.988	Tol1: 0.00112	Tol2: 0.04171	Tol3: 0.00130	
+Finished training!
+Trained model over Ours (3)
+All Performance Measured
+New Synthetic data is being generated...Done! 
+Shape (data,annotators):  (50000, 100)
+Classes:  10
+Representation for Raykar/MV/D&S in 0.175230 mins
+Iter	log-likelihood	delta-CM	delta-ER	delta-LL
+1 	 -728240.3594125952
+2 	 -704000.0681384368 	0.0994	0.369868	0.033286
+3 	 -702758.7993945419 	0.0421	0.106257	0.001763
+4 	 -702612.3304687298 	0.0206	0.059656	0.000208
+5 	 -702582.6505991125 	0.0108	0.035191	0.000042
+6 	 -702573.9550282519 	0.0062	0.021063	0.000012
+Class marginals
+[0.1  0.1  0.1  0.09 0.1  0.11 0.1  0.1  0.1  0.1 ]
+ACC MV on train: 0.86916
+Trained model over soft-MV
+Trained model over hard-MV
+Trained model over D&S
+Initializing new EM...
+Betas shape:  (100, 10, 10)
+Q estimate shape:  (50000, 10)
+Iter 1/50 
+M step: done,  E step: done //  (in 22.91 sec)	logL: -720461.250	
+Iter 2/50 
+M step: done,  E step: done //  (in 16.05 sec)	logL: -663483.250	Tol1: 0.07909	Tol2: 0.35544	
+Iter 3/50 
+M step: done,  E step: done //  (in 16.61 sec)	logL: -657321.188	Tol1: 0.00929	Tol2: 0.07111	
+Iter 4/50 
+M step: done,  E step: done //  (in 16.12 sec)	logL: -656948.875	Tol1: 0.00057	Tol2: 0.02274	
+Finished training!
+Trained model over Raykar
+Representation for Our in 0.001154 mins
+shape: (50000, 10)
+Projection of annotations in 0.066812 mins
+Annotators PCA of annotations shape:  (100, 4)
+Clustering Done!
+Get init alphas in 0.012085 mins
+Initializing new EM...
+Pre-train network on 5 epochs... Done!
+Lambda by group:  [1. 1. 1. 1.]
+Alphas:  (4,)
+MV init:  (50000, 10)
+Betas:  (4, 10, 10)
+Q estimate:  (50000, 10, 4, 10)
+Iter 1/50
+M step: done,  E step: done //  (in 18.69 sec)	logL: -930724.742	
+Iter 2/50
+M step: done,  E step: done //  (in 12.65 sec)	logL: -906400.846	Tol1: 0.02613	Tol2: 0.21429	Tol3: 0.04500	
+Iter 3/50
+M step: done,  E step: done //  (in 12.87 sec)	logL: -899986.816	Tol1: 0.00708	Tol2: 0.10382	Tol3: 0.01322	
+Iter 4/50
+M step: done,  E step: done //  (in 12.53 sec)	logL: -895712.875	Tol1: 0.00475	Tol2: 0.07494	Tol3: 0.00959	
+Iter 5/50
+M step: done,  E step: done //  (in 12.62 sec)	logL: -887814.101	Tol1: 0.00882	Tol2: 0.04295	Tol3: 0.00328	
+Iter 6/50
+M step: done,  E step: done //  (in 12.95 sec)	logL: -889430.691	Tol1: 0.00182	Tol2: 0.06175	Tol3: 0.00623	
+Iter 7/50
+M step: done,  E step: done //  (in 12.63 sec)	logL: -880664.721	Tol1: 0.00986	Tol2: 0.06145	Tol3: 0.00464	
+Iter 8/50
+M step: done,  E step: done //  (in 12.76 sec)	logL: -874000.983	Tol1: 0.00757	Tol2: 0.03855	Tol3: 0.00176	
+Iter 9/50
+M step: done,  E step: done //  (in 12.82 sec)	logL: -869717.430	Tol1: 0.00490	Tol2: 0.04235	Tol3: 0.00247	
+Iter 10/50
+M step: done,  E step: done //  (in 12.96 sec)	logL: -866434.622	Tol1: 0.00377	Tol2: 0.04111	Tol3: 0.00071	
+Iter 11/50
+M step: done,  E step: done //  (in 12.55 sec)	logL: -871486.443	Tol1: 0.00583	Tol2: 0.05298	Tol3: 0.00089	
+Iter 12/50
+M step: done,  E step: done //  (in 12.62 sec)	logL: -862268.014	Tol1: 0.01058	Tol2: 0.07512	Tol3: 0.00465	
+Iter 13/50
+M step: done,  E step: done //  (in 12.33 sec)	logL: -861062.047	Tol1: 0.00140	Tol2: 0.04722	Tol3: 0.00121	
+Iter 14/50
+M step: done,  E step: done //  (in 12.82 sec)	logL: -857889.559	Tol1: 0.00368	Tol2: 0.03060	Tol3: 0.00266	
+Iter 15/50
+M step: done,  E step: done //  (in 12.91 sec)	logL: -856007.400	Tol1: 0.00219	Tol2: 0.03301	Tol3: 0.00297	
+Iter 16/50
+M step: done,  E step: done //  (in 12.90 sec)	logL: -855748.406	Tol1: 0.00030	Tol2: 0.04183	Tol3: 0.00112	
+Iter 17/50
+M step: done,  E step: done //  (in 12.67 sec)	logL: -852899.027	Tol1: 0.00333	Tol2: 0.03479	Tol3: 0.00161	
+Iter 18/50
+M step: done,  E step: done //  (in 12.75 sec)	logL: -849567.687	Tol1: 0.00391	Tol2: 0.03322	Tol3: 0.00131	
+Iter 19/50
+M step: done,  E step: done //  (in 12.47 sec)	logL: -846836.531	Tol1: 0.00321	Tol2: 0.02780	Tol3: 0.00132	
+Finished training!
+Trained model over Ours (1)
+Clustering Done!
+Get init alphas in 0.012088 mins
+Initializing new EM...
+Pre-train network on 5 epochs... Done!
+Lambda by group:  [0.5  0.92 0.77 0.76]
+Alphas:  (4,)
+MV init:  (50000, 10)
+Betas:  (4, 10, 10)
+Q estimate:  (50000, 10, 4, 10)
+Iter 1/50
+M step: done,  E step: done //  (in 19.02 sec)	logL: -904427.248	
+Iter 2/50
+M step: done,  E step: done //  (in 12.57 sec)	logL: -886328.140	Tol1: 0.02001	Tol2: 0.15223	Tol3: 0.02205	
+Iter 3/50
+M step: done,  E step: done //  (in 12.75 sec)	logL: -885297.403	Tol1: 0.00116	Tol2: 0.07897	Tol3: 0.00606	
+Iter 4/50
+M step: done,  E step: done //  (in 12.55 sec)	logL: -877919.983	Tol1: 0.00833	Tol2: 0.08276	Tol3: 0.00402	
+Iter 5/50
+M step: done,  E step: done //  (in 12.93 sec)	logL: -875265.985	Tol1: 0.00302	Tol2: 0.07638	Tol3: 0.00752	
+Iter 6/50
+M step: done,  E step: done //  (in 12.57 sec)	logL: -874891.026	Tol1: 0.00043	Tol2: 0.04598	Tol3: 0.00118	
+Iter 7/50
+M step: done,  E step: done //  (in 12.83 sec)	logL: -868562.341	Tol1: 0.00723	Tol2: 0.06733	Tol3: 0.00382	
+Iter 8/50
+M step: done,  E step: done //  (in 12.63 sec)	logL: -868362.629	Tol1: 0.00023	Tol2: 0.04677	Tol3: 0.00095	
+Iter 9/50
+M step: done,  E step: done //  (in 12.80 sec)	logL: -876202.108	Tol1: 0.00903	Tol2: 0.05855	Tol3: 0.00111	
+Iter 10/50
+M step: done,  E step: done //  (in 12.61 sec)	logL: -869056.901	Tol1: 0.00815	Tol2: 0.10799	Tol3: 0.00327	
+Iter 11/50
+M step: done,  E step: done //  (in 12.81 sec)	logL: -861553.881	Tol1: 0.00863	Tol2: 0.06676	Tol3: 0.00246	
+Iter 12/50
+M step: done,  E step: done //  (in 12.66 sec)	logL: -865434.927	Tol1: 0.00450	Tol2: 0.06264	Tol3: 0.00364	
+Iter 13/50
+M step: done,  E step: done //  (in 12.92 sec)	logL: -857892.440	Tol1: 0.00872	Tol2: 0.08105	Tol3: 0.00326	
+Iter 14/50
+M step: done,  E step: done //  (in 12.68 sec)	logL: -852274.538	Tol1: 0.00655	Tol2: 0.04040	Tol3: 0.00327	
+Iter 15/50
+M step: done,  E step: done //  (in 12.75 sec)	logL: -856394.723	Tol1: 0.00483	Tol2: 0.03567	Tol3: 0.00178	
+Iter 16/50
+M step: done,  E step: done //  (in 12.76 sec)	logL: -862099.833	Tol1: 0.00666	Tol2: 0.05251	Tol3: 0.00247	
+Iter 17/50
+M step: done,  E step: done //  (in 12.64 sec)	logL: -848977.972	Tol1: 0.01522	Tol2: 0.06803	Tol3: 0.00424	
+Iter 18/50
+M step: done,  E step: done //  (in 12.77 sec)	logL: -847534.936	Tol1: 0.00170	Tol2: 0.04172	Tol3: 0.00272	
+Iter 19/50
+M step: done,  E step: done //  (in 12.57 sec)	logL: -847136.984	Tol1: 0.00047	Tol2: 0.04795	Tol3: 0.00100	
+Iter 20/50
+M step: done,  E step: done //  (in 12.71 sec)	logL: -845210.459	Tol1: 0.00227	Tol2: 0.04146	Tol3: 0.00253	
+Iter 21/50
+M step: done,  E step: done //  (in 12.73 sec)	logL: -843946.903	Tol1: 0.00149	Tol2: 0.04857	Tol3: 0.00249	
+Iter 22/50
+M step: done,  E step: done //  (in 12.71 sec)	logL: -841916.511	Tol1: 0.00241	Tol2: 0.05480	Tol3: 0.00338	
+Iter 23/50
+M step: done,  E step: done //  (in 12.55 sec)	logL: -841882.809	Tol1: 0.00004	Tol2: 0.04253	Tol3: 0.00126	
+Iter 24/50
+M step: done,  E step: done //  (in 12.82 sec)	logL: -839847.465	Tol1: 0.00242	Tol2: 0.05355	Tol3: 0.00253	
+Iter 25/50
+M step: done,  E step: done //  (in 12.72 sec)	logL: -837140.214	Tol1: 0.00322	Tol2: 0.04649	Tol3: 0.00076	
+Iter 26/50
+M step: done,  E step: done //  (in 13.01 sec)	logL: -837498.675	Tol1: 0.00043	Tol2: 0.03470	Tol3: 0.00173	
+Iter 27/50
+M step: done,  E step: done //  (in 12.63 sec)	logL: -838636.979	Tol1: 0.00136	Tol2: 0.02645	Tol3: 0.00266	
+Finished training!
+Trained model over Ours (2)
+Clustering Done!
+Get init alphas in 4.179472 mins
+Initializing new EM...
+Pre-train network on 5 epochs... Done!
+Lambda by group:  [0.88 0.46 0.19 0.36]
+Alphas:  (4,)
+MV init:  (50000, 10)
+Betas:  (4, 10, 10)
+Q estimate:  (50000, 10, 4, 10)
+Iter 1/50
+M step: done,  E step: done //  (in 19.06 sec)	logL: -884729.751	
+Iter 2/50
+M step: done,  E step: done //  (in 12.78 sec)	logL: -878822.817	Tol1: 0.00668	Tol2: 0.12261	Tol3: 0.04631	
+Iter 3/50
+M step: done,  E step: done //  (in 12.71 sec)	logL: -876399.068	Tol1: 0.00276	Tol2: 0.06777	Tol3: 0.01182	
+Iter 4/50
+M step: done,  E step: done //  (in 13.03 sec)	logL: -885045.416	Tol1: 0.00987	Tol2: 0.06291	Tol3: 0.00222	
+Iter 5/50
+M step: done,  E step: done //  (in 12.88 sec)	logL: -876688.246	Tol1: 0.00944	Tol2: 0.11067	Tol3: 0.00506	
+Iter 6/50
+M step: done,  E step: done //  (in 12.66 sec)	logL: -872940.087	Tol1: 0.00428	Tol2: 0.05023	Tol3: 0.00298	
+Iter 7/50
+M step: done,  E step: done //  (in 12.76 sec)	logL: -881418.665	Tol1: 0.00971	Tol2: 0.06793	Tol3: 0.00404	
+Iter 8/50
+M step: done,  E step: done //  (in 12.74 sec)	logL: -922395.586	Tol1: 0.04649	Tol2: 0.08162	Tol3: 0.00747	
+Iter 9/50
+M step: done,  E step: done //  (in 12.83 sec)	logL: -895948.965	Tol1: 0.02867	Tol2: 0.16040	Tol3: 0.01652	
+Iter 10/50
+M step: done,  E step: done //  (in 12.93 sec)	logL: -887968.818	Tol1: 0.00891	Tol2: 0.06752	Tol3: 0.01927	
+Iter 11/50
+M step: done,  E step: done //  (in 12.86 sec)	logL: -880194.283	Tol1: 0.00876	Tol2: 0.05955	Tol3: 0.00811	
+Iter 12/50
+M step: done,  E step: done //  (in 12.97 sec)	logL: -876457.430	Tol1: 0.00425	Tol2: 0.05488	Tol3: 0.00948	
+Iter 13/50
+M step: done,  E step: done //  (in 12.86 sec)	logL: -872405.532	Tol1: 0.00462	Tol2: 0.05533	Tol3: 0.00195	
+Iter 14/50
+M step: done,  E step: done //  (in 12.47 sec)	logL: -873053.584	Tol1: 0.00074	Tol2: 0.07364	Tol3: 0.00259	
+Iter 15/50
+M step: done,  E step: done //  (in 12.79 sec)	logL: -866289.027	Tol1: 0.00775	Tol2: 0.05264	Tol3: 0.00231	
+Iter 16/50
+M step: done,  E step: done //  (in 12.78 sec)	logL: -858614.648	Tol1: 0.00886	Tol2: 0.05537	Tol3: 0.00097	
+Iter 17/50
+M step: done,  E step: done //  (in 12.65 sec)	logL: -857652.390	Tol1: 0.00112	Tol2: 0.06164	Tol3: 0.00369	
+Iter 18/50
+M step: done,  E step: done //  (in 12.80 sec)	logL: -852461.683	Tol1: 0.00605	Tol2: 0.05571	Tol3: 0.00131	
+Iter 19/50
+M step: done,  E step: done //  (in 12.86 sec)	logL: -856171.285	Tol1: 0.00435	Tol2: 0.04965	Tol3: 0.00194	
+Iter 20/50
+M step: done,  E step: done //  (in 12.79 sec)	logL: -850712.226	Tol1: 0.00638	Tol2: 0.04334	Tol3: 0.00404	
+Iter 21/50
+M step: done,  E step: done //  (in 12.76 sec)	logL: -849709.942	Tol1: 0.00118	Tol2: 0.05263	Tol3: 0.00267	
+Iter 22/50
+M step: done,  E step: done //  (in 12.67 sec)	logL: -848906.043	Tol1: 0.00095	Tol2: 0.04334	Tol3: 0.00174	
+Iter 23/50
+M step: done,  E step: done //  (in 12.64 sec)	logL: -847207.563	Tol1: 0.00200	Tol2: 0.04446	Tol3: 0.00386	
+Iter 24/50
+M step: done,  E step: done //  (in 12.88 sec)	logL: -846712.261	Tol1: 0.00058	Tol2: 0.04343	Tol3: 0.00311	
+Iter 25/50
+M step: done,  E step: done //  (in 12.50 sec)	logL: -844195.589	Tol1: 0.00297	Tol2: 0.05502	Tol3: 0.00178	
+Iter 26/50
+M step: done,  E step: done //  (in 12.69 sec)	logL: -842421.418	Tol1: 0.00210	Tol2: 0.07869	Tol3: 0.00202	
+Iter 27/50
+M step: done,  E step: done //  (in 12.51 sec)	logL: -845358.866	Tol1: 0.00349	Tol2: 0.04605	Tol3: 0.00100	
+Iter 28/50
+M step: done,  E step: done //  (in 12.68 sec)	logL: -851448.620	Tol1: 0.00720	Tol2: 0.05620	Tol3: 0.00695	
+Iter 29/50
+M step: done,  E step: done //  (in 12.64 sec)	logL: -842894.436	Tol1: 0.01005	Tol2: 0.04883	Tol3: 0.00462	
+Iter 30/50
+M step: done,  E step: done //  (in 12.76 sec)	logL: -842684.266	Tol1: 0.00025	Tol2: 0.03018	Tol3: 0.00496	
+Iter 31/50
+M step: done,  E step: done //  (in 12.77 sec)	logL: -839502.456	Tol1: 0.00378	Tol2: 0.05842	Tol3: 0.00335	
+Iter 32/50
+M step: done,  E step: done //  (in 12.78 sec)	logL: -839476.243	Tol1: 0.00003	Tol2: 0.03701	Tol3: 0.00119	
+Iter 33/50
+M step: done,  E step: done //  (in 12.98 sec)	logL: -836039.932	Tol1: 0.00409	Tol2: 0.02670	Tol3: 0.00101	
+Finished training!
+Trained model over Ours (3)
+All Performance Measured
+New Synthetic data is being generated...Done! 
+Shape (data,annotators):  (50000, 100)
+Classes:  10
+Representation for Raykar/MV/D&S in 0.177082 mins
+Iter	log-likelihood	delta-CM	delta-ER	delta-LL
+1 	 -739152.8967659954
+2 	 -719722.2695164739 	0.1084	0.340523	0.026288
+3 	 -718304.232608681 	0.0464	0.107868	0.001970
+4 	 -718097.7017230672 	0.0253	0.063634	0.000288
+5 	 -718046.8048085785 	0.0136	0.042622	0.000071
+6 	 -718030.2250984658 	0.0082	0.028696	0.000023
+Class marginals
+[0.1  0.1  0.1  0.09 0.1  0.11 0.1  0.1  0.1  0.1 ]
+ACC MV on train: 0.8267
+Trained model over soft-MV
+Trained model over hard-MV
+Trained model over D&S
+Initializing new EM...
+Betas shape:  (100, 10, 10)
+Q estimate shape:  (50000, 10)
+Iter 1/50 
+M step: done,  E step: done //  (in 22.95 sec)	logL: -730784.125	
+Iter 2/50 
+M step: done,  E step: done //  (in 16.53 sec)	logL: -686157.562	Tol1: 0.06107	Tol2: 0.32841	
+Iter 3/50 
+M step: done,  E step: done //  (in 16.37 sec)	logL: -682064.062	Tol1: 0.00597	Tol2: 0.07936	
+Iter 4/50 
+M step: done,  E step: done //  (in 16.55 sec)	logL: -677725.562	Tol1: 0.00636	Tol2: 0.03083	
+Iter 5/50 
+M step: done,  E step: done //  (in 16.58 sec)	logL: -676158.500	Tol1: 0.00231	Tol2: 0.02927	
+Finished training!
+Trained model over Raykar
+Representation for Our in 0.001159 mins
+shape: (50000, 10)
+Projection of annotations in 0.066565 mins
+Annotators PCA of annotations shape:  (100, 4)
+Clustering Done!
+Get init alphas in 0.013258 mins
+Initializing new EM...
+Pre-train network on 5 epochs... Done!
+Lambda by group:  [1. 1. 1. 1.]
+Alphas:  (4,)
+MV init:  (50000, 10)
+Betas:  (4, 10, 10)
+Q estimate:  (50000, 10, 4, 10)
+Iter 1/50
+M step: done,  E step: done //  (in 19.74 sec)	logL: -977383.203	
+Iter 2/50
+M step: done,  E step: done //  (in 12.93 sec)	logL: -947626.203	Tol1: 0.03045	Tol2: 0.23913	Tol3: 0.04099	
+Iter 3/50
+M step: done,  E step: done //  (in 12.80 sec)	logL: -934635.392	Tol1: 0.01371	Tol2: 0.11502	Tol3: 0.01456	
+Iter 4/50
+M step: done,  E step: done //  (in 12.69 sec)	logL: -925966.664	Tol1: 0.00927	Tol2: 0.08821	Tol3: 0.00407	
+Iter 5/50
+M step: done,  E step: done //  (in 12.82 sec)	logL: -927701.140	Tol1: 0.00187	Tol2: 0.06840	Tol3: 0.00254	
+Iter 6/50
+M step: done,  E step: done //  (in 12.73 sec)	logL: -921920.565	Tol1: 0.00623	Tol2: 0.06063	Tol3: 0.00327	
+Iter 7/50
+M step: done,  E step: done //  (in 12.69 sec)	logL: -916997.594	Tol1: 0.00534	Tol2: 0.04437	Tol3: 0.00278	
+Iter 8/50
+M step: done,  E step: done //  (in 12.91 sec)	logL: -912568.936	Tol1: 0.00483	Tol2: 0.04453	Tol3: 0.00083	
+Iter 9/50
+M step: done,  E step: done //  (in 12.74 sec)	logL: -912196.419	Tol1: 0.00041	Tol2: 0.05995	Tol3: 0.00328	
+Iter 10/50
+M step: done,  E step: done //  (in 12.89 sec)	logL: -909911.619	Tol1: 0.00250	Tol2: 0.05487	Tol3: 0.00289	
+Iter 11/50
+M step: done,  E step: done //  (in 12.79 sec)	logL: -904493.358	Tol1: 0.00595	Tol2: 0.05112	Tol3: 0.00026	
+Iter 12/50
+M step: done,  E step: done //  (in 13.01 sec)	logL: -903909.719	Tol1: 0.00065	Tol2: 0.05627	Tol3: 0.00223	
+Iter 13/50
+M step: done,  E step: done //  (in 12.81 sec)	logL: -900556.833	Tol1: 0.00371	Tol2: 0.05959	Tol3: 0.00200	
+Iter 14/50
+M step: done,  E step: done //  (in 12.91 sec)	logL: -899449.906	Tol1: 0.00123	Tol2: 0.03049	Tol3: 0.00019	
+Iter 15/50
+M step: done,  E step: done //  (in 13.40 sec)	logL: -896554.075	Tol1: 0.00322	Tol2: 0.05440	Tol3: 0.00528	
+Iter 16/50
+M step: done,  E step: done //  (in 12.60 sec)	logL: -897587.164	Tol1: 0.00115	Tol2: 0.03488	Tol3: 0.00215	
+Iter 17/50
+M step: done,  E step: done //  (in 12.84 sec)	logL: -899263.965	Tol1: 0.00187	Tol2: 0.03898	Tol3: 0.00096	
+Iter 18/50
+M step: done,  E step: done //  (in 13.06 sec)	logL: -897143.406	Tol1: 0.00236	Tol2: 0.05964	Tol3: 0.00440	
+Iter 19/50
+M step: done,  E step: done //  (in 13.03 sec)	logL: -897046.809	Tol1: 0.00011	Tol2: 0.04796	Tol3: 0.00269	
+Iter 20/50
+M step: done,  E step: done //  (in 12.92 sec)	logL: -897971.651	Tol1: 0.00103	Tol2: 0.04165	Tol3: 0.00219	
+Iter 21/50
+M step: done,  E step: done //  (in 13.00 sec)	logL: -895847.263	Tol1: 0.00237	Tol2: 0.04806	Tol3: 0.00275	
+Iter 22/50
+M step: done,  E step: done //  (in 13.26 sec)	logL: -898642.176	Tol1: 0.00312	Tol2: 0.04069	Tol3: 0.00171	
+Iter 23/50
+M step: done,  E step: done //  (in 13.32 sec)	logL: -894913.916	Tol1: 0.00415	Tol2: 0.04989	Tol3: 0.00427	
+Iter 24/50
+M step: done,  E step: done //  (in 12.85 sec)	logL: -893307.825	Tol1: 0.00179	Tol2: 0.02914	Tol3: 0.00077	
+Finished training!
+Trained model over Ours (1)
+Clustering Done!
+Get init alphas in 0.013255 mins
+Initializing new EM...
+Pre-train network on 5 epochs... Done!
+Lambda by group:  [0.47 0.65 0.03 0.77]
+Alphas:  (4,)
+MV init:  (50000, 10)
+Betas:  (4, 10, 10)
+Q estimate:  (50000, 10, 4, 10)
+Iter 1/50
+M step: done,  E step: done //  (in 19.47 sec)	logL: -925392.006	
+Iter 2/50
+M step: done,  E step: done //  (in 12.98 sec)	logL: -914013.457	Tol1: 0.01230	Tol2: 0.09817	Tol3: 0.00433	
+Iter 3/50
+M step: done,  E step: done //  (in 12.70 sec)	logL: -905404.425	Tol1: 0.00942	Tol2: 0.08655	Tol3: 0.00456	
+Iter 4/50
+M step: done,  E step: done //  (in 12.96 sec)	logL: -899219.475	Tol1: 0.00683	Tol2: 0.06519	Tol3: 0.00778	
+Iter 5/50
+M step: done,  E step: done //  (in 12.88 sec)	logL: -896963.935	Tol1: 0.00251	Tol2: 0.07192	Tol3: 0.01370	
+Iter 6/50
+M step: done,  E step: done //  (in 12.93 sec)	logL: -901571.588	Tol1: 0.00514	Tol2: 0.07498	Tol3: 0.01244	
+Iter 7/50
+M step: done,  E step: done //  (in 12.80 sec)	logL: -892140.861	Tol1: 0.01046	Tol2: 0.10504	Tol3: 0.01026	
+Iter 8/50
+M step: done,  E step: done //  (in 12.84 sec)	logL: -890222.853	Tol1: 0.00215	Tol2: 0.07341	Tol3: 0.00876	
+Iter 9/50
+M step: done,  E step: done //  (in 12.62 sec)	logL: -887721.508	Tol1: 0.00281	Tol2: 0.05910	Tol3: 0.01169	
+Iter 10/50
+M step: done,  E step: done //  (in 12.96 sec)	logL: -884752.372	Tol1: 0.00334	Tol2: 0.04940	Tol3: 0.00570	
+Iter 11/50
+M step: done,  E step: done //  (in 12.91 sec)	logL: -883370.036	Tol1: 0.00156	Tol2: 0.04501	Tol3: 0.00834	
+Iter 12/50
+M step: done,  E step: done //  (in 12.90 sec)	logL: -882457.440	Tol1: 0.00103	Tol2: 0.04211	Tol3: 0.00151	
+Iter 13/50
+M step: done,  E step: done //  (in 12.86 sec)	logL: -880055.430	Tol1: 0.00272	Tol2: 0.03900	Tol3: 0.00116	
+Iter 14/50
+M step: done,  E step: done //  (in 12.79 sec)	logL: -879054.921	Tol1: 0.00114	Tol2: 0.04408	Tol3: 0.00407	
+Iter 15/50
+M step: done,  E step: done //  (in 12.93 sec)	logL: -877418.903	Tol1: 0.00186	Tol2: 0.04343	Tol3: 0.00384	
+Iter 16/50
+M step: done,  E step: done //  (in 12.70 sec)	logL: -876600.566	Tol1: 0.00093	Tol2: 0.04882	Tol3: 0.00353	
+Iter 17/50
+M step: done,  E step: done //  (in 12.96 sec)	logL: -875724.046	Tol1: 0.00100	Tol2: 0.04427	Tol3: 0.00508	
+Iter 18/50
+M step: done,  E step: done //  (in 12.96 sec)	logL: -875466.897	Tol1: 0.00029	Tol2: 0.03061	Tol3: 0.00324	
+Iter 19/50
+M step: done,  E step: done //  (in 12.74 sec)	logL: -876867.734	Tol1: 0.00160	Tol2: 0.03997	Tol3: 0.00334	
+Iter 20/50
+M step: done,  E step: done //  (in 12.87 sec)	logL: -872504.976	Tol1: 0.00498	Tol2: 0.04872	Tol3: 0.00476	
+Iter 21/50
+M step: done,  E step: done //  (in 12.96 sec)	logL: -877642.562	Tol1: 0.00589	Tol2: 0.03462	Tol3: 0.00056	
+Iter 22/50
+M step: done,  E step: done //  (in 13.06 sec)	logL: -873837.165	Tol1: 0.00434	Tol2: 0.05188	Tol3: 0.00680	
+Iter 23/50
+M step: done,  E step: done //  (in 13.11 sec)	logL: -875431.061	Tol1: 0.00182	Tol2: 0.04731	Tol3: 0.00454	
+Iter 24/50
+M step: done,  E step: done //  (in 12.94 sec)	logL: -874061.427	Tol1: 0.00156	Tol2: 0.03278	Tol3: 0.00249	
+Iter 25/50
+M step: done,  E step: done //  (in 12.73 sec)	logL: -876733.762	Tol1: 0.00306	Tol2: 0.03746	Tol3: 0.00203	
+Iter 26/50
+M step: done,  E step: done //  (in 12.80 sec)	logL: -876795.561	Tol1: 0.00007	Tol2: 0.04047	Tol3: 0.00639	
+Iter 27/50
+M step: done,  E step: done //  (in 12.93 sec)	logL: -879386.574	Tol1: 0.00296	Tol2: 0.03962	Tol3: 0.00293	
+Iter 28/50
+M step: done,  E step: done //  (in 12.67 sec)	logL: -875026.257	Tol1: 0.00496	Tol2: 0.03917	Tol3: 0.00196	
+Iter 29/50
+M step: done,  E step: done //  (in 12.80 sec)	logL: -872789.090	Tol1: 0.00256	Tol2: 0.03316	Tol3: 0.00103	
+Iter 30/50
+M step: done,  E step: done //  (in 13.22 sec)	logL: -872025.120	Tol1: 0.00088	Tol2: 0.03177	Tol3: 0.00118	
+Iter 31/50
+M step: done,  E step: done //  (in 12.91 sec)	logL: -872337.426	Tol1: 0.00036	Tol2: 0.03380	Tol3: 0.00147	
+Iter 32/50
+M step: done,  E step: done //  (in 13.16 sec)	logL: -873368.857	Tol1: 0.00118	Tol2: 0.04039	Tol3: 0.00238	
+Iter 33/50
+M step: done,  E step: done //  (in 12.76 sec)	logL: -869401.386	Tol1: 0.00454	Tol2: 0.05362	Tol3: 0.00381	
+Iter 34/50
+M step: done,  E step: done //  (in 13.07 sec)	logL: -869596.129	Tol1: 0.00022	Tol2: 0.03557	Tol3: 0.00467	
+Iter 35/50
+M step: done,  E step: done //  (in 12.75 sec)	logL: -866494.527	Tol1: 0.00357	Tol2: 0.03285	Tol3: 0.00320	
+Iter 36/50
+M step: done,  E step: done //  (in 12.81 sec)	logL: -870052.840	Tol1: 0.00411	Tol2: 0.02752	Tol3: 0.00456	
+Finished training!
+Trained model over Ours (2)
+Clustering Done!
+Get init alphas in 4.257680 mins
+Initializing new EM...
+Pre-train network on 5 epochs... Done!
+Lambda by group:  [0.4  0.12 0.94 0.76]
+Alphas:  (4,)
+MV init:  (50000, 10)
+Betas:  (4, 10, 10)
+Q estimate:  (50000, 10, 4, 10)
+Iter 1/50
+M step: done,  E step: done //  (in 19.95 sec)	logL: -924929.550	
+Iter 2/50
+M step: done,  E step: done //  (in 12.80 sec)	logL: -918250.139	Tol1: 0.00722	Tol2: 0.12165	Tol3: 0.01433	
+Iter 3/50
+M step: done,  E step: done //  (in 13.02 sec)	logL: -910378.517	Tol1: 0.00857	Tol2: 0.14889	Tol3: 0.01180	
+Iter 4/50
+M step: done,  E step: done //  (in 13.04 sec)	logL: -904236.385	Tol1: 0.00675	Tol2: 0.11665	Tol3: 0.00333	
+Iter 5/50
+M step: done,  E step: done //  (in 12.78 sec)	logL: -900015.241	Tol1: 0.00467	Tol2: 0.07390	Tol3: 0.01511	
+Iter 6/50
+M step: done,  E step: done //  (in 12.75 sec)	logL: -902392.126	Tol1: 0.00264	Tol2: 0.08589	Tol3: 0.00991	
+Iter 7/50
+M step: done,  E step: done //  (in 12.77 sec)	logL: -907173.382	Tol1: 0.00530	Tol2: 0.12867	Tol3: 0.02490	
+Iter 8/50
+M step: done,  E step: done //  (in 13.02 sec)	logL: -887917.351	Tol1: 0.02123	Tol2: 0.12825	Tol3: 0.02396	
+Iter 9/50
+M step: done,  E step: done //  (in 12.78 sec)	logL: -897631.378	Tol1: 0.01094	Tol2: 0.11600	Tol3: 0.00889	
+Iter 10/50
+M step: done,  E step: done //  (in 12.87 sec)	logL: -889575.995	Tol1: 0.00897	Tol2: 0.07065	Tol3: 0.01349	
+Iter 11/50
+M step: done,  E step: done //  (in 12.90 sec)	logL: -880011.614	Tol1: 0.01075	Tol2: 0.12414	Tol3: 0.00734	
+Iter 12/50
+M step: done,  E step: done //  (in 12.90 sec)	logL: -876732.723	Tol1: 0.00373	Tol2: 0.06042	Tol3: 0.01265	
+Iter 13/50
+M step: done,  E step: done //  (in 13.15 sec)	logL: -876226.740	Tol1: 0.00058	Tol2: 0.03748	Tol3: 0.00247	
+Iter 14/50
+M step: done,  E step: done //  (in 12.99 sec)	logL: -873522.471	Tol1: 0.00309	Tol2: 0.05663	Tol3: 0.00759	
+Iter 15/50
+M step: done,  E step: done //  (in 13.05 sec)	logL: -872706.707	Tol1: 0.00093	Tol2: 0.08044	Tol3: 0.00766	
+Iter 16/50
+M step: done,  E step: done //  (in 13.36 sec)	logL: -875165.882	Tol1: 0.00282	Tol2: 0.05247	Tol3: 0.00893	
+Iter 17/50
+M step: done,  E step: done //  (in 13.09 sec)	logL: -868607.546	Tol1: 0.00749	Tol2: 0.08193	Tol3: 0.01706	
+Iter 18/50
+M step: done,  E step: done //  (in 12.99 sec)	logL: -869251.519	Tol1: 0.00074	Tol2: 0.04340	Tol3: 0.01148	
+Iter 19/50
+M step: done,  E step: done //  (in 13.09 sec)	logL: -867349.259	Tol1: 0.00219	Tol2: 0.05467	Tol3: 0.00728	
+Iter 20/50
+M step: done,  E step: done //  (in 12.91 sec)	logL: -869374.928	Tol1: 0.00234	Tol2: 0.03960	Tol3: 0.00815	
+Iter 21/50
+M step: done,  E step: done //  (in 12.94 sec)	logL: -867902.710	Tol1: 0.00169	Tol2: 0.05592	Tol3: 0.01502	
+Iter 22/50
+M step: done,  E step: done //  (in 12.76 sec)	logL: -866007.046	Tol1: 0.00218	Tol2: 0.06617	Tol3: 0.00155	
+Iter 23/50
+M step: done,  E step: done //  (in 12.68 sec)	logL: -863182.640	Tol1: 0.00326	Tol2: 0.06495	Tol3: 0.00626	
+Iter 24/50
+M step: done,  E step: done //  (in 13.03 sec)	logL: -863937.396	Tol1: 0.00087	Tol2: 0.05066	Tol3: 0.00280	
+Iter 25/50
+M step: done,  E step: done //  (in 12.61 sec)	logL: -864658.917	Tol1: 0.00084	Tol2: 0.06139	Tol3: 0.00150	
+Iter 26/50
+M step: done,  E step: done //  (in 13.05 sec)	logL: -867460.919	Tol1: 0.00324	Tol2: 0.05014	Tol3: 0.00039	
+Iter 27/50
+M step: done,  E step: done //  (in 13.10 sec)	logL: -861294.168	Tol1: 0.00711	Tol2: 0.05467	Tol3: 0.00645	
+Iter 28/50
+M step: done,  E step: done //  (in 13.15 sec)	logL: -860111.670	Tol1: 0.00137	Tol2: 0.03858	Tol3: 0.00465	
+Iter 29/50
+M step: done,  E step: done //  (in 12.89 sec)	logL: -859708.244	Tol1: 0.00047	Tol2: 0.06146	Tol3: 0.01088	
+Iter 30/50
+M step: done,  E step: done //  (in 12.98 sec)	logL: -860164.157	Tol1: 0.00053	Tol2: 0.03510	Tol3: 0.00093	
+Iter 31/50
+M step: done,  E step: done //  (in 13.34 sec)	logL: -857595.335	Tol1: 0.00299	Tol2: 0.05231	Tol3: 0.00180	
+Iter 32/50
+M step: done,  E step: done //  (in 12.75 sec)	logL: -859073.673	Tol1: 0.00172	Tol2: 0.04218	Tol3: 0.00230	
+Iter 33/50
+M step: done,  E step: done //  (in 12.69 sec)	logL: -856173.646	Tol1: 0.00338	Tol2: 0.03649	Tol3: 0.00306	
+Iter 34/50
+M step: done,  E step: done //  (in 12.95 sec)	logL: -856307.556	Tol1: 0.00016	Tol2: 0.03482	Tol3: 0.00198	
+Iter 35/50
+M step: done,  E step: done //  (in 12.78 sec)	logL: -856968.314	Tol1: 0.00077	Tol2: 0.06264	Tol3: 0.01071	
+Iter 36/50
+M step: done,  E step: done //  (in 12.93 sec)	logL: -856327.232	Tol1: 0.00075	Tol2: 0.06471	Tol3: 0.00348	
+Iter 37/50
+M step: done,  E step: done //  (in 12.94 sec)	logL: -855771.112	Tol1: 0.00065	Tol2: 0.02922	Tol3: 0.00113	
+Finished training!
+Trained model over Ours (3)
+All Performance Measured
+New Synthetic data is being generated...Done! 
+Shape (data,annotators):  (50000, 100)
+Classes:  10
+Representation for Raykar/MV/D&S in 0.171950 mins
+Iter	log-likelihood	delta-CM	delta-ER	delta-LL
+1 	 -729262.1916266502
+2 	 -705668.008795028 	0.1095	0.366012	0.032353
+3 	 -704316.3636621082 	0.0417	0.109090	0.001915
+4 	 -704141.2087445214 	0.0206	0.062301	0.000249
+5 	 -704099.9518098738 	0.0119	0.037388	0.000059
+6 	 -704085.7437536923 	0.0074	0.022917	0.000020
+Class marginals
+[0.1  0.1  0.1  0.09 0.1  0.11 0.1  0.1  0.1  0.1 ]
+ACC MV on train: 0.85752
+Trained model over soft-MV
+Trained model over hard-MV
+Trained model over D&S
+Initializing new EM...
+Betas shape:  (100, 10, 10)
+Q estimate shape:  (50000, 10)
+Iter 1/50 
+M step: done,  E step: done //  (in 24.69 sec)	logL: -723050.688	
+Iter 2/50 
+M step: done,  E step: done //  (in 16.47 sec)	logL: -667795.562	Tol1: 0.07642	Tol2: 0.34967	
+Iter 3/50 
+M step: done,  E step: done //  (in 17.41 sec)	logL: -661696.875	Tol1: 0.00913	Tol2: 0.07341	
+Iter 4/50 
+M step: done,  E step: done //  (in 16.47 sec)	logL: -662285.438	Tol1: 0.00089	Tol2: 0.02952	
+Finished training!
+Trained model over Raykar
+Representation for Our in 0.001155 mins
+shape: (50000, 10)
+Projection of annotations in 0.066669 mins
+Annotators PCA of annotations shape:  (100, 4)
+Clustering Done!
+Get init alphas in 0.012484 mins
+Initializing new EM...
+Pre-train network on 5 epochs... Done!
+Lambda by group:  [1. 1. 1. 1.]
+Alphas:  (4,)
+MV init:  (50000, 10)
+Betas:  (4, 10, 10)
+Q estimate:  (50000, 10, 4, 10)
+Iter 1/50
+M step: done,  E step: done //  (in 20.58 sec)	logL: -918426.999	
+Iter 2/50
+M step: done,  E step: done //  (in 13.02 sec)	logL: -901005.920	Tol1: 0.01897	Tol2: 0.21249	Tol3: 0.04598	
+Iter 3/50
+M step: done,  E step: done //  (in 13.03 sec)	logL: -892587.199	Tol1: 0.00934	Tol2: 0.08830	Tol3: 0.01053	
+Iter 4/50
+M step: done,  E step: done //  (in 12.77 sec)	logL: -888987.116	Tol1: 0.00403	Tol2: 0.06002	Tol3: 0.00482	
+Iter 5/50
+M step: done,  E step: done //  (in 13.22 sec)	logL: -893119.304	Tol1: 0.00465	Tol2: 0.05616	Tol3: 0.00267	
+Iter 6/50
+M step: done,  E step: done //  (in 13.05 sec)	logL: -885773.897	Tol1: 0.00822	Tol2: 0.07546	Tol3: 0.00345	
+Iter 7/50
+M step: done,  E step: done //  (in 12.98 sec)	logL: -881199.072	Tol1: 0.00516	Tol2: 0.04054	Tol3: 0.00327	
+Iter 8/50
+M step: done,  E step: done //  (in 13.16 sec)	logL: -882901.030	Tol1: 0.00193	Tol2: 0.04126	Tol3: 0.00249	
+Iter 9/50
+M step: done,  E step: done //  (in 13.01 sec)	logL: -879542.942	Tol1: 0.00380	Tol2: 0.05910	Tol3: 0.00467	
+Iter 10/50
+M step: done,  E step: done //  (in 13.17 sec)	logL: -878429.808	Tol1: 0.00127	Tol2: 0.03656	Tol3: 0.00312	
+Iter 11/50
+M step: done,  E step: done //  (in 13.39 sec)	logL: -872997.440	Tol1: 0.00618	Tol2: 0.06571	Tol3: 0.00758	
+Iter 12/50
+M step: done,  E step: done //  (in 13.28 sec)	logL: -867276.761	Tol1: 0.00655	Tol2: 0.04857	Tol3: 0.00343	
+Iter 13/50
+M step: done,  E step: done //  (in 13.34 sec)	logL: -864428.626	Tol1: 0.00328	Tol2: 0.03537	Tol3: 0.00071	
+Iter 14/50
+M step: done,  E step: done //  (in 12.81 sec)	logL: -862519.944	Tol1: 0.00221	Tol2: 0.03895	Tol3: 0.00219	
+Iter 15/50
+M step: done,  E step: done //  (in 13.18 sec)	logL: -859740.135	Tol1: 0.00322	Tol2: 0.03218	Tol3: 0.00129	
+Iter 16/50
+M step: done,  E step: done //  (in 12.87 sec)	logL: -861994.105	Tol1: 0.00262	Tol2: 0.03733	Tol3: 0.00303	
+Iter 17/50
+M step: done,  E step: done //  (in 13.22 sec)	logL: -857503.277	Tol1: 0.00521	Tol2: 0.04574	Tol3: 0.00158	
+Iter 18/50
+M step: done,  E step: done //  (in 12.97 sec)	logL: -856348.316	Tol1: 0.00135	Tol2: 0.02945	Tol3: 0.00125	
+Finished training!
+Trained model over Ours (1)
+Clustering Done!
+Get init alphas in 0.012219 mins
+Initializing new EM...
+Pre-train network on 5 epochs... Done!
+Lambda by group:  [0.   0.91 0.7  0.67]
+Alphas:  (4,)
+MV init:  (50000, 10)
+Betas:  (4, 10, 10)
+Q estimate:  (50000, 10, 4, 10)
+Iter 1/50
+M step: done,  E step: done //  (in 20.70 sec)	logL: -905080.306	
+Iter 2/50
+M step: done,  E step: done //  (in 13.01 sec)	logL: -902471.819	Tol1: 0.00288	Tol2: 0.16843	Tol3: 0.01500	
+Iter 3/50
+M step: done,  E step: done //  (in 13.00 sec)	logL: -887135.740	Tol1: 0.01699	Tol2: 0.16103	Tol3: 0.00823	
+Iter 4/50
+M step: done,  E step: done //  (in 12.85 sec)	logL: -889093.705	Tol1: 0.00221	Tol2: 0.11505	Tol3: 0.00235	
+Iter 5/50
+M step: done,  E step: done //  (in 13.22 sec)	logL: -880071.497	Tol1: 0.01015	Tol2: 0.10749	Tol3: 0.00389	
+Iter 6/50
+M step: done,  E step: done //  (in 12.89 sec)	logL: -875353.516	Tol1: 0.00536	Tol2: 0.10732	Tol3: 0.00612	
+Iter 7/50
+M step: done,  E step: done //  (in 13.20 sec)	logL: -872488.528	Tol1: 0.00327	Tol2: 0.07799	Tol3: 0.00464	
+Iter 8/50
+M step: done,  E step: done //  (in 12.82 sec)	logL: -867721.619	Tol1: 0.00546	Tol2: 0.07412	Tol3: 0.00371	
+Iter 9/50
+M step: done,  E step: done //  (in 13.14 sec)	logL: -867380.502	Tol1: 0.00039	Tol2: 0.05945	Tol3: 0.00419	
+Iter 10/50
+M step: done,  E step: done //  (in 13.00 sec)	logL: -867015.950	Tol1: 0.00042	Tol2: 0.06457	Tol3: 0.00330	
+Iter 11/50
+M step: done,  E step: done //  (in 13.12 sec)	logL: -860129.818	Tol1: 0.00794	Tol2: 0.07894	Tol3: 0.00331	
+Iter 12/50
+M step: done,  E step: done //  (in 12.84 sec)	logL: -862620.043	Tol1: 0.00290	Tol2: 0.05025	Tol3: 0.00321	
+Iter 13/50
+M step: done,  E step: done //  (in 12.92 sec)	logL: -857288.336	Tol1: 0.00618	Tol2: 0.06065	Tol3: 0.00339	
+Iter 14/50
+M step: done,  E step: done //  (in 13.22 sec)	logL: -855465.823	Tol1: 0.00213	Tol2: 0.04040	Tol3: 0.00043	
+Iter 15/50
+M step: done,  E step: done //  (in 12.85 sec)	logL: -854983.057	Tol1: 0.00056	Tol2: 0.04544	Tol3: 0.00135	
+Iter 16/50
+M step: done,  E step: done //  (in 13.45 sec)	logL: -854181.170	Tol1: 0.00094	Tol2: 0.03985	Tol3: 0.00218	
+Iter 17/50
+M step: done,  E step: done //  (in 12.90 sec)	logL: -854702.582	Tol1: 0.00061	Tol2: 0.04187	Tol3: 0.00266	
+Iter 18/50
+M step: done,  E step: done //  (in 13.09 sec)	logL: -853609.455	Tol1: 0.00128	Tol2: 0.05339	Tol3: 0.00379	
+Iter 19/50
+M step: done,  E step: done //  (in 13.23 sec)	logL: -852158.710	Tol1: 0.00170	Tol2: 0.06059	Tol3: 0.00458	
+Iter 20/50
+M step: done,  E step: done //  (in 13.14 sec)	logL: -849679.042	Tol1: 0.00291	Tol2: 0.04466	Tol3: 0.00345	
+Iter 21/50
+M step: done,  E step: done //  (in 13.03 sec)	logL: -846406.911	Tol1: 0.00385	Tol2: 0.03961	Tol3: 0.00549	
+Iter 22/50
+M step: done,  E step: done //  (in 12.96 sec)	logL: -846666.983	Tol1: 0.00031	Tol2: 0.02578	Tol3: 0.00129	
+Finished training!
+Trained model over Ours (2)
+Clustering Done!
+Get init alphas in 4.334133 mins
+Initializing new EM...
+Pre-train network on 5 epochs... Done!
+Lambda by group:  [0.82 0.67 0.75 0.51]
+Alphas:  (4,)
+MV init:  (50000, 10)
+Betas:  (4, 10, 10)
+Q estimate:  (50000, 10, 4, 10)
+Iter 1/50
+M step: done,  E step: done //  (in 21.00 sec)	logL: -918310.408	
+Iter 2/50
+M step: done,  E step: done //  (in 13.36 sec)	logL: -898240.528	Tol1: 0.02186	Tol2: 0.15216	Tol3: 0.02531	
+Iter 3/50
+M step: done,  E step: done //  (in 13.08 sec)	logL: -891674.419	Tol1: 0.00731	Tol2: 0.08633	Tol3: 0.00650	
+Iter 4/50
+M step: done,  E step: done //  (in 13.20 sec)	logL: -894180.175	Tol1: 0.00281	Tol2: 0.07423	Tol3: 0.00323	
+Iter 5/50
+M step: done,  E step: done //  (in 12.97 sec)	logL: -883444.846	Tol1: 0.01201	Tol2: 0.06970	Tol3: 0.00389	
+Iter 6/50
+M step: done,  E step: done //  (in 12.91 sec)	logL: -876135.732	Tol1: 0.00827	Tol2: 0.05960	Tol3: 0.00330	
+Iter 7/50
+M step: done,  E step: done //  (in 12.87 sec)	logL: -871927.724	Tol1: 0.00480	Tol2: 0.04611	Tol3: 0.00167	
+Iter 8/50
+M step: done,  E step: done //  (in 13.13 sec)	logL: -869756.914	Tol1: 0.00249	Tol2: 0.03936	Tol3: 0.00176	
+Iter 9/50
+M step: done,  E step: done //  (in 13.26 sec)	logL: -865517.296	Tol1: 0.00487	Tol2: 0.05883	Tol3: 0.00436	
+Iter 10/50
+M step: done,  E step: done //  (in 12.92 sec)	logL: -862956.081	Tol1: 0.00296	Tol2: 0.05763	Tol3: 0.00272	
+Iter 11/50
+M step: done,  E step: done //  (in 13.03 sec)	logL: -863533.440	Tol1: 0.00067	Tol2: 0.03797	Tol3: 0.00104	
+Iter 12/50
+M step: done,  E step: done //  (in 13.28 sec)	logL: -863055.025	Tol1: 0.00055	Tol2: 0.04392	Tol3: 0.00410	
+Iter 13/50
+M step: done,  E step: done //  (in 12.90 sec)	logL: -859927.662	Tol1: 0.00362	Tol2: 0.05285	Tol3: 0.00225	
+Iter 14/50
+M step: done,  E step: done //  (in 13.22 sec)	logL: -861619.177	Tol1: 0.00197	Tol2: 0.04932	Tol3: 0.00227	
+Iter 15/50
+M step: done,  E step: done //  (in 13.32 sec)	logL: -857886.177	Tol1: 0.00433	Tol2: 0.04560	Tol3: 0.00091	
+Iter 16/50
+M step: done,  E step: done //  (in 12.74 sec)	logL: -859707.005	Tol1: 0.00212	Tol2: 0.05098	Tol3: 0.00304	
+Iter 17/50
+M step: done,  E step: done //  (in 12.91 sec)	logL: -857072.853	Tol1: 0.00306	Tol2: 0.03676	Tol3: 0.00474	
+Iter 18/50
+M step: done,  E step: done //  (in 12.77 sec)	logL: -856336.490	Tol1: 0.00086	Tol2: 0.03964	Tol3: 0.00217	
+Iter 19/50
+M step: done,  E step: done //  (in 13.19 sec)	logL: -855452.389	Tol1: 0.00103	Tol2: 0.03532	Tol3: 0.00116	
+Iter 20/50
+M step: done,  E step: done //  (in 12.83 sec)	logL: -853224.788	Tol1: 0.00260	Tol2: 0.03489	Tol3: 0.00216	
+Iter 21/50
+M step: done,  E step: done //  (in 13.38 sec)	logL: -849771.173	Tol1: 0.00405	Tol2: 0.06880	Tol3: 0.00714	
+Iter 22/50
+M step: done,  E step: done //  (in 13.12 sec)	logL: -848492.222	Tol1: 0.00151	Tol2: 0.03592	Tol3: 0.00156	
+Iter 23/50
+M step: done,  E step: done //  (in 13.14 sec)	logL: -849286.427	Tol1: 0.00094	Tol2: 0.03726	Tol3: 0.00088	
+Iter 24/50
+M step: done,  E step: done //  (in 13.15 sec)	logL: -851295.746	Tol1: 0.00237	Tol2: 0.04843	Tol3: 0.00563	
+Iter 25/50
+M step: done,  E step: done //  (in 12.98 sec)	logL: -846618.102	Tol1: 0.00549	Tol2: 0.03394	Tol3: 0.00601	
+Iter 26/50
+M step: done,  E step: done //  (in 13.25 sec)	logL: -845151.042	Tol1: 0.00173	Tol2: 0.02949	Tol3: 0.00190	
+Finished training!
+Trained model over Ours (3)
+All Performance Measured
+New Synthetic data is being generated...Done! 
+Shape (data,annotators):  (50000, 100)
+Classes:  10
+Representation for Raykar/MV/D&S in 0.176124 mins
+Iter	log-likelihood	delta-CM	delta-ER	delta-LL
+1 	 -741529.9598910874
+2 	 -722904.9907428388 	0.1044	0.338423	0.025117
+3 	 -721546.9420547462 	0.0455	0.106488	0.001879
+4 	 -721349.0751087574 	0.0251	0.058837	0.000274
+5 	 -721296.4800346431 	0.0134	0.039937	0.000073
+6 	 -721278.055688765 	0.0082	0.026923	0.000026
+Class marginals
+[0.1  0.1  0.1  0.09 0.1  0.11 0.1  0.1  0.1  0.1 ]
+ACC MV on train: 0.82148
+Trained model over soft-MV
+Trained model over hard-MV
+Trained model over D&S
+Initializing new EM...
+Betas shape:  (100, 10, 10)
+Q estimate shape:  (50000, 10)
+Iter 1/50 
+M step: done,  E step: done //  (in 25.97 sec)	logL: -732728.750	
+Iter 2/50 
+M step: done,  E step: done //  (in 16.30 sec)	logL: -687746.625	Tol1: 0.06139	Tol2: 0.32746	
+Iter 3/50 
+M step: done,  E step: done //  (in 17.64 sec)	logL: -682542.250	Tol1: 0.00757	Tol2: 0.07827	
+Iter 4/50 
+M step: done,  E step: done //  (in 16.96 sec)	logL: -680632.688	Tol1: 0.00280	Tol2: 0.02896	
+Finished training!
+Trained model over Raykar
+Representation for Our in 0.001182 mins
+shape: (50000, 10)
+Projection of annotations in 0.066684 mins
+Annotators PCA of annotations shape:  (100, 4)
+Clustering Done!
+Get init alphas in 0.012586 mins
+Initializing new EM...
+Pre-train network on 5 epochs... Done!
+Lambda by group:  [1. 1. 1. 1.]
+Alphas:  (4,)
+MV init:  (50000, 10)
+Betas:  (4, 10, 10)
+Q estimate:  (50000, 10, 4, 10)
+Iter 1/50
+M step: done,  E step: done //  (in 21.08 sec)	logL: -952477.401	
+Iter 2/50
+M step: done,  E step: done //  (in 13.19 sec)	logL: -933537.832	Tol1: 0.01988	Tol2: 0.20592	Tol3: 0.03926	
+Iter 3/50
+M step: done,  E step: done //  (in 12.76 sec)	logL: -924012.967	Tol1: 0.01020	Tol2: 0.09759	Tol3: 0.01615	
+Iter 4/50
+M step: done,  E step: done //  (in 12.96 sec)	logL: -917530.100	Tol1: 0.00702	Tol2: 0.06448	Tol3: 0.00822	
+Iter 5/50
+M step: done,  E step: done //  (in 13.00 sec)	logL: -915842.850	Tol1: 0.00184	Tol2: 0.04853	Tol3: 0.00227	
+Iter 6/50
+M step: done,  E step: done //  (in 13.07 sec)	logL: -910634.920	Tol1: 0.00569	Tol2: 0.05409	Tol3: 0.00133	
+Iter 7/50
+M step: done,  E step: done //  (in 13.18 sec)	logL: -919702.891	Tol1: 0.00996	Tol2: 0.03807	Tol3: 0.00278	
+Iter 8/50
+M step: done,  E step: done //  (in 12.94 sec)	logL: -912805.593	Tol1: 0.00750	Tol2: 0.08710	Tol3: 0.00175	
+Iter 9/50
+M step: done,  E step: done //  (in 13.18 sec)	logL: -909303.769	Tol1: 0.00384	Tol2: 0.06252	Tol3: 0.00472	
+Iter 10/50
+M step: done,  E step: done //  (in 13.15 sec)	logL: -907280.758	Tol1: 0.00222	Tol2: 0.04638	Tol3: 0.00554	
+Iter 11/50
+M step: done,  E step: done //  (in 13.16 sec)	logL: -907448.327	Tol1: 0.00018	Tol2: 0.07412	Tol3: 0.00464	
+Iter 12/50
+M step: done,  E step: done //  (in 13.05 sec)	logL: -901539.227	Tol1: 0.00651	Tol2: 0.04533	Tol3: 0.00317	
+Iter 13/50
+M step: done,  E step: done //  (in 12.96 sec)	logL: -902315.399	Tol1: 0.00086	Tol2: 0.02812	Tol3: 0.00072	
+Finished training!
+Trained model over Ours (1)
+Clustering Done!
+Get init alphas in 0.012406 mins
+Initializing new EM...
+Pre-train network on 5 epochs... Done!
+Lambda by group:  [0.69 0.46 0.81 0.74]
+Alphas:  (4,)
+MV init:  (50000, 10)
+Betas:  (4, 10, 10)
+Q estimate:  (50000, 10, 4, 10)
+Iter 1/50
+M step: done,  E step: done //  (in 21.79 sec)	logL: -931460.628	
+Iter 2/50
+M step: done,  E step: done //  (in 13.47 sec)	logL: -919443.744	Tol1: 0.01290	Tol2: 0.12202	Tol3: 0.01332	
+Iter 3/50
+M step: done,  E step: done //  (in 13.52 sec)	logL: -914044.703	Tol1: 0.00587	Tol2: 0.06713	Tol3: 0.00262	
+Iter 4/50
+M step: done,  E step: done //  (in 13.29 sec)	logL: -922197.711	Tol1: 0.00892	Tol2: 0.06162	Tol3: 0.00412	
+Iter 5/50
+M step: done,  E step: done //  (in 13.37 sec)	logL: -911767.177	Tol1: 0.01131	Tol2: 0.10754	Tol3: 0.00849	
+Iter 6/50
+M step: done,  E step: done //  (in 13.34 sec)	logL: -918860.667	Tol1: 0.00778	Tol2: 0.07824	Tol3: 0.00177	
+Iter 7/50
+M step: done,  E step: done //  (in 13.33 sec)	logL: -916166.550	Tol1: 0.00293	Tol2: 0.10365	Tol3: 0.00449	
+Iter 8/50
+M step: done,  E step: done //  (in 13.33 sec)	logL: -908913.555	Tol1: 0.00792	Tol2: 0.06103	Tol3: 0.00314	
+Iter 9/50
+M step: done,  E step: done //  (in 12.93 sec)	logL: -903798.723	Tol1: 0.00563	Tol2: 0.05178	Tol3: 0.00317	
+Iter 10/50
+M step: done,  E step: done //  (in 13.19 sec)	logL: -902998.998	Tol1: 0.00088	Tol2: 0.03944	Tol3: 0.00044	
+Iter 11/50
+M step: done,  E step: done //  (in 13.35 sec)	logL: -895383.127	Tol1: 0.00843	Tol2: 0.07811	Tol3: 0.00305	
+Iter 12/50
+M step: done,  E step: done //  (in 13.06 sec)	logL: -896084.732	Tol1: 0.00078	Tol2: 0.03626	Tol3: 0.00200	
+Iter 13/50
+M step: done,  E step: done //  (in 13.00 sec)	logL: -898368.531	Tol1: 0.00255	Tol2: 0.05141	Tol3: 0.00277	
+Iter 14/50
+M step: done,  E step: done //  (in 12.99 sec)	logL: -895760.149	Tol1: 0.00290	Tol2: 0.07552	Tol3: 0.00350	
+Iter 15/50
+M step: done,  E step: done //  (in 13.30 sec)	logL: -890801.151	Tol1: 0.00554	Tol2: 0.05155	Tol3: 0.00142	
+Iter 16/50
+M step: done,  E step: done //  (in 13.25 sec)	logL: -888778.566	Tol1: 0.00227	Tol2: 0.04005	Tol3: 0.00114	
+Iter 17/50
+M step: done,  E step: done //  (in 13.30 sec)	logL: -887377.838	Tol1: 0.00158	Tol2: 0.03241	Tol3: 0.00038	
+Iter 18/50
+M step: done,  E step: done //  (in 13.10 sec)	logL: -888568.947	Tol1: 0.00134	Tol2: 0.02259	Tol3: 0.00080	
+Finished training!
+Trained model over Ours (2)
+Clustering Done!
+Get init alphas in 4.391939 mins
+Initializing new EM...
+Pre-train network on 5 epochs... Done!
+Lambda by group:  [0.86 0.19 0.99 0.57]
+Alphas:  (4,)
+MV init:  (50000, 10)
+Betas:  (4, 10, 10)
+Q estimate:  (50000, 10, 4, 10)
+Iter 1/50
+M step: done,  E step: done //  (in 21.95 sec)	logL: -923071.807	
+Iter 2/50
+M step: done,  E step: done //  (in 13.29 sec)	logL: -917012.258	Tol1: 0.00656	Tol2: 0.11154	Tol3: 0.02943	
+Iter 3/50
+M step: done,  E step: done //  (in 13.88 sec)	logL: -912811.345	Tol1: 0.00458	Tol2: 0.06647	Tol3: 0.00327	
+Iter 4/50
+M step: done,  E step: done //  (in 13.57 sec)	logL: -911436.712	Tol1: 0.00151	Tol2: 0.06118	Tol3: 0.00689	
+Iter 5/50
+M step: done,  E step: done //  (in 13.38 sec)	logL: -915301.762	Tol1: 0.00424	Tol2: 0.05080	Tol3: 0.00759	
+Iter 6/50
+M step: done,  E step: done //  (in 13.15 sec)	logL: -912463.714	Tol1: 0.00310	Tol2: 0.05454	Tol3: 0.01019	
+Iter 7/50
+M step: done,  E step: done //  (in 13.35 sec)	logL: -910285.089	Tol1: 0.00239	Tol2: 0.05036	Tol3: 0.00395	
+Iter 8/50
+M step: done,  E step: done //  (in 12.94 sec)	logL: -905796.537	Tol1: 0.00493	Tol2: 0.05096	Tol3: 0.00568	
+Iter 9/50
+M step: done,  E step: done //  (in 13.38 sec)	logL: -905034.175	Tol1: 0.00084	Tol2: 0.02568	Tol3: 0.00425	
+Finished training!
+Trained model over Ours (3)
+All Performance Measured
+Execution done in 298.982377 mins
