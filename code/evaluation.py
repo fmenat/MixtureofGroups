@@ -15,6 +15,9 @@ class Evaluation_metrics(object):
             self.N = class_infered.N
             self.Kl = class_infered.Kl
             #self.tested_model = class_infered.base_model
+            self.probas_group = class_infered.get_alpha()
+            self.T = 0
+            
         elif self.which == 'keras':
             self.Kl = class_infered.output_shape[-1]
             self.N = N
@@ -28,11 +31,13 @@ class Evaluation_metrics(object):
 
     def calculate_metrics(self,Z=[],Z_pred=[],y_o=[],yo_pred=[],conf_pred=[],conf_true=[],y_o_groups=[]):
         if len(yo_pred)!=0:
-            self.T = yo_pred.shape[0]  
+            self.T = yo_pred.shape[1]
+        elif len(y_o)!=0:
+            self.T = y_o.shape[1]
             
         to_return = []
         if self.which == 'our1' and len(conf_pred) == self.M: 
-            to_return.append(self.report_results_wt_annot(conf_pred,self.plot)) #intrisic metrics
+            to_return.append(self.report_results_wt_annot(conf_pred,plot=self.plot)) #intrisic metrics
             
         if len(Z) != 0: #if we have Ground Truth
             if self.which == 'our1' and len(y_o_groups) != 0 and len(conf_pred) == self.M:  #test set usually
@@ -95,8 +100,8 @@ class Evaluation_metrics(object):
             aux_annotations = np.asarray([(i,annotation) for i, annotation in enumerate(y_o[:,t]) if annotation != -1])
             t_annotations = aux_annotations[:,1] 
             
-            gt_over_annotations = Z_argmax[aux_annotations[:,0]] #[Z_argmax[i] for i,annotation in aux_annotations]
-            prob_data = yo_pred[t][aux_annotations[:,0]]
+            gt_over_annotations = Z_argmax[aux_annotations[:,0]]
+            prob_data = yo_pred[:,t][aux_annotations[:,0]]
 
             acc_annot_real = accuracy_score(gt_over_annotations, t_annotations)
             if prob_data.shape[-1]>1: #if probabilities is handled
@@ -117,7 +122,7 @@ class Evaluation_metrics(object):
             aux_annotations = np.asarray([(i,annotation) for i, annotation in enumerate(y_o[:,t]) if annotation != -1])
             t_annotations = aux_annotations[:,1]
             
-            prob_data = yo_pred[t][aux_annotations[:,0]]
+            prob_data = yo_pred[:,t][aux_annotations[:,0]]
             
             if prob_data.shape[-1]>1: #if probabilities is handled
                 accuracy = accuracy_score(t_annotations, prob_data.argmax(axis=1))
@@ -136,15 +141,18 @@ class Evaluation_metrics(object):
         t = pd.DataFrame()#Table()
         accs = []
         f1_s = []
-        predictions_m = y_o_groups #by argmax
+        if len(y_o_groups.shape) == 3:
+            predictions_m = y_o_groups.argmax(axis=-1)
+        else:
+            predictions_m = y_o_groups #by argmax
         for m in range(self.M):
-            accs.append(accuracy_score(Z_argmax,predictions_m[m]))
-            f1_s.append(f1_score(y_true=Z_argmax, y_pred=predictions_m[m], average='micro'))
+            accs.append(accuracy_score(Z_argmax,predictions_m[:,m]))
+            f1_s.append(f1_score(y_true=Z_argmax, y_pred=predictions_m[:,m], average='micro'))
         t["Accuracy"] = accs
         t["F1 (micro)"] = f1_s
         return t
         
-    def report_results_wt_annot(self,conf_matrixs,plot=True):
+    def report_results_wt_annot(self,conf_matrixs,groups_proba=[],plot=True):
         """Calculate Intrinsic measure of only the confusion matrices infered """
         t = pd.DataFrame()#Table()
         identity_matrixs = np.asarray([np.identity(conf_matrixs.shape[1]) for m in range(len(conf_matrixs))])
@@ -160,7 +168,11 @@ class Evaluation_metrics(object):
             entropies.append(Entropy_confmatrix(conf_matrixs[m]))
             mean_diagional.append(calculate_diagional_mean(conf_matrixs[m]))
             
-        t["Groups"] = np.arange(len(conf_matrixs))        
+        t["Groups"] = np.arange(len(conf_matrixs))
+        if len(self.probas_group) != 0:
+            t["Prob"] = self.probas_group
+            if self.T != 0:
+                t["T(g)"] = list(map(int,self.probas_group*self.T))
         t["Entropy"] = entropies
         t["Diag Mean"] = mean_diagional
         t["KL to I"] = KLs_identity

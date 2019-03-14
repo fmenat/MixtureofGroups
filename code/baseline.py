@@ -250,7 +250,7 @@ class RaykarMC(object):
         """ Predictions of all annotators , p(y^o | xi, t) """
         p_z = self.get_predictions(X)
         predictions_a= np.tensordot(p_z ,self.betas,axes=[[1],[1]] ) # sum_z p(z|xi) * p(yo|z,t)
-        return predictions_a.transpose(1,0,2)
+        return predictions_a#.transpose(1,0,2)
 
     def get_annotator_reliability(self,t):
         """Get annotator reliability, based on his identifier: t"""

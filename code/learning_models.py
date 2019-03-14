@@ -30,6 +30,7 @@ def MLP_Keras(input_dim,output_dim,units,hidden_deep,BN=False,drop=0.0):
     return model
 
 def default_CNN(input_dim,output_dim): #quizas cambiara  CP,CP,CP 
+    #weight_decay = 1e-4
     model = Sequential() 
     model.add(InputLayer(input_shape=input_dim))
     model.add(Conv2D(32,(3,3),strides=1,padding='same',activation='relu'))
@@ -45,11 +46,13 @@ def default_CNN(input_dim,output_dim): #quizas cambiara  CP,CP,CP
     model.add(BatchNormalization())
     model.add(MaxPooling2D(2,2))
     model.add(Dropout(0.25))
+    
+    #another layer?
 
     model.add(Flatten())
     model.add(Dense(128,activation='relu'))
     model.add(BatchNormalization())
-    model.add(Dropout(0.25)) #maybe more
+    model.add(Dropout(0.25)) #maybe more 512 y 0.5 d dropa
     model.add(Dense(output_dim, activation='softmax'))      
     return model
 

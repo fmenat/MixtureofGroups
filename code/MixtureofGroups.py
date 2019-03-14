@@ -347,22 +347,24 @@ class GroupMixtureOpt(object): #optimized version
         gc.collect()
         return np.asarray(logL)
     
-    def annotations_2_group(self,annotations,data=[],no_label_sym = -1):
+    def annotations_2_group(self,annotations,data=[],pred=[],no_label_sym = -1):
         """
             Map some annotations to some group model by the confusion matrices, p(g| {x_l,y_l})
         """
-        if data.shape[0] == self.M: #if prediction_m is passed
-            predictions_m = data
-        elif data.shape[0] != self.M: #if data is passed
-            X = data
-            predictions_m = self.get_predictions_groups(X)
+        if len(pred) != 0:
+            predictions_m = pred #if prediction_m is passed
+        elif len(data) !=0: 
+            predictions_m = self.get_predictions_groups(data) #if data is passed
+        else:
+            print("Error, in order to match annotations to a group you need pass the data X or the group predictions")
+            return
             
         result = np.log(self.get_alpha()+self.Keps)
         aux_annotations = [(i,annotation) for i, annotation in enumerate(annotations) if annotation != no_label_sym]
         for i, annotation in aux_annotations:
             if annotation != no_label_sym: #if label it
                 for m in range(self.M):
-                    result[m] += np.log(predictions_m[m,i,annotation]+self.Keps)
+                    result[m] += np.log(predictions_m[i,m,annotation]+self.Keps)
         result = np.exp(result - result.max(axis=-1, keepdims=True) ) #invert logarithm in safe way
         return result/np.sum(result)
     
@@ -434,7 +436,7 @@ class GroupMixtureOpt(object): #optimized version
         """ Predictions of all groups , p(y^o | xi, g) """
         p_z = self.get_predictions(X)
         predictions_m = np.tensordot(p_z ,self.betas,axes=[[1],[1]] ) #sum_z p(z|xi) * p(yo|z,g)
-        return predictions_m.transpose(1,0,2)
+        return predictions_m#.transpose(1,0,2)
 
     def calculate_extra_components(self,X,y_o,T,calculate_pred_annotator=True):
         """
@@ -444,12 +446,12 @@ class GroupMixtureOpt(object): #optimized version
         
         prob_Gt = np.zeros((T,self.M)) #p(g|t)
         for t in range(T):
-            prob_Gt[t] = self.annotations_2_group(y_o[:,t],predictions_m) 
+            prob_Gt[t] = self.annotations_2_group(y_o[:,t],pred=predictions_m) 
 
         prob_Yzt = np.tensordot(prob_Gt, self.get_confusionM(),axes=[[1],[0]])  #p(y^o|z,t) = sum_g p(g|t) * p(yo|z,g)
   
         if calculate_pred_annotator:
-            prob_Yxt = np.tensordot(prob_Gt, predictions_m,axes=[[1],[0]]) #p(y^o|x,t) = sum_g p(g|t) *p(yo|x,g)
+            prob_Yxt = np.tensordot(predictions_m, prob_Gt, axes=[[1],[1]]).transpose(0,2,1) #p(y^o|x,t) = sum_g p(g|t) *p(yo|x,g)
         else:
             prob_Yxt = None
         gc.collect()

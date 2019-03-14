@@ -296,8 +296,8 @@ for _ in range(20): #repetitions
     aux = gMixture1.calculate_extra_components(Xstd_train,y_obs,T=T,calculate_pred_annotator=True)
     predictions_m,prob_Gt,prob_Yzt,prob_Yxt =  aux #to evaluate...
     Z_train_pred = gMixture1.base_model.predict_classes(Xstd_train)
-    y_o_groups = predictions_m.argmax(axis=-1)
-    results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix,y_o=y_obs,yo_pred=prob_Yxt, y_o_groups=y_o_groups)
+    #y_o_groups = predictions_m.argmax(axis=-1)
+    results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix,y_o=y_obs,yo_pred=prob_Yxt)
 
     results1_aux = evaluate.calculate_metrics(y_o=y_obs,yo_pred=prob_Yxt)
 
@@ -315,8 +315,8 @@ for _ in range(20): #repetitions
     aux = gMixture2.calculate_extra_components(Xstd_train,y_obs,T=T,calculate_pred_annotator=True)
     predictions_m,prob_Gt,prob_Yzt,prob_Yxt =  aux #to evaluate...
     Z_train_pred = gMixture2.base_model.predict_classes(Xstd_train)
-    y_o_groups = predictions_m.argmax(axis=-1)
-    results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix,y_o=y_obs,yo_pred=prob_Yxt, y_o_groups=y_o_groups)
+    #y_o_groups = predictions_m.argmax(axis=-1)
+    results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix,y_o=y_obs,yo_pred=prob_Yxt)
 
     results1_aux = evaluate.calculate_metrics(y_o=y_obs,yo_pred=prob_Yxt)
 
@@ -334,8 +334,8 @@ for _ in range(20): #repetitions
     aux = gMixture3.calculate_extra_components(Xstd_train,y_obs,T=T,calculate_pred_annotator=True)
     predictions_m,prob_Gt,prob_Yzt,prob_Yxt =  aux #to evaluate...
     Z_train_pred = gMixture3.base_model.predict_classes(Xstd_train)
-    y_o_groups = predictions_m.argmax(axis=-1)
-    results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix,y_o=y_obs,yo_pred=prob_Yxt, y_o_groups=y_o_groups)
+    #y_o_groups = predictions_m.argmax(axis=-1)
+    results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix,y_o=y_obs,yo_pred=prob_Yxt)
 
     results1_aux = evaluate.calculate_metrics(y_o=y_obs,yo_pred=prob_Yxt)
 
