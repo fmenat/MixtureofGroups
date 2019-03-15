@@ -25,17 +25,20 @@ class LabelInference(object): #no predictive model
         self.Tol = tolerance #tolerance of D&S
         self.type = type_inf
         self.T = labels.shape[1]
+        self.calc_MV = False
          
         
     def mv_labels(self, type_return):
-        mv_probas = majority_voting(self.y_obs_categ,repeats=False,probas=True) #aka soft-MV
-
+        if not self.calc_MV:
+            self.mv_probas = majority_voting(self.y_obs_categ,repeats=False,probas=True) #aka soft-MV
+            self.calc_MV = True            
+            
         if type_return.lower() == 'probas': 
-            return mv_probas
+            return self.mv_probas
         elif type_return.lower() == "classes":
-            return np.argmax(mv_probas,axis=1)
+            return np.argmax(self.mv_probas,axis=1)
         elif type_return.lower() == 'onehot' or type_return.lower() == 'one-hot': #also known as hard-MV
-            return keras.utils.to_categorical(np.argmax(mv_probas,axis=1))        
+            return keras.utils.to_categorical(np.argmax(self.mv_probas,axis=1))        
         
     def DS_labels(self):
         # https://github.com/dallascard/dawid_skene

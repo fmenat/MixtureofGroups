@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.stats import entropy
-from sklearn.decomposition import KernelPCA, PCA
+from sklearn.decomposition import KernelPCA, PCA, TruncatedSVD
 from sklearn.mixture import BayesianGaussianMixture, GaussianMixture
 from sklearn.cluster import DBSCAN,AffinityPropagation, MiniBatchKMeans, KMeans
 from sklearn.preprocessing import StandardScaler
@@ -52,9 +52,9 @@ def clusterize_annotators(y_o,M,no_label=-1,bulk=True,cluster_type='loss',data=[
         mask_nan = M_itj.sum(axis=1,keepdims=True) == 0
         mask_nan = np.tile(mask_nan,(1,M_itj.shape[1],1))
         M_itj[mask_nan] = 1
-        M_itj_norm = M_itj/np.sum(M_itj,axis=1)[:,None,:]
-        M_itj_norm = M_itj_norm.astype(DTYPE_OP)
-        
+        #M_itj = M_itj.astype(DTYPE_OP)
+        #M_itj_norm = M_itj/M_itj.sum(axis=1,keepdims=True)#[:,None,:]
+                
         if len(data) != 0:
             data_to_cluster = data.copy() #annotators_pca
         else:
@@ -62,7 +62,9 @@ def clusterize_annotators(y_o,M,no_label=-1,bulk=True,cluster_type='loss',data=[
             
         probas_t = aux_clusterize_annotators(data_to_cluster,M,DTYPE_OP,option,l) #0.05 is close to one-hot
         print("Clustering Done!")
-        alphas_init = np.tensordot(M_itj_norm,probas_t, axes=[[1],[0]]) 
+        #alphas_init = np.tensordot(M_itj_norm,probas_t, axes=[[1],[0]]) 
+        alphas_init = np.tensordot(M_itj, probas_t, axes=[[1],[0]]) 
+        alphas_init = alphas_init/alphas_init.sum(axis=-1,keepdims=True) #normalize here for efficiency
     else: #sirve como auxiliar: y_o: is repeats
         if len(y_o.shape) == 2: 
             mv_hard = majority_voting(y_o,repeats=True,probas=False) 
@@ -88,7 +90,7 @@ def clusterize_annotators(y_o,M,no_label=-1,bulk=True,cluster_type='loss',data=[
     print("Get init alphas in %f mins"%((time.time()-start_time)/60.) )
     return alphas_init
 
-def project_and_cluster(y_o,M_to_try=20,anothers_visions=True,DTYPE_OP='float32',printed=True):
+def project_and_cluster(y_o,M_to_try=20,anothers_visions=True,DTYPE_OP='float32',printed=True,mode_project="pca"):
     ###another way to cluster..
     if len(y_o.shape) == 2:
         M_itj = categorical_representation(y_o,no_label =-1)
@@ -97,10 +99,14 @@ def project_and_cluster(y_o,M_to_try=20,anothers_visions=True,DTYPE_OP='float32'
     data_to_cluster = M_itj.transpose(1,0,2).reshape(M_itj.shape[1],M_itj.shape[0]*M_itj.shape[2])
     data_to_cluster = data_to_cluster.astype(DTYPE_OP)
     
-    #kpca_model = KernelPCA(n_components=4, kernel='rbf', n_jobs=-1) #componentes a proyectar?
-    #kpca_model = TruncatedSVD(n_components=4)
-    kpca_model = PCA(n_components=4)
-    plot_data = kpca_model.fit_transform(data_to_cluster)
+    if mode_project.lower() == "pca":
+        model = PCA(n_components=4)
+    elif mode_project.lower() == "tpca":
+        model = TruncatedSVD(n_components=4)
+    elif mode_project.lower() == "kpca":
+        model = KernelPCA(n_components=4, kernel='rbf', n_jobs=-1)
+
+    plot_data = model.fit_transform(data_to_cluster)
     to_return = [plot_data]
     
     if printed:
@@ -378,6 +384,8 @@ class GroupMixtureOpt(object): #optimized version
         if cluster: # do annotator clustering
             if len(bulk_annotators) == 0:
                 alphas_clusterized = clusterize_annotators(r,M=self.M,bulk=False,cluster_type='loss',data=X,model=self.base_model,DTYPE_OP=self.DTYPE_OP,BATCH_SIZE=batch_size) #clusteriza en base aloss
+            elif len(bulk_annotators) == 1:
+                alphas_clusterized = clusterize_annotators(bulk_annotators[0],M=self.M,no_label=-1)
             else:
                 alphas_clusterized = clusterize_annotators(bulk_annotators[0],M=self.M,no_label=-1,data=bulk_annotators[1])
             self.set_alpha(alphas_clusterized)
@@ -395,6 +403,8 @@ class GroupMixtureOpt(object): #optimized version
         if cluster: # do annotator clustering
             if len(bulk_annotators) == 0:
                 alphas_clusterized = clusterize_annotators(r,M=self.M,bulk=False,cluster_type='loss',data=X,model=self.base_model,DTYPE_OP=self.DTYPE_OP,BATCH_SIZE=batch_size) #clusteriza en base aloss
+            elif len(bulk_annotators) == 1:
+                alphas_clusterized = clusterize_annotators(bulk_annotators[0],M=self.M,no_label=-1)
             else:
                 alphas_clusterized = clusterize_annotators(bulk_annotators[0],M=self.M,no_label=-1,data=bulk_annotators[1],DTYPE_OP=self.DTYPE_OP)
             self.set_alpha(alphas_clusterized)
