@@ -224,7 +224,7 @@ class GroupMixtureOpt(object): #optimized version
         print(" Done!")
         #mv_probs = self.base_model.predict(X,verbose=0) 
         #reset optimizer but hold weights--necessary for stability 
-        #self.base_model.compile(loss='categorical_crossentropy',optimizer=self.optimizer)
+        self.base_model.compile(loss='categorical_crossentropy',optimizer=self.optimizer)
 
         #-------> Initialize p(z=gamma|xi,y=j,g): Combination of mv and belive observable
         lambda_group = np.ones((self.M),dtype=self.DTYPE_OP) 
