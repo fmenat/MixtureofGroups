@@ -169,7 +169,6 @@ for _ in range(10): #repetitions
     
     ############# EXECUTE ALGORITHMS #############################
     
-    ## algunos explotan en escenario 5 y 6, cuales??
     start_time = time.time()
     label_I = LabelInference(y_obs,TOL,type_inf = 'all')  #Infer Labels
     print("Representation for Raykar/MV/D&S in %f mins"%((time.time()-start_time)/60.) )
@@ -260,9 +259,12 @@ for _ in range(10): #repetitions
     ################## MEASURE PERFORMANCE ##################################
     evaluate = Evaluation_metrics(model_mvsoft,'keras',Xstd_train.shape[0],plot=False)
     Z_train_p = model_mvsoft.predict(Xstd_train,verbose=0)
-    prob_Yzt = get_confusionM(Z_train_p,y_obs_categorical)
     Z_train_pred = Z_train_p.argmax(axis=1)
-    results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix)
+    if scenario != 6 : #explota
+        prob_Yzt = get_confusionM(Z_train_p,y_obs_categorical)
+        results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix)
+    else:
+        results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred)
     prob_Yzt = np.tile(confusion_matrix(y_true=Z_train,y_pred=Z_train_pred), (T,1,1) )
     results1_A = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix)
     Z_test_pred = model_mvsoft.predict_classes(Xstd_test,verbose=0)
@@ -274,9 +276,12 @@ for _ in range(10): #repetitions
 
     evaluate = Evaluation_metrics(model_mvhard,'keras',Xstd_train.shape[0],plot=False)
     Z_train_p = model_mvhard.predict(Xstd_train,verbose=0)
-    prob_Yzt = get_confusionM(Z_train_p,y_obs_categorical)
     Z_train_pred = Z_train_p.argmax(axis=1)
-    results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix)
+    if scenario != 6 : #explota
+        prob_Yzt = get_confusionM(Z_train_p,y_obs_categorical)
+        results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix)
+    else:
+        results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred)
     prob_Yzt = np.tile(confusion_matrix(y_true=Z_train,y_pred=Z_train_pred), (T,1,1) )
     results1_A = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix)
     Z_test_pred = model_mvhard.predict_classes(Xstd_test,verbose=0)
@@ -300,25 +305,34 @@ for _ in range(10): #repetitions
         evaluate = Evaluation_metrics(raykarMC,'raykar',plot=False)
         Z_train_pred = raykarMC.base_model.predict_classes(Xstd_train,verbose=0)
         prob_Yzt = raykarMC.get_confusionM()
-        prob_Yxt = raykarMC.get_predictions_annot(Xstd_train)
-        results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix,y_o=y_obs,yo_pred=prob_Yxt)
-        results1_aux = evaluate.calculate_metrics(y_o=y_obs,yo_pred=prob_Yxt)
-
+        if scenario != 5 and scenario != 6: 
+            prob_Yxt = raykarMC.get_predictions_annot(Xstd_train)
+            results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix,y_o=y_obs,yo_pred=prob_Yxt)
+            results1_aux = evaluate.calculate_metrics(y_o=y_obs,yo_pred=prob_Yxt)
+        else:  #pred annotator memory error
+            results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix)
+            results1_aux = [None]
+            
         Z_test_pred = raykarMC.base_model.predict_classes(Xstd_test,verbose=0)
         results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred)
-
         results_raykar_train += results1
         results_raykar_trainA += results1_aux
-        results_raykar_test += results2
+        results_raykar_test += results2            
     
         evaluate = Evaluation_metrics(gMixture1,'our1',plot=False) 
-        aux = gMixture1.calculate_extra_components(Xstd_train,y_obs,T=T,calculate_pred_annotator=True)
-        predictions_m,prob_Gt,prob_Yzt,prob_Yxt =  aux #to evaluate...
-        Z_train_pred = gMixture1.base_model.predict_classes(Xstd_train,verbose=0)
-        #y_o_groups = predictions_m.argmax(axis=-1)
-        results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix,y_o=y_obs,yo_pred=prob_Yxt)
-        results1_aux = evaluate.calculate_metrics(y_o=y_obs,yo_pred=prob_Yxt)
-
+        if scenario != 5 and scenario != 6: 
+            aux = gMixture1.calculate_extra_components(Xstd_train,y_obs,T=T,calculate_pred_annotator=True)
+            predictions_m,prob_Gt,prob_Yzt,prob_Yxt =  aux #to evaluate...
+            Z_train_pred = gMixture1.base_model.predict_classes(Xstd_train,verbose=0)
+            #y_o_groups = predictions_m.argmax(axis=-1)
+            results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix,y_o=y_obs,yo_pred=prob_Yxt)
+            results1_aux = evaluate.calculate_metrics(y_o=y_obs,yo_pred=prob_Yxt)
+        else: #pred annotator memory error
+            aux = gMixture1.calculate_extra_components(Xstd_train,y_obs,T=T,calculate_pred_annotator=False)
+            predictions_m,prob_Gt,prob_Yzt,_ =  aux #to evaluate...
+            Z_train_pred = gMixture1.base_model.predict_classes(Xstd_train,verbose=0)
+            results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix)      
+            results1_aux = [None]
         c_M = gMixture1.get_confusionM()
         y_o_groups = gMixture1.get_predictions_groups(Xstd_test).argmax(axis=-1) #obtain p(y^o|x,g=m) and then argmax
         Z_test_pred = gMixture1.base_model.predict_classes(Xstd_test,verbose=0)
@@ -330,13 +344,19 @@ for _ in range(10): #repetitions
         results_ours1_test.append(results2[1])
 
         evaluate = Evaluation_metrics(gMixture2,'our1',plot=False) 
-        aux = gMixture2.calculate_extra_components(Xstd_train,y_obs,T=T,calculate_pred_annotator=True)
-        predictions_m,prob_Gt,prob_Yzt,prob_Yxt =  aux #to evaluate...
-        Z_train_pred = gMixture2.base_model.predict_classes(Xstd_train,verbose=0)
-        #y_o_groups = predictions_m.argmax(axis=-1)
-        results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix,y_o=y_obs,yo_pred=prob_Yxt)
-        results1_aux = evaluate.calculate_metrics(y_o=y_obs,yo_pred=prob_Yxt)
-
+        if scenario != 5 and scenario != 6: 
+            aux = gMixture2.calculate_extra_components(Xstd_train,y_obs,T=T,calculate_pred_annotator=True)
+            predictions_m,prob_Gt,prob_Yzt,prob_Yxt =  aux #to evaluate...
+            Z_train_pred = gMixture2.base_model.predict_classes(Xstd_train,verbose=0)
+            #y_o_groups = predictions_m.argmax(axis=-1)
+            results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix,y_o=y_obs,yo_pred=prob_Yxt)
+            results1_aux = evaluate.calculate_metrics(y_o=y_obs,yo_pred=prob_Yxt)
+        else: #pred annotator memory error
+            aux = gMixture2.calculate_extra_components(Xstd_train,y_obs,T=T,calculate_pred_annotator=False)
+            predictions_m,prob_Gt,prob_Yzt,_ =  aux #to evaluate...
+            Z_train_pred = gMixture2.base_model.predict_classes(Xstd_train,verbose=0)
+            results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix)      
+            results1_aux = [None]
         c_M = gMixture2.get_confusionM()
         y_o_groups = gMixture2.get_predictions_groups(Xstd_test).argmax(axis=-1) #obtain p(y^o|x,g=m) and then argmax
         Z_test_pred = gMixture2.base_model.predict_classes(Xstd_test,verbose=0)
@@ -348,13 +368,19 @@ for _ in range(10): #repetitions
         results_ours2_test.append(results2[1])
 
     evaluate = Evaluation_metrics(gMixture3,'our1',plot=False)  #no explota
-    aux = gMixture3.calculate_extra_components(Xstd_train,y_obs,T=T,calculate_pred_annotator=True)
-    predictions_m,prob_Gt,prob_Yzt,prob_Yxt =  aux #to evaluate...
-    Z_train_pred = gMixture3.base_model.predict_classes(Xstd_train,verbose=0)
-    #y_o_groups = predictions_m.argmax(axis=-1)
-    results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix,y_o=y_obs,yo_pred=prob_Yxt)
-    results1_aux = evaluate.calculate_metrics(y_o=y_obs,yo_pred=prob_Yxt)
-
+    if scenario != 5 and scenario != 6: 
+        aux = gMixture3.calculate_extra_components(Xstd_train,y_obs,T=T,calculate_pred_annotator=True)
+        predictions_m,prob_Gt,prob_Yzt,prob_Yxt =  aux #to evaluate...
+        Z_train_pred = gMixture3.base_model.predict_classes(Xstd_train,verbose=0)
+        #y_o_groups = predictions_m.argmax(axis=-1)
+        results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix,y_o=y_obs,yo_pred=prob_Yxt)
+        results1_aux = evaluate.calculate_metrics(y_o=y_obs,yo_pred=prob_Yxt)
+    else: #pred annotator memory error
+        aux = gMixture3.calculate_extra_components(Xstd_train,y_obs,T=T,calculate_pred_annotator=False)
+        predictions_m,prob_Gt,prob_Yzt,_ =  aux #to evaluate...
+        Z_train_pred = gMixture3.base_model.predict_classes(Xstd_train,verbose=0)
+        results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix)      
+        results1_aux = [None]
     c_M = gMixture3.get_confusionM()
     y_o_groups = gMixture3.get_predictions_groups(Xstd_test).argmax(axis=-1) #obtain p(y^o|x,g=m) and then argmax
     Z_test_pred = gMixture3.base_model.predict_classes(Xstd_test,verbose=0)
@@ -366,7 +392,7 @@ for _ in range(10): #repetitions
     results_ours3_test.append(results2[1])
     
     print("All Performance Measured")
-    #del model_mvsoft,model_mvhard,model_ds
+    del model_mvsoft,model_mvhard#,model_ds
     gc.collect()
 
 #plot measures    
@@ -383,22 +409,25 @@ if scenario != 6:
     get_mean_dataframes(results_ds_test).to_csv("simCIFAR_DS_test_s"+str(scenario)+".csv",index=False)
 
     get_mean_dataframes(results_raykar_train).to_csv("simCIFAR_Raykar_train_s"+str(scenario)+".csv",index=False)
-    get_mean_dataframes(results_raykar_trainA).to_csv("simCIFAR_Raykar_trainAnn_s"+str(scenario)+".csv",index=False)
     get_mean_dataframes(results_raykar_test).to_csv("simCIFAR_Raykar_test_s"+str(scenario)+".csv",index=False)
 
     get_mean_dataframes(results_ours1_train).to_csv("simCIFAR_Ours1_train_s"+str(scenario)+".csv",index=False)
-    get_mean_dataframes(results_ours1_trainA).to_csv("simCIFAR_Ours1_trainAnn_s"+str(scenario)+".csv",index=False)
     get_mean_dataframes(results_ours1_test).to_csv("simCIFAR_Ours1_test_s"+str(scenario)+".csv",index=False)
     get_mean_dataframes(results_ours1_testA).to_csv("simCIFAR_Ours1_testAux_s"+str(scenario)+".csv",index=False)
 
     get_mean_dataframes(results_ours2_train).to_csv("simCIFAR_Ours2_train_s"+str(scenario)+".csv",index=False)
-    get_mean_dataframes(results_ours2_trainA).to_csv("simCIFAR_Ours2_trainAnn_s"+str(scenario)+".csv",index=False)
     get_mean_dataframes(results_ours2_test).to_csv("simCIFAR_Ours2_test_s"+str(scenario)+".csv",index=False)
     get_mean_dataframes(results_ours2_testA).to_csv("simCIFAR_Ours2_testAux_s"+str(scenario)+".csv",index=False)
 
 get_mean_dataframes(results_ours3_train).to_csv("simCIFAR_Ours3_train_s"+str(scenario)+".csv",index=False)
-get_mean_dataframes(results_ours3_trainA).to_csv("simCIFAR_Ours3_trainAnn_s"+str(scenario)+".csv",index=False)
 get_mean_dataframes(results_ours3_test).to_csv("simCIFAR_Ours3_test_s"+str(scenario)+".csv",index=False)
 get_mean_dataframes(results_ours3_testA).to_csv("simCIFAR_Ours3_testAux_s"+str(scenario)+".csv",index=False)
+
+if scenario != 5 and scenario != 6: #calcualte pred annotators
+    get_mean_dataframes(results_raykar_trainA).to_csv("simCIFAR_Raykar_trainAnn_s"+str(scenario)+".csv",index=False)
+    get_mean_dataframes(results_ours1_trainA).to_csv("simCIFAR_Ours1_trainAnn_s"+str(scenario)+".csv",index=False)
+    get_mean_dataframes(results_ours2_trainA).to_csv("simCIFAR_Ours2_trainAnn_s"+str(scenario)+".csv",index=False)
+    get_mean_dataframes(results_ours3_trainA).to_csv("simCIFAR_Ours3_trainAnn_s"+str(scenario)+".csv",index=False)
+
 
 print("Execution done in %f mins"%((time.time()-start_time_exec)/60.))
