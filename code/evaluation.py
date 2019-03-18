@@ -59,7 +59,7 @@ class Evaluation_metrics(object):
                 
         if self.plot:         
             for table in to_return:
-                print("A result\n",tabulate(table, headers='keys', tablefmt='psql'))
+                print("A result\n",tabulate(table, headers='keys', tablefmt='rst'))
         return to_return
          
     def report_results(self,y_pred,y_true,conf_pred=[],conf_true=[],plot=True):
