@@ -1,6 +1,20 @@
 """
 	*Old model by fors!-- more efficient in RAM terms
 """
+import numpy as np
+from scipy.stats import entropy
+from sklearn.decomposition import KernelPCA, PCA, TruncatedSVD
+from sklearn.mixture import BayesianGaussianMixture, GaussianMixture
+from sklearn.cluster import DBSCAN,AffinityPropagation, MiniBatchKMeans, KMeans
+from sklearn.preprocessing import StandardScaler
+from sklearn import metrics
+from sklearn.metrics import f1_score
+import gc, keras, time, sys
+
+from .learning_models import LogisticRegression_Sklearn,LogisticRegression_Keras,MLP_Keras
+from .learning_models import default_CNN,default_RNN,default_RNNw_emb,CNN_simple, RNN_simple #deep learning
+from .representation import *
+from .utils import softmax
 class GroupMixture(object):
     def __init__(self,input_dim,Kl=2,M=2,epochs=1,optimizer='adam',pre_init=30): 
         if type(input_dim) != tuple:
@@ -35,7 +49,7 @@ class GroupMixture(object):
         """Get Q estimation param, this is Q_ij(g,z) = p(g,z|xi,y=j)"""
         return self.Qij_mgamma.copy()
         
-    def define_model(self,tipo,*args):
+    def define_model(self,tipo,start_units=1,deep=1,double=False,drop=0.0,embed=True,BatchN=True):
         """Define the base model and other structures"""
         self.type = tipo.lower()     
         if self.type == "keras_shallow" or 'perceptron' in self.type: 
@@ -55,25 +69,16 @@ class GroupMixture(object):
             #podria ser el maximo
 
         elif self.type == "ff" or self.type == "mlp" or self.type=='dense': #classic feed forward
-            if len(args) == 0:
-                print("Needed params (units,deep)")
-                return
-            start_units,deep = args  #default activation is relu
-            self.base_model = MLP_Keras(self.input_dim,self.Kl,start_units,deep,BN=False,drop=0.0)
+            print("Needed params (units,deep,drop,BatchN?)") #default activation is relu
+            self.base_model = MLP_Keras(self.input_dim,self.Kl,start_units,deep,BN=BatchN,drop=drop)
 
         elif self.type=='simplecnn' or self.type=='simple cnn' or 'cnn' in self.type:
-            if len(args) == 0:
-                print("Needed params (units,deep,double?)")
-                return
-            start_units,deep,double = args  #default activation is relu
-            self.base_model = CNN_simple(self.input_dim,self.Kl,start_units,deep,double=double,BN=False,drop=0.0)
+            print("Needed params (units,deep,drop,double?,BatchN?)") #default activation is relu
+            self.base_model = CNN_simple(self.input_dim,self.Kl,start_units,deep,double=double,BN=BatchN,drop=drop)
         
         elif self.type=='simplernn' or self.type=='simple rnn' or 'rnn' in self.type:
-            if len(args) == 0:
-                print("Needed params (units,deep,embed?)")
-                return
-            start_units,deep,embed = args  #default activation is relu
-            self.base_model = RNN_simple(self.input_dim,self.Kl,start_units,deep,drop=0.0,embed=embed,len=0,out=start_units*2)
+            print("Needed params (units,deep,drop,embed?)")
+            self.base_model = RNN_simple(self.input_dim,self.Kl,start_units,deep,drop=drop,embed=embed,len=0,out=start_units*2)
             #and what is with embedd
 
         #if not (self.type == "keras_shallow" or self.type=="keras_perceptron"): 
@@ -81,6 +86,7 @@ class GroupMixture(object):
         #     future..
         self.base_model.compile(optimizer=self.optimizer,loss='categorical_crossentropy') 
         self.compile = True
+
         
     def get_predictions(self,X):
         """Return the predictions of the model if is from sklearn or keras"""
@@ -197,11 +203,10 @@ class GroupMixture(object):
         """ Compute the log-likelihood of the optimization schedule"""
         return np.tensordot(r , np.log(self.aux_for_like+self.Keps))+0
                                                   
-    def train(self,X_train,r_train,batch_size=32,iterations=250,relative=False,val=False): #0.0001  
+    def train(self,X_train,r_train,batch_size=32,iterations=250,relative=False,val=False,tolerance=0): #0.0001  
         if not self.compile:
             print("You need to create the model first, set .define_model")
             return
-        tolerance = TOL # 3 is between --1 is for good fit (maybe overfitting)
         print("Initializing new EM...")
         self.batch_size = batch_size
         self.N = X_train.shape[0]
@@ -353,7 +358,3 @@ class GroupMixture(object):
         else:
             prob_Yxt = None
         return predictions_m, prob_Gt, prob_Yzt, prob_Yxt
-         
-gMixture = GroupMixture(X_train.shape[1],Kl=r_obs.shape[1],M=10,epochs=1,optimizer=OPT)
-###epochs=1 as Rodriges says. and batch size as default
-gMixture.Kl

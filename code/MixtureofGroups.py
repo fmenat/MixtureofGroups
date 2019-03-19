@@ -219,8 +219,8 @@ class GroupMixtureOpt(object): #optimized version
         self.mv_probs_j = majority_voting(r,repeats=True,probas=True) # soft -- p(y=j|xi)
         
         print("Pre-train network on %d epochs..."%(self.pre_init),end='',flush=True)
-        mv_probs = keras.utils.to_categorical(self.mv_probs_j.argmax(axis=1)) # one-hot
-        self.base_model.fit(X,mv_probs,batch_size=self.batch_size,epochs=self.pre_init,verbose=0)
+        #mv_probs = keras.utils.to_categorical(self.mv_probs_j.argmax(axis=1)) # one-hot
+        self.base_model.fit(X,self.mv_probs_j,batch_size=self.batch_size,epochs=self.pre_init,verbose=0)
         print(" Done!")
         #mv_probs = self.base_model.predict(X,verbose=0) 
         #reset optimizer but hold weights--necessary for stability 
@@ -249,7 +249,7 @@ class GroupMixtureOpt(object): #optimized version
         self.alphas = np.zeros((self.M),dtype=self.DTYPE_OP)
      
         print("Alphas: ",self.alphas.shape)
-        print("MV init: ",mv_probs.shape)
+        print("MV init: ",self.mv_probs_j.shape)
         print("Betas: ",self.betas.shape)
         print("Q estimate: ",self.Qij_mgamma.shape)
             
@@ -278,13 +278,13 @@ class GroupMixtureOpt(object): #optimized version
         b_new = np.clip((self.betas[None,:,:,:]).transpose(0,3,1,2) , self.Keps,1.) #safe logarithmn
         
         self.Qij_mgamma = np.exp(np.log(p_new) + np.log(a_new) + np.log(b_new)) 
-        self.aux_for_like = np.sum(np.sum(self.Qij_mgamma,axis=-1),axis=-1) #p(y=j|x) --marginalized
+        self.aux_for_like = (self.Qij_mgamma.sum(axis=-1)).sum(axis=-1) #p(y=j|x) --marginalized
         self.Qij_mgamma = self.Qij_mgamma/self.aux_for_like[:,:,None,None] #normalize
         
     def M_step(self,X,r): 
         """ Realize the M step"""
         #-------> base model
-        Qij_gamma = np.sum(self.Qij_mgamma,axis=-2) #qij(gamma)
+        Qij_gamma = self.Qij_mgamma.sum(axis=-2) #qij(gamma)
         r_estimate = np.zeros((self.N,self.Kl),dtype=self.DTYPE_OP) #create the repeat "estimate"/"ground truth"
         for i in range(self.N):
             r_estimate[i] = np.tensordot(Qij_gamma[i],r[i],axes=[[0],[0]])
@@ -294,22 +294,21 @@ class GroupMixtureOpt(object): #optimized version
             self.base_model.fit(X,r_estimate,batch_size=self.batch_size,epochs=self.epochs,verbose=0) 
     
         #-------> alpha 
-        Qij_m = np.sum(self.Qij_mgamma,axis=-1) #qij(m)
+        Qij_m = self.Qij_mgamma.sum(axis=-1) #qij(m)
         self.alphas = np.tensordot(Qij_m, r , axes=[[0,1],[0,1]]) # sum_ij r_ij(g) = Qij_m[i]*r[i] 
         self.alphas = self.alphas.astype(self.DTYPE_OP) #necessary
-        self.alphas = self.alphas/np.sum(self.alphas,axis=-1) #p(g) -- normalize
+        self.alphas = self.alphas/self.alphas.sum(axis=-1,keepdims=True) #p(g) -- normalize
         
         #-------> beta
         for j_ob in range(self.Kl):
             self.betas[:,:,j_ob] = np.tensordot(self.Qij_mgamma[:,j_ob,:,:],r[:,j_ob], axes=[[0],[0]]) # ~p(yo=j|g,z)              
         if self.priors:
             self.betas += self.Mpriors #priors has to be shape: (M,Kl,Kl)--read define-prior functio
-        self.betas = self.betas/np.sum(self.betas,axis=-1)[:,:,None] #normalize (=p(yo|g,z))
+        self.betas = self.betas/self.betas.sum(axis=-1,keepdims=True) #normalize (=p(yo|g,z))
 
     def compute_logL(self,r,predictions):
         """ Compute the log-likelihood of the optimization schedule"""
-        self.aux_for_like = np.clip(self.aux_for_like, self.Keps, 1.) #safe logarithm
-        return np.tensordot(r , np.log(self.aux_for_like))+0.
+        return np.tensordot(r , np.log(self.aux_for_like+self.Keps))+0. #safe logarithm
                                                   
     def train(self,X_train,r_train,batch_size=64,max_iter=500,relative=True,val=False,tolerance=1e-2):
         if not self.compile:
