@@ -129,7 +129,8 @@ def through_VGG(X):
     X_vgg = p16(X)
     input_tensor=Input(shape=X_vgg.shape[1:])
     modelVGG = VGG16(weights='imagenet', include_top=False,input_tensor=input_tensor ) # LOAD PRETRAINED MODEL 
-    return modelVGG.predict(X_vgg)
+    return_value = modelVGG.predict(X_vgg)
+    return return_value.reshape(return_value.shape[0],np.prod(return_value.shape[1:]))
 
 from keras.applications.inception_v3 import InceptionV3
 from keras.applications.inception_v3 import preprocess_input as pIncept

@@ -14,7 +14,7 @@ from .representation import *
 from .utils import softmax
 
 
-def aux_clusterize_annotators(data_to_cluster,M,DTYPE_OP='float32',option="softmax inv",l=0.005):
+def aux_clusterize_annotators(data_to_cluster,M,DTYPE_OP='float32',option="hard",l=0.005):
     # Get p(g=m|t)  based on a proyection of the annotator "t" 
     std = StandardScaler()
     data_to_cluster = std.fit_transform(data_to_cluster) 
@@ -42,7 +42,7 @@ def aux_clusterize_annotators(data_to_cluster,M,DTYPE_OP='float32',option="softm
         #probas_t = model.predict_proba(data_to_cluster).astype(DTYPE_OP)
     return probas_t
             
-def clusterize_annotators(y_o,M,no_label=-1,bulk=True,cluster_type='loss',data=[],model=None,DTYPE_OP='float32',BATCH_SIZE=64,option="softmax inv",l=0.005):
+def clusterize_annotators(y_o,M,no_label=-1,bulk=True,cluster_type='loss',data=[],model=None,DTYPE_OP='float32',BATCH_SIZE=64,option="hard",l=0.005):
     start_time = time.time()
     if bulk: 
         if len(y_o.shape) == 2:
@@ -219,10 +219,8 @@ class GroupMixtureOpt(object): #optimized version
         self.mv_probs_j = majority_voting(r,repeats=True,probas=True) # soft -- p(y=j|xi)
         
         print("Pre-train network on %d epochs..."%(self.pre_init),end='',flush=True)
-        #mv_probs = keras.utils.to_categorical(self.mv_probs_j.argmax(axis=1)) # one-hot
         self.base_model.fit(X,self.mv_probs_j,batch_size=self.batch_size,epochs=self.pre_init,verbose=0)
         print(" Done!")
-        #mv_probs = self.base_model.predict(X,verbose=0) 
         #reset optimizer but hold weights--necessary for stability 
         self.base_model.compile(loss='categorical_crossentropy',optimizer=self.optimizer)
 
@@ -346,7 +344,7 @@ class GroupMixtureOpt(object): #optimized version
             #    print("F1: %.4f"%(f1_score(Z_train, predictions.argmax(axis=1),average='micro')),end='',flush=True)
             self.current_iter+=1
             print("")
-            if self.current_iter>max_iter or (tol<=tolerance and tol2<=tolerance and tol3<=tolerance):
+            if self.current_iter>max_iter or (tol<=tolerance and tol2<=tolerance): #alphas fuera: and tol3<=tolerance
                 stop_c = True 
         print("Finished training!")
         gc.collect()

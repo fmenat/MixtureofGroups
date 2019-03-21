@@ -71,18 +71,18 @@ def run(responses, tol=0.00001, max_iter=100, init='average'):
         
         # check for convergence
         if old_class_marginals is not None:
-            class_marginals_diff = np.mean(np.abs(class_marginals - old_class_marginals)/(np.abs(old_class_marginals)+1e-7)) #relative difference
-            error_rates_diff = np.mean(np.abs(error_rates - old_error_rates)/(np.abs(old_error_rates)+1e-7)) #relative difference
+            class_marginals_diff = np.mean(np.abs(class_marginals - old_class_marginals)/(old_class_marginals+1e-7)) #relative difference
+            error_rates_diff = np.mean(np.abs(error_rates.flatten() - old_error_rates)/(old_error_rates+1e-7)) #relative difference
             logL_diff = np.abs(log_L-old_log_L)/np.abs(old_log_L)
             print(iter ,'\t', log_L, '\t%.4f\t%.6f\t%.6f' % (class_marginals_diff, error_rates_diff,logL_diff))
-            if (class_marginals_diff <= tol and error_rates_diff <= tol and logL_diff <= tol ) or iter > max_iter:
+            if (error_rates_diff <= tol and logL_diff <= tol ) or iter > max_iter: # class_marginals_diff <= tol and 
                 converged = True
         else:
             print(iter ,'\t', log_L)
     
         # update current values
         old_class_marginals = class_marginals
-        old_error_rates = error_rates
+        old_error_rates = error_rates.flatten()
         old_log_L = log_L
                 
     # Print final results
@@ -278,117 +278,3 @@ def calc_likelihood(counts, class_marginals, error_rates):
         log_L = temp        
         
     return log_L
-    
-
-"""
-Function: generate_sample_data()
-    Generate the data from Table 1 in Dawid-Skene (1979) in the proper format
-"""  
-def generate_sample_data():
-    responses = {
-                 1: {1:[1,1,1], 2:[1], 3:[1], 4:[1], 5:[1]},
-                 2: {1:[3,3,3], 2:[4], 3:[3], 4:[3], 5:[4]},
-                 3: {1:[1,1,2], 2:[2], 3:[1], 4:[2], 5:[2]},
-                 4: {1:[2,2,2], 2:[3], 3:[1], 4:[2], 5:[1]},
-                 5: {1:[2,2,2], 2:[3], 3:[2], 4:[2], 5:[2]},
-                 6: {1:[2,2,2], 2:[3], 3:[3], 4:[2], 5:[2]},
-                 7: {1:[1,2,2], 2:[2], 3:[1], 4:[1], 5:[1]},
-                 8: {1:[3,3,3], 2:[3], 3:[4], 4:[3], 5:[3]},
-                 9: {1:[2,2,2], 2:[2], 3:[2], 4:[2], 5:[3]},
-                 10: {1:[2,3,2], 2:[2], 3:[2], 4:[2], 5:[3]},
-                 11: {1:[4,4,4], 2:[4], 3:[4], 4:[4], 5:[4]},
-                 12: {1:[2,2,2], 2:[3], 3:[3], 4:[4], 5:[3]},
-                 13: {1:[1,1,1], 2:[1], 3:[1], 4:[1], 5:[1]},
-                 14: {1:[2,2,2], 2:[3], 3:[2], 4:[1], 5:[2]},
-                 15: {1:[1,2,1], 2:[1], 3:[1], 4:[1], 5:[1]},
-                 16: {1:[1,1,1], 2:[2], 3:[1], 4:[1], 5:[1]},
-                 17: {1:[1,1,1], 2:[1], 3:[1], 4:[1], 5:[1]},
-                 18: {1:[1,1,1], 2:[1], 3:[1], 4:[1], 5:[1]},
-                 19: {1:[2,2,2], 2:[2], 3:[2], 4:[2], 5:[1]},
-                 20: {1:[2,2,2], 2:[1], 3:[3], 4:[2], 5:[2]},
-                 21: {1:[2,2,2], 2:[2], 3:[2], 4:[2], 5:[2]},
-                 22: {1:[2,2,2], 2:[2], 3:[2], 4:[2], 5:[1]},
-                 23: {1:[2,2,2], 2:[3], 3:[2], 4:[2], 5:[2]},
-                 24: {1:[2,2,1], 2:[2], 3:[2], 4:[2], 5:[2]},
-                 25: {1:[1,1,1], 2:[1], 3:[1], 4:[1], 5:[1]},
-                 26: {1:[1,1,1], 2:[1], 3:[1], 4:[1], 5:[1]},
-                 27: {1:[2,3,2], 2:[2], 3:[2], 4:[2], 5:[2]},
-                 28: {1:[1,1,1], 2:[1], 3:[1], 4:[1], 5:[1]},
-                 29: {1:[1,1,1], 2:[1], 3:[1], 4:[1], 5:[1]},
-                 30: {1:[1,1,2], 2:[1], 3:[1], 4:[2], 5:[1]},
-                 31: {1:[1,1,1], 2:[1], 3:[1], 4:[1], 5:[1]},
-                 32: {1:[3,3,3], 2:[3], 3:[2], 4:[3], 5:[3]},
-                 33: {1:[1,1,1], 2:[1], 3:[1], 4:[1], 5:[1]},
-                 34: {1:[2,2,2], 2:[2], 3:[2], 4:[2], 5:[2]},
-                 35: {1:[2,2,2], 2:[3], 3:[2], 4:[3], 5:[2]},
-                 36: {1:[4,3,3], 2:[4], 3:[3], 4:[4], 5:[3]},
-                 37: {1:[2,2,1], 2:[2], 3:[2], 4:[3], 5:[2]},
-                 38: {1:[2,3,2], 2:[3], 3:[2], 4:[3], 5:[3]},
-                 39: {1:[3,3,3], 2:[3], 3:[4], 4:[3], 5:[2]},
-                 40: {1:[1,1,1], 2:[1], 3:[1], 4:[1], 5:[1]},
-                 41: {1:[1,1,1], 2:[1], 3:[1], 4:[1], 5:[1]},
-                 42: {1:[1,2,1], 2:[2], 3:[1], 4:[1], 5:[1]},
-                 43: {1:[2,3,2], 2:[2], 3:[2], 4:[2], 5:[2]},
-                 44: {1:[1,2,1], 2:[1], 3:[1], 4:[1], 5:[1]},
-                 45: {1:[2,2,2], 2:[2], 3:[2], 4:[2], 5:[2]}
-                 }
-    return responses
-
-
-"""
-Function: random_initialization()
-    Alternative initialization # 1
-    Similar to initialize() above, except choose one initial class for each
-    patient, weighted in proportion to the counts
-Input:
-    counts: counts of the number of times each response was received 
-        by each observer from each patient: [patients x observers x classes] 
-Returns:
-    patient_classes: matrix of estimates of true patient classes:
-        [patients x responses]
-"""  
-def random_initialization(counts):
-    [nPatients, nObservers, nClasses] = np.shape(counts)
-    
-    response_sums = np.sum(counts,1)
-    
-    # create an empty array
-    patient_classes = np.zeros([nPatients, nClasses],dtype='int8')
-    
-    # for each patient, choose a random initial class, weighted in proportion
-    # to the counts from all observers
-    for p in range(nPatients):
-        average = response_sums[p,:] / np.sum(response_sums[p,:],dtype=float)
-        patient_classes[p,np.random.choice(np.arange(nClasses), p=average)] = 1
-        
-    return patient_classes
-
-
-"""
-Function: majority_voting()
-    Alternative initialization # 2
-    An alternative way to initialize assignment of patients to classes 
-    i.e Get initial estimates for the true patient classes using majority voting
-    This is not in the original paper, but could be considered
-Input:
-    counts: Counts of the number of times each response was received 
-        by each observer from each patient: [patients x observers x classes] 
-Returns:
-    patient_classes: matrix of initial estimates of true patient classes:
-        [patients x responses]
-"""  
-def majority_voting(counts):
-    [nPatients, nObservers, nClasses] = np.shape(counts)
-    # sum over observers
-    response_sums = np.sum(counts,1)
-    
-    # create an empty array
-    patient_classes = np.zeros([nPatients, nClasses],dtype='int8')
-    
-    # take the most frequent class for each patient 
-    for p in range(nPatients):        
-        indices = np.argwhere(response_sums[p,:] == np.max(response_sums[p,:]))
-        # in the case of ties, take the lowest valued label (could be randomized)        
-        patient_classes[p, np.min(indices)] = 1
-        
-    return patient_classes
