@@ -14,7 +14,7 @@ scenario = opts.scenario  #arg
 BATCH_SIZE = 128
 EPOCHS_BASE = 50
 OPT = 'adam' #optimizer for neural network 
-TOL = 1e-2 #tolerance for relative variation of parameters
+TOL = 2e-2 #tolerance for relative variation of parameters
 
 
 import numpy as np
