@@ -66,6 +66,7 @@ def clusterize_annotators(y_o,M,no_label=-1,bulk=True,cluster_type='loss',data=[
         alphas_init = np.tensordot(M_itj, probas_t, axes=[[1],[0]]) 
         alphas_init = alphas_init/alphas_init.sum(axis=-1,keepdims=True) #normalize here for efficiency
     else: #sirve como auxiliar: y_o: is repeats
+        #KL entre mv_soft?
         if len(y_o.shape) == 2: 
             mv_hard = majority_voting(y_o,repeats=True,probas=False) 
         else:
