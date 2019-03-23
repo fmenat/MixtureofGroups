@@ -70,11 +70,12 @@ def clusterize_annotators(y_o,M,no_label=-1,bulk=True,cluster_type='loss',data=[
         if len(y_o.shape) == 2: 
             mv_hard = majority_voting(y_o,repeats=True,probas=False) 
         else:
-            mv_hard = majority_voting(y_o,repeats=False,probas=False) 
+            mv_hard = majority_voting(y_o,repeats=False,probas=False)  #change soft
         aux_model = keras.models.clone_model(model)
         aux_model.compile(loss='categorical_crossentropy',optimizer=model.optimizer)
         aux_model.fit(data, mv_hard, batch_size=BATCH_SIZE,epochs=30,verbose=0)
         predicted = aux_model.predict(data,verbose=0)
+        #predicted = mv_hard
         data_to_cluster = []
         if cluster_type=='loss': #cluster respecto to loss function
             for i in range(mv_hard.shape[0]):
@@ -82,7 +83,7 @@ def clusterize_annotators(y_o,M,no_label=-1,bulk=True,cluster_type='loss',data=[
                     ob = np.tile(keras.backend.epsilon(), mv_hard.shape[1])
                     ob[j] = 1
                     true = np.clip(predicted[i],keras.backend.epsilon(),1.)        
-                    loss = np.sum(true*np.log(ob)) 
+                    loss = -np.sum(true*np.log(ob)) 
                     data_to_cluster.append([loss])
         data_to_cluster = np.asarray(data_to_cluster)
         probas_t = aux_clusterize_annotators(data_to_cluster,M,DTYPE_OP,option,l)
