@@ -61,9 +61,13 @@ def distance_2_centroid(matrixs):
     #value.append(JS_confmatrixs(matrixs[m],center))
     return np.mean(value)
 
-def calculate_diagional_mean(conf_matrix):
+def calculate_diagional_mean(conf_matrix): #weight?
     """Calculate the Mean of the diagional of the confusion matrixs"""
     return np.mean([conf_matrix[l,l] for l in range(len(conf_matrix)) ])
+
+def calculate_spamm_score(conf_matrix):
+    """Mean - off diagonal"""
+    return np.mean([conf_matrix[l,l]- np.mean(conf_matrix[:,l]) for l in range(len(conf_matrix))])
 
 def calculateKL_matrixs(confs_pred,confs_true):
     M_p = confs_pred.shape[0] #number of matrices on pred
