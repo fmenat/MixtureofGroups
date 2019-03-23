@@ -74,6 +74,8 @@ class Evaluation_metrics(object):
         sampled_plot = 0
         if len(conf_true) != 0:
             KLs_founded = calculateKL_matrixs(conf_pred,conf_true)
+            JSs_founded = calculateJS_matrixs(conf_pred,conf_true)
+            
             pearson_corr = []
             for m in range(len(conf_pred)):
                 diagional_elements_pred = [conf_pred[m][f,f] for f in range(conf_pred[m].shape[0])]
@@ -87,8 +89,9 @@ class Evaluation_metrics(object):
                     sampled_plot+=1
                     print("KL divergence: %.4f\tPearson Correlation between diagonals: %.4f"%(KLs_founded[m],pearson_corr[-1]))        
             #for now is mean.. maybe weighted 
-            t["Average KL"] = np.mean(KLs_founded)
-            t["Average PearsonCorr"] = np.mean(pearson_corr)
+            t["Mean KL"] = np.mean(KLs_founded)
+            t["Mean JS"] = np.mean(JSs_founded)
+            t["Mean PearsonCorr"] = np.mean(pearson_corr)
         return t
 
     def rmse_accuracies(self,Z_argmax,y_o,yo_pred): 
@@ -161,12 +164,14 @@ class Evaluation_metrics(object):
         
         entropies = []
         mean_diagional = []
+        spammer_score =[]
         for m in range(self.M):
             if plot:
                 plot_confusion_matrix(conf_matrixs[m], np.arange(conf_matrixs[m].shape[0]),title="Group "+str(m),text=False)
             #New Instrisic measure
             entropies.append(Entropy_confmatrix(conf_matrixs[m]))
             mean_diagional.append(calculate_diagional_mean(conf_matrixs[m]))
+            spammer_score.append(calculate_spamm_score(conf_matrixs[m]))
             
         t["Groups"] = np.arange(len(conf_matrixs))
         if len(self.probas_group) != 0:
@@ -176,8 +181,9 @@ class Evaluation_metrics(object):
         t["Entropy"] = entropies
         t["Diag Mean"] = mean_diagional
         t["KL to I"] = KLs_identity
-        t["I similar % (JS)"] = 1-JSs_identity/np.log(2) #value betweeon [0,1]
+        t["I sim %(JS)"] = 1-JSs_identity/np.log(2) #value betweeon [0,1]
         #t["Matrix-norm to identity"] = pendiente...
+        t["Spammer"] = spammer_score #spammer score-- based on raykar logits (-1 malicious, 0 spammer, 1 good)
         inertia = distance_2_centroid(conf_matrixs)
         if plot:
             print("Inertia:",inertia)

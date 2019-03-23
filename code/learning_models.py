@@ -47,7 +47,13 @@ def default_CNN(input_dim,output_dim): #quizas cambiara  CP,CP,CP
     model.add(MaxPooling2D(2,2))
     model.add(Dropout(0.25))
     
-    #another layer?
+    #another layer?-yes
+    model.add(Conv2D(128,(3,3),strides=1,padding='same',activation='relu'))
+    model.add(BatchNormalization())
+    model.add(Conv2D(128,(3,3),strides=1,padding='same',activation='relu'))
+    model.add(BatchNormalization())
+    model.add(MaxPooling2D(2,2))
+    model.add(Dropout(0.25))
 
     model.add(Flatten())
     model.add(Dense(128,activation='relu'))

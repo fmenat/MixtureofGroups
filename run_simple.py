@@ -14,7 +14,7 @@ scenario = opts.scenario  #arg
 BATCH_SIZE = 128
 EPOCHS_BASE = 50
 OPT = 'adam' #optimizer for neural network 
-TOL = 2e-2 #tolerance for relative variation of parameters
+TOL = 3e-2 #tolerance for relative variation of parameters
 
 
 import numpy as np
@@ -216,21 +216,21 @@ for _ in range(20): #repetitions
     #aux = [entropy(example)/np.log(r_obs.shape[1]) for example in mv_probas]
     #print("Normalized entropy (0-1) of repeats annotations:",np.mean(aux))
     
-    gMixture1 = GroupMixtureOpt(Xstd_train.shape[1:],Kl=r_obs.shape[1],M=M_seted,epochs=1,pre_init=5,optimizer=OPT,dtype_op=DTYPE_OP) 
+    gMixture1 = GroupMixtureOpt(Xstd_train.shape[1:],Kl=r_obs.shape[1],M=M_seted,epochs=1,pre_init=0,optimizer=OPT,dtype_op=DTYPE_OP) 
     gMixture1.define_model("mlp",8,1,BatchN=False,drop=0.2)
     gMixture1.lambda_random = False #lambda=1     
     logL_hists,i  = gMixture1.multiples_run(1,Xstd_train,r_obs,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL
                                        ,cluster=True,bulk_annotators=[y_obs_categorical,annotators_pca])
     print("Trained model over Ours (1)")
     
-    gMixture2 = GroupMixtureOpt(Xstd_train.shape[1:],Kl=r_obs.shape[1],M=M_seted,epochs=1,pre_init=5,optimizer=OPT,dtype_op=DTYPE_OP) 
+    gMixture2 = GroupMixtureOpt(Xstd_train.shape[1:],Kl=r_obs.shape[1],M=M_seted,epochs=1,pre_init=0,optimizer=OPT,dtype_op=DTYPE_OP) 
     gMixture2.define_model("mlp",8,1,BatchN=False,drop=0.2)
     gMixture2.lambda_random = True #lambda random
     logL_hists,i = gMixture2.multiples_run(1,Xstd_train,r_obs,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL
                                        ,cluster=True,bulk_annotators=[y_obs_categorical,annotators_pca])
     print("Trained model over Ours (2)")
     
-    gMixture3 = GroupMixtureOpt(Xstd_train.shape[1:],Kl=r_obs.shape[1],M=M_seted,epochs=1,pre_init=5,optimizer=OPT,dtype_op=DTYPE_OP) 
+    gMixture3 = GroupMixtureOpt(Xstd_train.shape[1:],Kl=r_obs.shape[1],M=M_seted,epochs=1,pre_init=0,optimizer=OPT,dtype_op=DTYPE_OP) 
     gMixture3.define_model("mlp",8,1,BatchN=False,drop=0.2)
     gMixture3.lambda_random = True #with lambda random --necessary
     logL_hists,i = gMixture3.multiples_run(1,Xstd_train,r_obs,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL
