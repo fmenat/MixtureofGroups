@@ -66,25 +66,27 @@ def clusterize_annotators(y_o,M,no_label=-1,bulk=True,cluster_type='loss',data=[
         alphas_init = np.tensordot(M_itj, probas_t, axes=[[1],[0]]) 
         alphas_init = alphas_init/alphas_init.sum(axis=-1,keepdims=True) #normalize here for efficiency
     else: #sirve como auxiliar: y_o: is repeats
-        #KL entre mv_soft?
         if len(y_o.shape) == 2: 
-            mv_hard = majority_voting(y_o,repeats=True,probas=False) 
+            mv_hard = majority_voting(y_o,repeats=True,probas=True) 
         else:
-            mv_hard = majority_voting(y_o,repeats=False,probas=False)  #change soft
-        aux_model = keras.models.clone_model(model)
-        aux_model.compile(loss='categorical_crossentropy',optimizer=model.optimizer)
-        aux_model.fit(data, mv_hard, batch_size=BATCH_SIZE,epochs=30,verbose=0)
-        predicted = aux_model.predict(data,verbose=0)
-        #predicted = mv_hard
-        data_to_cluster = []
+            mv_hard = majority_voting(y_o,repeats=False,probas=True)  #change soft
         if cluster_type=='loss': #cluster respecto to loss function
-            for i in range(mv_hard.shape[0]):
-                for j in range(mv_hard.shape[1]):
-                    ob = np.tile(keras.backend.epsilon(), mv_hard.shape[1])
-                    ob[j] = 1
-                    true = np.clip(predicted[i],keras.backend.epsilon(),1.)        
-                    loss = -np.sum(true*np.log(ob)) 
-                    data_to_cluster.append([loss])
+            aux_model = keras.models.clone_model(model)
+            aux_model.compile(loss='categorical_crossentropy',optimizer=model.optimizer)
+            aux_model.fit(data, mv_hard, batch_size=BATCH_SIZE,epochs=30,verbose=0)
+            predicted = aux_model.predict(data,verbose=0)
+        elif cluster_type == 'mv_close':
+            predicted = mv_hard.copy()
+            
+        data_to_cluster = []
+        for i in range(mv_hard.shape[0]):
+            for j in range(mv_hard.shape[1]):
+                ob = np.tile(keras.backend.epsilon(), mv_hard.shape[1])
+                ob[j] = 1
+                true = np.clip(predicted[i],keras.backend.epsilon(),1.)        
+                loss = -np.sum(true*np.log(ob)) 
+                #loss = -np.sum(ob*np.log(true)) #nooooooooo!!!!!
+                data_to_cluster.append([loss])  
         data_to_cluster = np.asarray(data_to_cluster)
         probas_t = aux_clusterize_annotators(data_to_cluster,M,DTYPE_OP,option,l)
         print("Clustering Done!")
@@ -401,7 +403,7 @@ class GroupMixtureOpt(object): #optimized version
         
         if cluster: # do annotator clustering
             if len(bulk_annotators) == 0:
-                alphas_clusterized = clusterize_annotators(r,M=self.M,bulk=False,cluster_type='loss',data=X,model=self.base_model,DTYPE_OP=self.DTYPE_OP,BATCH_SIZE=batch_size) #clusteriza en base aloss
+                alphas_clusterized = clusterize_annotators(r,M=self.M,bulk=False,cluster_type='loss',data=X,model=self.base_model,DTYPE_OP=self.DTYPE_OP,BATCH_SIZE=batch_size) #clusteriza en base aloss -- mv_close
             elif len(bulk_annotators) == 1:
                 alphas_clusterized = clusterize_annotators(bulk_annotators[0],M=self.M,no_label=-1)
             else:
