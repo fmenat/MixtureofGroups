@@ -67,7 +67,7 @@ def calculate_diagional_mean(conf_matrix): #weight?
 
 def calculate_spamm_score(conf_matrix):
     """Mean - off diagonal"""
-    return np.mean([conf_matrix[l,l]- np.mean(conf_matrix[:,l]) for l in range(len(conf_matrix))])
+    return np.mean([conf_matrix[l,l]- np.mean(np.delete(conf_matrix[:,l],l)) for l in range(len(conf_matrix))])
 
 def calculateKL_matrixs(confs_pred,confs_true):
     M_p = confs_pred.shape[0] #number of matrices on pred

@@ -187,6 +187,8 @@ class Evaluation_metrics(object):
         inertia = distance_2_centroid(conf_matrixs)
         if plot:
             print("Inertia:",inertia)
+        else:
+            self.inertia = inertia
         return t
 
 
