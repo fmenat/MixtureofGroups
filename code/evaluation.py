@@ -108,7 +108,7 @@ class Evaluation_metrics(object):
 
             acc_annot_real = accuracy_score(gt_over_annotations, t_annotations)
             if prob_data.shape[-1]>1: #if probabilities is handled
-                acc_annot_pred = accuracy_score(t_annotations, prob_data.argmax(axis=-1))
+                acc_annot_pred = accuracy_score(gt_over_annotations, prob_data.argmax(axis=-1))
             else: #if argmax is passed
                 acc_annot_pred = accuracy_score(gt_over_annotations, prob_data) 
 
