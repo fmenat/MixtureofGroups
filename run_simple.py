@@ -14,7 +14,7 @@ scenario = opts.scenario  #arg
 BATCH_SIZE = 128
 EPOCHS_BASE = 50
 OPT = 'adam' #optimizer for neural network 
-TOL = 2e-2 #tolerance for relative variation of parameters
+TOL = 3e-2 #tolerance for relative variation of parameters
 
 
 import numpy as np
@@ -63,7 +63,7 @@ ourCallback = EarlyStopRelative(monitor='loss',patience=1,min_delta=TOL)
 
 #upper bound model
 Z_train_onehot = keras.utils.to_categorical(Z_train)
-#"""
+"""
 model_UB = MLP_Keras(Xstd_train.shape[1:],Z_train_onehot.shape[1],8,1,BN=False,drop=0.2) #what about bn true?
 model_UB.compile(loss='categorical_crossentropy',optimizer=OPT)
 model_UB.fit(Xstd_train,Z_train_onehot,epochs=EPOCHS_BASE,batch_size=BATCH_SIZE,verbose=0,callbacks=[ourCallback])
@@ -78,7 +78,7 @@ results1[0].to_csv("synthetic_UpperBound_train.csv",index=False)
 results2[0].to_csv("synthetic_UpperBound_test.csv",index=False)
 del evaluate,Z_train_pred,Z_test_pred,results1,results2
 gc.collect()
-#"""
+"""
 def get_mean_dataframes(df_values):
     if df_values[0].iloc[:,0].dtype == object:
         RT = pd.DataFrame(data=None,columns = df_values[0].columns[1:], index= df_values[0].index)
@@ -170,7 +170,7 @@ for _ in range(20): #repetitions
     print("Classes: ",K)
     
     ############# EXECUTE ALGORITHMS #############################
-    #"""
+    """
     label_I = LabelInference(y_obs,TOL,type_inf = 'all')  #Infer Labels
 
     mv_onehot = label_I.mv_labels('onehot')
@@ -195,14 +195,14 @@ for _ in range(20): #repetitions
     model_ds.compile(loss='categorical_crossentropy',optimizer=OPT)
     model_ds.fit(Xstd_train, ds_labels, epochs=EPOCHS_BASE,batch_size=BATCH_SIZE,verbose=0,callbacks=[ourCallback])
     print("Trained model over D&S")
-    #"""
+    """
     #get representation needed for Raykar
     y_obs_categorical = set_representation(y_obs,'onehot') 
     
-    raykarMC = RaykarMC(Xstd_train.shape[1:],y_obs_categorical.shape[-1],T,epochs=1,optimizer=OPT,DTYPE_OP=DTYPE_OP)
-    raykarMC.define_model('mlp',8,1,BatchN=False,drop=0.2)
-    logL_hist = raykarMC.stable_train(Xstd_train,y_obs_categorical,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL)
-    print("Trained model over Raykar")
+    #raykarMC = RaykarMC(Xstd_train.shape[1:],y_obs_categorical.shape[-1],T,epochs=1,optimizer=OPT,DTYPE_OP=DTYPE_OP)
+    #raykarMC.define_model('mlp',8,1,BatchN=False,drop=0.2)
+    #logL_hist = raykarMC.stable_train(Xstd_train,y_obs_categorical,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL)
+    #print("Trained model over Raykar")
 
     #get our representation 
     r_obs = set_representation(y_obs_categorical,"repeat")
@@ -210,6 +210,7 @@ for _ in range(20): #repetitions
     print("shape:",r_obs.shape)
     
     #pre analysis
+    """
     annotators_pca = project_and_cluster(y_obs_categorical,DTYPE_OP=DTYPE_OP,printed=False,mode_project="pca")[0]
     print("Annotators PCA of annotations shape: ",annotators_pca.shape)
 
@@ -229,6 +230,7 @@ for _ in range(20): #repetitions
     logL_hists,i = gMixture2.multiples_run(1,Xstd_train,r_obs,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL
                                        ,cluster=True,bulk_annotators=[y_obs_categorical,annotators_pca])
     print("Trained model over Ours (2)")
+    """
     
     gMixture3 = GroupMixtureOpt(Xstd_train.shape[1:],Kl=r_obs.shape[1],M=M_seted,epochs=1,pre_init=0,optimizer=OPT,dtype_op=DTYPE_OP) 
     gMixture3.define_model("mlp",8,1,BatchN=False,drop=0.2)
@@ -239,7 +241,7 @@ for _ in range(20): #repetitions
 
     
     ################## MEASURE PERFORMANCE ##################################
-    #"""
+    """
     evaluate = Evaluation_metrics(model_mvsoft,'keras',Xstd_train.shape[0],plot=False)
     Z_train_p = model_mvsoft.predict(Xstd_train)
     prob_Yzt = get_confusionM(Z_train_p,y_obs_categorical)
@@ -291,7 +293,7 @@ for _ in range(20): #repetitions
     results_raykar_train += results1
     results_raykar_trainA += results1_aux
     results_raykar_test += results2
-    #"""
+    
     evaluate = Evaluation_metrics(gMixture1,'our1',plot=False) 
     aux = gMixture1.calculate_extra_components(Xstd_train,y_obs,T=T,calculate_pred_annotator=True)
     predictions_m,prob_Gt,prob_Yzt,prob_Yxt =  aux #to evaluate...
@@ -329,7 +331,8 @@ for _ in range(20): #repetitions
     results_ours2_trainA += results1_aux
     results_ours2_testA.append(results2[0])
     results_ours2_test.append(results2[1])
-
+    """
+    
     evaluate = Evaluation_metrics(gMixture3,'our1',plot=False) 
     aux = gMixture3.calculate_extra_components(Xstd_train,y_obs,T=T,calculate_pred_annotator=True)
     predictions_m,prob_Gt,prob_Yzt,prob_Yxt =  aux #to evaluate...
@@ -354,7 +357,7 @@ for _ in range(20): #repetitions
     gc.collect()
 
 #plot measures    
-#"""
+"""
 get_mean_dataframes(results_softmv_train).to_csv("synthetic_softMV_train_s"+str(scenario)+".csv",index=False)
 get_mean_dataframes(results_softmv_train_A).to_csv("synthetic_softMV_trainG_s"+str(scenario)+".csv",index=False)
 get_mean_dataframes(results_softmv_test).to_csv("synthetic_softMV_test_s"+str(scenario)+".csv",index=False)
@@ -369,7 +372,6 @@ get_mean_dataframes(results_ds_test).to_csv("synthetic_DS_test_s"+str(scenario)+
 get_mean_dataframes(results_raykar_train).to_csv("synthetic_Raykar_train_s"+str(scenario)+".csv",index=False)
 get_mean_dataframes(results_raykar_trainA).to_csv("synthetic_Raykar_trainAnn_s"+str(scenario)+".csv",index=False)
 get_mean_dataframes(results_raykar_test).to_csv("synthetic_Raykar_test_s"+str(scenario)+".csv",index=False)
-#"""
 
 get_mean_dataframes(results_ours1_train).to_csv("synthetic_Ours1_train_s"+str(scenario)+".csv",index=False)
 get_mean_dataframes(results_ours1_trainA).to_csv("synthetic_Ours1_trainAnn_s"+str(scenario)+".csv",index=False)
@@ -380,6 +382,7 @@ get_mean_dataframes(results_ours2_train).to_csv("synthetic_Ours2_train_s"+str(sc
 get_mean_dataframes(results_ours2_trainA).to_csv("synthetic_Ours2_trainAnn_s"+str(scenario)+".csv",index=False)
 get_mean_dataframes(results_ours2_test).to_csv("synthetic_Ours2_test_s"+str(scenario)+".csv",index=False)
 get_mean_dataframes(results_ours2_testA).to_csv("synthetic_Ours2_testAux_s"+str(scenario)+".csv",index=False)
+"""
 
 get_mean_dataframes(results_ours3_train).to_csv("synthetic_Ours3_train_s"+str(scenario)+".csv",index=False)
 get_mean_dataframes(results_ours3_trainA).to_csv("synthetic_Ours3_trainAnn_s"+str(scenario)+".csv",index=False)

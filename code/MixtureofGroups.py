@@ -84,15 +84,17 @@ def clusterize_annotators(y_o,M,no_label=-1,bulk=True,cluster_type='loss',data=[
                 ob = np.tile(keras.backend.epsilon(), mv_soft.shape[1])
                 ob[j] = 1
                 true = np.clip(predicted[i],keras.backend.epsilon(),1.)      
-                
-                loss = [-np.sum(predicted*np.log(ob))] #funciona bien -- over 90 = 5 -- over 90 = 8 (lambda=1)
-                data_to_cluster.append(loss)  
+                f_l = distance_function(true, ob)  #funcion de distancia o similaridad
+                data_to_cluster.append(f_l)  
         data_to_cluster = np.asarray(data_to_cluster)
         probas_t = aux_clusterize_annotators(data_to_cluster,M,DTYPE_OP,option,l)
         print("Clustering Done!")
         alphas_init = probas_t.reshape(mv_soft.shape[0],mv_soft.shape[1],M)
     print("Get init alphas in %f mins"%((time.time()-start_time)/60.) )
     return alphas_init
+
+def distance_function(predicted,ob):
+    return -predicted*np.log(ob) #CE raw
 
 def project_and_cluster(y_o,M_to_try=20,anothers_visions=True,DTYPE_OP='float32',printed=True,mode_project="pca"):
     ###another way to cluster..
@@ -384,7 +386,7 @@ class GroupMixtureOpt(object): #optimized version
         
         if cluster: # do annotator clustering
             if len(bulk_annotators) == 0:
-                alphas_clusterized = clusterize_annotators(r,M=self.M,bulk=False,cluster_type='loss',data=X,model=self.base_model,DTYPE_OP=self.DTYPE_OP,BATCH_SIZE=batch_size) #clusteriza en base aloss
+                alphas_clusterized = clusterize_annotators(r,M=self.M,bulk=False,cluster_type='mv_close',data=X,model=self.base_model,DTYPE_OP=self.DTYPE_OP,BATCH_SIZE=batch_size) #clusteriza en base aloss
             elif len(bulk_annotators) == 1:
                 alphas_clusterized = clusterize_annotators(bulk_annotators[0],M=self.M,no_label=-1)
             else:
@@ -403,7 +405,7 @@ class GroupMixtureOpt(object): #optimized version
         
         if cluster: # do annotator clustering
             if len(bulk_annotators) == 0:
-                alphas_clusterized = clusterize_annotators(r,M=self.M,bulk=False,cluster_type='loss',data=X,model=self.base_model,DTYPE_OP=self.DTYPE_OP,BATCH_SIZE=batch_size) #clusteriza en base aloss -- mv_close
+                alphas_clusterized = clusterize_annotators(r,M=self.M,bulk=False,cluster_type='mv_close',data=X,model=self.base_model,DTYPE_OP=self.DTYPE_OP,BATCH_SIZE=batch_size) #clusteriza en base aloss -- mv_close
             elif len(bulk_annotators) == 1:
                 alphas_clusterized = clusterize_annotators(bulk_annotators[0],M=self.M,no_label=-1)
             else:

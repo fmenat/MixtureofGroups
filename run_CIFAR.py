@@ -60,7 +60,7 @@ start_time_exec = time.time()
 #upper bound model
 Z_train_onehot = keras.utils.to_categorical(Z_train)
 
-#"""
+"""
 model_UB = default_CNN(Xstd_train.shape[1:],Z_train_onehot.shape[1])
 model_UB.compile(loss='categorical_crossentropy',optimizer=OPT)
 model_UB.fit(Xstd_train,Z_train_onehot,epochs=EPOCHS_BASE,batch_size=BATCH_SIZE,verbose=0,callbacks=[ourCallback])
@@ -75,7 +75,7 @@ results1[0].to_csv("simCIFAR_UpperBound_train.csv",index=False)
 results2[0].to_csv("simCIFAR_UpperBound_test.csv",index=False)
 del evaluate,Z_train_pred,Z_test_pred,results1,results2
 gc.collect()
-#"""
+"""
 
 def get_mean_dataframes(df_values):
     if df_values[0].iloc[:,0].dtype == object:
@@ -170,6 +170,7 @@ for _ in range(10): #repetitions
     ############# EXECUTE ALGORITHMS #############################
     
     start_time = time.time()
+    """
     label_I = LabelInference(y_obs,TOL,type_inf = 'all')  #Infer Labels
     print("Representation for Raykar/MV/D&S in %f mins"%((time.time()-start_time)/60.) )
 
@@ -188,7 +189,7 @@ for _ in range(10): #repetitions
     model_mvhard.compile(loss='categorical_crossentropy',optimizer=OPT)
     model_mvhard.fit(Xstd_train, mv_onehot, epochs=EPOCHS_BASE,batch_size=BATCH_SIZE,verbose=0,callbacks=[ourCallback])
     print("Trained model over hard-MV")
-    
+   
     if scenario != 6 : #explota
         ds_labels, ds_conf = label_I.DS_labels()
 
@@ -205,16 +206,16 @@ for _ in range(10): #repetitions
         raykarMC.define_model("default cnn")
         logL_hist = raykarMC.stable_train(Xstd_train,y_obs_categorical,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL)
         print("Trained model over Raykar")
-                
+    """          
     #get our representation 
     start_time = time.time()
-    if scenario != 6:
-        r_obs = set_representation(y_obs_categorical,"repeat")
-    else: #big scenarios (manny annotators)
-        r_obs = set_representation(y_obs,"repeat") #raykar not done
+    #if scenario != 6:
+    #    r_obs = set_representation(y_obs_categorical,"repeat")
+    #else: #big scenarios (manny annotators)
+    r_obs = set_representation(y_obs,"repeat") #raykar not done
     print("Representation for Our in %f mins"%((time.time()-start_time)/60.) )
     print("shape:",r_obs.shape)
-    
+    """
     if scenario == 5: #error de memoria solucionado con truncated SVD
         #pre analysis
         start_time = time.time()
@@ -247,7 +248,7 @@ for _ in range(10): #repetitions
         logL_hists,i = gMixture2.multiples_run(1,Xstd_train,r_obs,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL
                                            ,cluster=True,bulk_annotators=[y_obs_categorical,annotators_pca])
         print("Trained model over Ours (2)")
-    
+    """
     gMixture3 = GroupMixtureOpt(Xstd_train.shape[1:],Kl=r_obs.shape[1],M=M_seted,epochs=1,pre_init=0,optimizer=OPT,dtype_op=DTYPE_OP) 
     gMixture3.define_model("default cnn")
     gMixture3.lambda_random = True #with lambda random --necessary
@@ -257,6 +258,7 @@ for _ in range(10): #repetitions
 
     
     ################## MEASURE PERFORMANCE ##################################
+    """
     evaluate = Evaluation_metrics(model_mvsoft,'keras',Xstd_train.shape[0],plot=False)
     Z_train_p = model_mvsoft.predict(Xstd_train,verbose=0)
     Z_train_pred = Z_train_p.argmax(axis=1)
@@ -366,7 +368,7 @@ for _ in range(10): #repetitions
         results_ours2_trainA += results1_aux
         results_ours2_testA.append(results2[0])
         results_ours2_test.append(results2[1])
-
+    """
     evaluate = Evaluation_metrics(gMixture3,'our1',plot=False)  #no explota
     if scenario != 5 and scenario != 6: 
         aux = gMixture3.calculate_extra_components(Xstd_train,y_obs,T=T,calculate_pred_annotator=True)
@@ -392,10 +394,11 @@ for _ in range(10): #repetitions
     results_ours3_test.append(results2[1])
     
     print("All Performance Measured")
-    del model_mvsoft,model_mvhard#,model_ds
+    #del model_mvsoft,model_mvhard#,model_ds
     gc.collect()
 
 #plot measures    
+"""
 get_mean_dataframes(results_softmv_train).to_csv("simCIFAR_softMV_train_s"+str(scenario)+".csv",index=False)
 get_mean_dataframes(results_softmv_train_A).to_csv("simCIFAR_softMV_trainG_s"+str(scenario)+".csv",index=False)
 get_mean_dataframes(results_softmv_test).to_csv("simCIFAR_softMV_test_s"+str(scenario)+".csv",index=False)
@@ -418,16 +421,16 @@ if scenario != 6:
     get_mean_dataframes(results_ours2_train).to_csv("simCIFAR_Ours2_train_s"+str(scenario)+".csv",index=False)
     get_mean_dataframes(results_ours2_test).to_csv("simCIFAR_Ours2_test_s"+str(scenario)+".csv",index=False)
     get_mean_dataframes(results_ours2_testA).to_csv("simCIFAR_Ours2_testAux_s"+str(scenario)+".csv",index=False)
-
+"""
 get_mean_dataframes(results_ours3_train).to_csv("simCIFAR_Ours3_train_s"+str(scenario)+".csv",index=False)
 get_mean_dataframes(results_ours3_test).to_csv("simCIFAR_Ours3_test_s"+str(scenario)+".csv",index=False)
 get_mean_dataframes(results_ours3_testA).to_csv("simCIFAR_Ours3_testAux_s"+str(scenario)+".csv",index=False)
 
-if scenario != 5 and scenario != 6: #calcualte pred annotators
-    get_mean_dataframes(results_raykar_trainA).to_csv("simCIFAR_Raykar_trainAnn_s"+str(scenario)+".csv",index=False)
-    get_mean_dataframes(results_ours1_trainA).to_csv("simCIFAR_Ours1_trainAnn_s"+str(scenario)+".csv",index=False)
-    get_mean_dataframes(results_ours2_trainA).to_csv("simCIFAR_Ours2_trainAnn_s"+str(scenario)+".csv",index=False)
-    get_mean_dataframes(results_ours3_trainA).to_csv("simCIFAR_Ours3_trainAnn_s"+str(scenario)+".csv",index=False)
 
+if scenario != 5 and scenario != 6: #calcualte pred annotators
+    #get_mean_dataframes(results_raykar_trainA).to_csv("simCIFAR_Raykar_trainAnn_s"+str(scenario)+".csv",index=False)
+    #get_mean_dataframes(results_ours1_trainA).to_csv("simCIFAR_Ours1_trainAnn_s"+str(scenario)+".csv",index=False)
+    #get_mean_dataframes(results_ours2_trainA).to_csv("simCIFAR_Ours2_trainAnn_s"+str(scenario)+".csv",index=False)
+    get_mean_dataframes(results_ours3_trainA).to_csv("simCIFAR_Ours3_trainAnn_s"+str(scenario)+".csv",index=False)
 
 print("Execution done in %f mins"%((time.time()-start_time_exec)/60.))

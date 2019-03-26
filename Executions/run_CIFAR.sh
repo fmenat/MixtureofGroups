@@ -1,5 +1,5 @@
 #!/bin/bash
-cd CIFAR_tol3
+cd CIFAR_tol3_v2
 python ../../run_CIFAR.py -M 4 -p ../../ -s 1 > result_scenario1.txt
 python ../../run_CIFAR.py -M 4 -p ../../ -s 2 > result_scenario2.txt
 python ../../run_CIFAR.py -M 4 -p ../../ -s 3 > result_scenario3.txt
