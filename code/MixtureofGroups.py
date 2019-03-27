@@ -71,11 +71,13 @@ def clusterize_annotators(y_o,M,no_label=-1,bulk=True,cluster_type='loss',data=[
         else:
             mv_soft = majority_voting(y_o,repeats=False,probas=True)
         if cluster_type=='loss': #cluster respecto to loss function
+            print("loss is done")
             aux_model = keras.models.clone_model(model)
             aux_model.compile(loss='categorical_crossentropy',optimizer=model.optimizer)
             aux_model.fit(data, mv_soft, batch_size=BATCH_SIZE,epochs=30,verbose=0)
             predicted = aux_model.predict(data,verbose=0)
         elif cluster_type == 'mv_close':
+            print("mv close is done")
             predicted = np.clip(mv_soft, keras.backend.epsilon(), 1.)
        
         data_to_cluster = []
