@@ -403,7 +403,6 @@ class GroupMixtureOpt(object): #change name to Rep
         self.define_priors('laplace')
         
         if cluster: # do annotator clustering
-            #if len(bulk_annotators) == 0:
             alphas_clusterized = clusterize_annotators(r,M=self.M,bulk=False,cluster_type='mv_close',data=X,model=self.base_model,DTYPE_OP=self.DTYPE_OP,BATCH_SIZE=batch_size) #clusteriza en base aloss -- mv_close
             self.set_alpha(alphas_clusterized)
             
@@ -411,6 +410,7 @@ class GroupMixtureOpt(object): #change name to Rep
         found_alphas = []
         found_model = []
         found_logL = []
+        iter_conv = []
         for run in range(Runs):
             self.base_model = keras.models.clone_model(self.base_model) #reset-weigths
             self.base_model.compile(loss='categorical_crossentropy',optimizer=self.optimizer)
@@ -421,6 +421,7 @@ class GroupMixtureOpt(object): #change name to Rep
             found_alphas.append(self.alphas.copy())
             found_model.append(self.base_model) #revisar si se resetean los pesos o algo asi..
             found_logL.append(logL_hist)
+            iter_conv.append(self.current_iter-1)
             gc.collect()
         #setup the configuration with maximum log-likelihood
         logL_iter = np.asarray([np.max(a) for a in found_logL])
@@ -430,6 +431,7 @@ class GroupMixtureOpt(object): #change name to Rep
         self.alphas = found_alphas[indexs_sort[0]].copy()
         self.base_model = found_model[indexs_sort[0]]
         self.E_step(X,self.get_predictions(X)) #to set up Q
+        print("Epochs to converge= ",np.mean(iter_conv))
         return found_logL,indexs_sort[0]
     
     def get_predictions_group(self,m,X):

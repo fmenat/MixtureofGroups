@@ -16,7 +16,7 @@ state_sce = path+"/synthetic/simple/state_simple_s"+str(scenario)+".pickle" #onc
 BATCH_SIZE = 128
 EPOCHS_BASE = 50
 OPT = 'adam' #optimizer for neural network 
-TOL = 3e-2 #tolerance for relative variation of parameters
+TOL = 1e-5 #tolerance for relative variation of parameters
 
 
 import numpy as np
@@ -65,7 +65,7 @@ ourCallback = EarlyStopRelative(monitor='loss',patience=1,min_delta=TOL)
 
 #upper bound model
 Z_train_onehot = keras.utils.to_categorical(Z_train)
-"""
+
 model_UB = MLP_Keras(Xstd_train.shape[1:],Z_train_onehot.shape[1],8,1,BN=False,drop=0.2) #what about bn true?
 model_UB.compile(loss='categorical_crossentropy',optimizer=OPT)
 model_UB.fit(Xstd_train,Z_train_onehot,epochs=EPOCHS_BASE,batch_size=BATCH_SIZE,verbose=0,callbacks=[ourCallback])
@@ -80,7 +80,7 @@ results1[0].to_csv("synthetic_UpperBound_train.csv",index=False)
 results2[0].to_csv("synthetic_UpperBound_test.csv",index=False)
 del evaluate,Z_train_pred,Z_test_pred,results1,results2
 gc.collect()
-"""
+
 def get_mean_dataframes(df_values):
     if df_values[0].iloc[:,0].dtype == object:
         RT = pd.DataFrame(data=None,columns = df_values[0].columns[1:], index= df_values[0].index)
@@ -148,49 +148,49 @@ results_ours_global_trainA = []
 results_ours_global_test = []
 results_ours_global_testA = []
 
-for _ in range(20): #repetitions
-    print("New Synthetic data is being generated...",flush=True,end='')
-    if scenario == 3 or scenario==7: #soft
-        y_obs, groups_annot = GenerateData.sintetic_annotate_data(Z_train,Tmax,T_data,deterministic=False,hard=False)
-    else:
-        y_obs, groups_annot = GenerateData.sintetic_annotate_data(Z_train,Tmax,T_data,deterministic=False)
-    print("Done! ")
-    
-    if len(groups_annot.shape) ==1 or groups_annot.shape[1] ==  1: 
-        groups_annot = keras.utils.to_categorical(groups_annot)  #only if it is hard clustering
-    confe_matrix = np.tensordot(groups_annot,real_conf_matrix, axes=[[1],[0]])
+print("New Synthetic data is being generated...",flush=True,end='')
+if scenario == 3 or scenario==7: #soft
+    y_obs, groups_annot = GenerateData.sintetic_annotate_data(Z_train,Tmax,T_data,deterministic=False,hard=False)
+else:
+    y_obs, groups_annot = GenerateData.sintetic_annotate_data(Z_train,Tmax,T_data,deterministic=False)
+print("Done! ")
 
-    N,T = y_obs.shape
-    K = np.max(y_obs)+1 # asumiendo que estan ordenadas
-    print("Shape (data,annotators): ",(N,T))
-    print("Classes: ",K)
-    
+if len(groups_annot.shape) ==1 or groups_annot.shape[1] ==  1: 
+    groups_annot = keras.utils.to_categorical(groups_annot)  #only if it is hard clustering
+confe_matrix = np.tensordot(groups_annot,real_conf_matrix, axes=[[1],[0]])
+
+N,T = y_obs.shape
+K = np.max(y_obs)+1 # asumiendo que estan ordenadas
+print("Shape (data,annotators): ",(N,T))
+print("Classes: ",K)
+
+#Deterministic
+label_I = LabelInference(y_obs,TOL,type_inf = 'all')  #Infer Labels
+
+mv_onehot = label_I.mv_labels('onehot')
+mv_probas = label_I.mv_labels('probas')
+
+ds_labels, ds_conf = label_I.DS_labels()
+
+print("ACC MV on train:",np.mean(mv_onehot.argmax(axis=1)==Z_train))
+print("ACC D&S on train:",np.mean(ds_labels.argmax(axis=1)==Z_train))
+
+for _ in range(10): #repetitions
     ############# EXECUTE ALGORITHMS #############################
-    #"""
-    label_I = LabelInference(y_obs,TOL,type_inf = 'all')  #Infer Labels
-
-    mv_onehot = label_I.mv_labels('onehot')
-    mv_probas = label_I.mv_labels('probas')
-
-    ds_labels, ds_conf = label_I.DS_labels()
-    
-    print("ACC MV on train:",np.mean(mv_onehot.argmax(axis=1)==Z_train))
-    print("ACC D&S on train:",np.mean(ds_labels.argmax(axis=1)==Z_train))
-        
     model_mvsoft = clone_model(model_UB) 
     model_mvsoft.compile(loss='categorical_crossentropy',optimizer=OPT)
-    model_mvsoft.fit(Xstd_train, mv_probas, epochs=EPOCHS_BASE,batch_size=BATCH_SIZE,verbose=0,callbacks=[ourCallback])
-    print("Trained model over soft-MV")
+    hist = model_mvsoft.fit(Xstd_train, mv_probas, epochs=EPOCHS_BASE,batch_size=BATCH_SIZE,verbose=0,callbacks=[ourCallback])
+    print("Trained model over soft-MV, Epochs to converge =",len(hist.epoch))
 
     model_mvhard = clone_model(model_UB) 
     model_mvhard.compile(loss='categorical_crossentropy',optimizer=OPT)
-    model_mvhard.fit(Xstd_train, mv_onehot, epochs=EPOCHS_BASE,batch_size=BATCH_SIZE,verbose=0,callbacks=[ourCallback])
-    print("Trained model over hard-MV")
+    hist=model_mvhard.fit(Xstd_train, mv_onehot, epochs=EPOCHS_BASE,batch_size=BATCH_SIZE,verbose=0,callbacks=[ourCallback])
+    print("Trained model over hard-MV, Epochs to converge =",len(hist.epoch))
 
     model_ds = clone_model(model_UB) 
     model_ds.compile(loss='categorical_crossentropy',optimizer=OPT)
-    model_ds.fit(Xstd_train, ds_labels, epochs=EPOCHS_BASE,batch_size=BATCH_SIZE,verbose=0,callbacks=[ourCallback])
-    print("Trained model over D&S")
+    hist=model_ds.fit(Xstd_train, ds_labels, epochs=EPOCHS_BASE,batch_size=BATCH_SIZE,verbose=0,callbacks=[ourCallback])
+    print("Trained model over D&S, Epochs to converge =",len(hist.epoch))
     #"""
     #get representation needed for Raykar
     #y_obs_categorical = set_representation(y_obs,'onehot') 
@@ -198,7 +198,7 @@ for _ in range(20): #repetitions
     
     raykarMC = RaykarMC(Xstd_train.shape[1:],y_obs_categorical.shape[-1],T,epochs=1,optimizer=OPT,DTYPE_OP=DTYPE_OP)
     raykarMC.define_model('mlp',8,1,BatchN=False,drop=0.2)
-    logL_hist = raykarMC.stable_train(Xstd_train,y_obs_categorical,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL)
+    logL_hists,i_r = raykarMC.multiples_run(20,Xstd_train,y_obs_categorical,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL)
     print("Trained model over Raykar")
 
     #get our representation 
@@ -232,7 +232,7 @@ for _ in range(20): #repetitions
     gMixture_Global = GroupMixtureOpt(Xstd_train.shape[1:],Kl=r_obs.shape[1],M=M_seted,epochs=1,pre_init=0,optimizer=OPT,dtype_op=DTYPE_OP) 
     gMixture_Global.define_model("mlp",8,1,BatchN=False,drop=0.2)
     gMixture_Global.lambda_random = True #with lambda random --necessary
-    logL_hists,i = gMixture_Global.multiples_run(1,Xstd_train,r_obs,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL
+    logL_hists,i = gMixture_Global.multiples_run(20,Xstd_train,r_obs,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL
                                    ,cluster=True)
     print("Trained model over Ours Global")
 

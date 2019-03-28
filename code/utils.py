@@ -230,7 +230,7 @@ class EarlyStopRelative(keras.callbacks.Callback):
             self.best = current
             return
         
-        delta_conv = np.abs(self.best-current)/self.best #relative
+        delta_conv = np.abs(self.best-current)/self.best #relative 
         if self.monitor_op(-self.min_delta, delta_conv):
             self.best = current
             self.wait = 0

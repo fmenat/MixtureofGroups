@@ -209,7 +209,7 @@ class RaykarMC(object):
             print("")
             if self.current_iter>max_iter or (tol<=tolerance and tol2<=tolerance):
                 stop_c = True
-        print("Finished training!")
+        print("Finished training")
         gc.collect()
         return logL
             
@@ -230,6 +230,7 @@ class RaykarMC(object):
         found_betas = []
         found_model = []
         found_logL = []
+        iter_conv = []
         for run in range(Runs):
             self.base_model = clone_model(self.base_model) #reset-weigths
             self.base_model.compile(loss='categorical_crossentropy',optimizer=self.optimizer)
@@ -239,6 +240,7 @@ class RaykarMC(object):
             found_betas.append(self.betas.copy())
             found_model.append(self.base_model) #revisar si se resetean los pesos o algo asi..
             found_logL.append(logL_hist)
+            iter_conv.append(self.current_iter-1)
         #setup the configuration with maximum log-likelihood
         logL_iter = np.asarray([np.max(a) for a in found_logL])
         indexs_sort = np.argsort(logL_iter)[::-1] 
@@ -246,6 +248,7 @@ class RaykarMC(object):
         self.betas = found_betas[indexs_sort[0]].copy()
         self.base_model = found_model[indexs_sort[0]]
         self.E_step(X,y_ann,predictions=self.get_predictions(X)) #to set up Q
+        print("Epochs to converge= ",np.mean(iter_conv))
         gc.collect()
         return found_logL,indexs_sort[0]
 

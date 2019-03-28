@@ -30,13 +30,19 @@ class Evaluation_metrics(object):
             self.Kl = class_infered.Kl
             #self.tested_model = class_infered.base_model
         #and what about raykar or anothers
-
+    
+    def set_T_weights(self,T_weights):
+        self.T_weights = T_weights.copy()        
+    
     def calculate_metrics(self,Z=[],Z_pred=[],y_o=[],yo_pred=[],conf_pred=[],conf_true=[],y_o_groups=[]):
         if len(y_o)!=0:
             self.T = y_o.shape[1] #es util para estimar el peso de anotadores
-            self.T_weights = np.sum(y_o != -1,axis=0)/self.T
-            if np.sum(self.T_weights) != 1:
-                print("Sum of weight of annotators ERROR, is :",np.sum(self.T_weights))
+            if len(self.T_weights) == 0:
+                self.T_weights = np.sum(y_o != -1,axis=0)
+                self.T_weights =  self.T_weights/ self.T_weights.sum(axis=0,keepdims=True)
+                if np.sum(self.T_weights) != 1:
+                    print("Sum of weight of annotators ERROR, is :",np.sum(self.T_weights))
+                    return
         elif len(yo_pred)!=0:
             self.T = yo_pred.shape[1]
           
@@ -82,24 +88,26 @@ class Evaluation_metrics(object):
             
             pearson_corr = []
             for m in range(len(conf_pred)):
-                diagional_elements_pred = [conf_pred[m][f,f] for f in range(conf_pred[m].shape[0])]
-                diagional_elements_true = [conf_true[m][f,f] for f in range(conf_true[m].shape[0])]
+                #diagional_elements_pred = [conf_pred[m][f,f] for f in range(conf_pred[m].shape[0])]
+                #diagional_elements_true = [conf_true[m][f,f] for f in range(conf_true[m].shape[0])]
                 #normalize diagonal
-                diagional_elements_pred = (diagional_elements_pred-np.mean(diagional_elements_pred))/(np.std(diagional_elements_pred)+1e-10)
-                diagional_elements_true = (diagional_elements_true-np.mean(diagional_elements_true))/(np.std(diagional_elements_true)+1e-10)
-                pearson_corr.append(pearsonr(diagional_elements_pred, diagional_elements_true)[0])
+                #diagional_elements_pred = (diagional_elements_pred-np.mean(diagional_elements_pred))/(np.std(diagional_elements_pred)+1e-10)
+                #diagional_elements_true = (diagional_elements_true-np.mean(diagional_elements_true))/(np.std(diagional_elements_true)+1e-10)
+                #pearson_corr.append(pearsonr(diagional_elements_pred, diagional_elements_true)[0])
                 if np.random.rand() >0.5 and sampled_plot < 15 and plot:
                     compare_conf_mats(conf_pred[m], conf_true[m])
                     sampled_plot+=1
                     #print("KL divergence: %.4f\tPearson Correlation between diagonals: %.4f"%(KLs_founded[m],pearson_corr[-1]))        
-                    print("JS divergence: %.4f\tPearson Correlation between diagonals: %.4f"%(JSs_founded[m],pearson_corr[-1]))        
+                    #print("JS divergence: %.4f\tPearson Correlation between diagonals: %.4f"%(JSs_founded[m],pearson_corr[-1]))  
+                    print("JS divergence: %.4f\tKL divergence: %.4f"%(JSs_founded[m],KLs_founded[m]))        
+
             t["Mean KL"] = np.mean(KLs_founded)
             t["Mean JS"] = np.mean(JSs_founded) 
-            t["Mean PearsCorr"] = np.mean(pearson_corr)
+            #t["Mean PearsCorr"] = np.mean(pearson_corr)
             if len(self.T_weights) != 0:
-                t["Wmean KL"] = np.sum(T_weights*KLs_founded)
-                t["Wmean JS"] = np.sum(T_weights*JSs_founded) 
-                t["Wmean PearsCorr"] = np.sum(T_weights*pearson_corr)
+                t["Wmean KL"] = np.sum(self.T_weights*KLs_founded)
+                t["Wmean JS"] = np.sum(self.T_weights*JSs_founded) 
+                #t["Wmean PearsCorr"] = np.sum(self.T_weights*pearson_corr)
         return t
 
     def rmse_accuracies(self,Z_argmax,y_o,yo_pred,dataframe=None): 
@@ -122,10 +130,9 @@ class Evaluation_metrics(object):
 
             rmse_results.append(np.sqrt(np.mean(np.square(acc_annot_real- acc_annot_pred ))))
         rmse_results = np.asarray(rmse_results)
-        
         dataframe["Mean RMSE"] = np.mean(rmse_results)
         if len(self.T_weights) != 0:
-            t["Wmean RMSE"] = np.sum(T_weights*rmse_results)
+            dataframe["Wmean RMSE"] = np.sum(self.T_weights*rmse_results)
         return dataframe
     
     def report_results_wt_GT(self,y_o,yo_pred): #new
