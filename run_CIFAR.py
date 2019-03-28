@@ -123,14 +123,12 @@ elif scenario == 4 or scenario == 6 or scenario == 7:
     
 elif scenario == 5:
     Tmax = 10000
-    T_data = 40 #revisar eso
+    T_data = 20 #revisar eso
 
 
 results_softmv_train = []
-results_softmv_train_A = [] #for Global KL
 results_softmv_test = []
 results_hardmv_train = []
-results_hardmv_train_A = [] #for Global KL
 results_hardmv_test = []
 results_ds_train = []
 results_ds_test = []
@@ -145,7 +143,7 @@ results_ours2_train = []
 results_ours2_trainA = []
 results_ours2_test = []
 results_ours2_testA = []
-results_ours3_train = []
+results_ours_global_train = []
 results_ours_global_trainA = []
 results_ours_global_test = []
 results_ours_global_testA = []
@@ -170,7 +168,7 @@ for _ in range(10): #repetitions
     ############# EXECUTE ALGORITHMS #############################
     
     start_time = time.time()
-    """
+    #"""
     label_I = LabelInference(y_obs,TOL,type_inf = 'all')  #Infer Labels
     print("Representation for Raykar/MV/D&S in %f mins"%((time.time()-start_time)/60.) )
 
@@ -206,13 +204,13 @@ for _ in range(10): #repetitions
         raykarMC.define_model("default cnn")
         logL_hist = raykarMC.stable_train(Xstd_train,y_obs_categorical,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL)
         print("Trained model over Raykar")
-    """          
+    #"""          
     #get our representation 
     start_time = time.time()
-    #if scenario != 6:
-    #    r_obs = set_representation(y_obs_categorical,"repeat")
-    #else: #big scenarios (manny annotators)
-    r_obs = set_representation(y_obs,"repeat") #raykar not done
+    if scenario != 6:
+        r_obs = set_representation(y_obs_categorical,"repeat")
+    else: #big scenarios (manny annotators)
+        r_obs = set_representation(y_obs,"repeat") #raykar not done
     print("Representation for Our in %f mins"%((time.time()-start_time)/60.) )
     print("shape:",r_obs.shape)
     """
@@ -258,39 +256,25 @@ for _ in range(10): #repetitions
 
     
     ################## MEASURE PERFORMANCE ##################################
-    """
+    #"""
     evaluate = Evaluation_metrics(model_mvsoft,'keras',Xstd_train.shape[0],plot=False)
-    Z_train_p = model_mvsoft.predict(Xstd_train,verbose=0)
-    Z_train_pred = Z_train_p.argmax(axis=1)
-    if scenario != 6 : #explota
-        prob_Yzt = get_confusionM(Z_train_p,y_obs_categorical)
-        results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix)
-    else:
-        results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred)
+    Z_train_pred = model_mvsoft.predicts_classes(Xstd_train)
     prob_Yzt = np.tile(confusion_matrix(y_true=Z_train,y_pred=Z_train_pred), (T,1,1) )
-    results1_A = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix)
-    Z_test_pred = model_mvsoft.predict_classes(Xstd_test,verbose=0)
+    results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix)
+    Z_test_pred = model_mvsoft.predict_classes(Xstd_test)
     results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred)
     
     results_softmv_train += results1
-    results_softmv_train_A += results1_A
     results_softmv_test += results2
 
     evaluate = Evaluation_metrics(model_mvhard,'keras',Xstd_train.shape[0],plot=False)
-    Z_train_p = model_mvhard.predict(Xstd_train,verbose=0)
-    Z_train_pred = Z_train_p.argmax(axis=1)
-    if scenario != 6 : #explota
-        prob_Yzt = get_confusionM(Z_train_p,y_obs_categorical)
-        results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix)
-    else:
-        results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred)
+    Z_train_pred = model_mvhard.predict_classes(Xstd_train)
     prob_Yzt = np.tile(confusion_matrix(y_true=Z_train,y_pred=Z_train_pred), (T,1,1) )
-    results1_A = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix)
-    Z_test_pred = model_mvhard.predict_classes(Xstd_test,verbose=0)
+    results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix)
+    Z_test_pred = model_mvhard.predict_classes(Xstd_test)
     results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred)
     
     results_hardmv_train += results1
-    results_hardmv_train_A += results1_A
     results_hardmv_test += results2
     
     if scenario != 6 : #error de memoria algunos
@@ -320,7 +304,7 @@ for _ in range(10): #repetitions
         results_raykar_train += results1
         results_raykar_trainA += results1_aux
         results_raykar_test += results2            
-    
+        """
         evaluate = Evaluation_metrics(gMixture1,'our1',plot=False) 
         if scenario != 5 and scenario != 6: 
             aux = gMixture1.calculate_extra_components(Xstd_train,y_obs,T=T,calculate_pred_annotator=True)
@@ -368,13 +352,13 @@ for _ in range(10): #repetitions
         results_ours2_trainA += results1_aux
         results_ours2_testA.append(results2[0])
         results_ours2_test.append(results2[1])
-    """
+        """
+        
     evaluate = Evaluation_metrics(gMixture_Global,'our1',plot=False)  #no explota
     if scenario != 5 and scenario != 6: 
         aux = gMixture_Global.calculate_extra_components(Xstd_train,y_obs,T=T,calculate_pred_annotator=True)
         predictions_m,prob_Gt,prob_Yzt,prob_Yxt =  aux #to evaluate...
         Z_train_pred = gMixture_Global.base_model.predict_classes(Xstd_train,verbose=0)
-        #y_o_groups = predictions_m.argmax(axis=-1)
         results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix,y_o=y_obs,yo_pred=prob_Yxt)
         results1_aux = evaluate.calculate_metrics(y_o=y_obs,yo_pred=prob_Yxt)
     else: #pred annotator memory error
@@ -398,13 +382,11 @@ for _ in range(10): #repetitions
     gc.collect()
 
 #plot measures    
-"""
+#"""
 get_mean_dataframes(results_softmv_train).to_csv("simCIFAR_softMV_train_s"+str(scenario)+".csv",index=False)
-get_mean_dataframes(results_softmv_train_A).to_csv("simCIFAR_softMV_trainG_s"+str(scenario)+".csv",index=False)
 get_mean_dataframes(results_softmv_test).to_csv("simCIFAR_softMV_test_s"+str(scenario)+".csv",index=False)
 
 get_mean_dataframes(results_hardmv_train).to_csv("simCIFAR_hardMV_train_s"+str(scenario)+".csv",index=False)
-get_mean_dataframes(results_hardmv_train_A).to_csv("simCIFAR_hardMV_trainG_s"+str(scenario)+".csv",index=False)
 get_mean_dataframes(results_hardmv_test).to_csv("simCIFAR_hardMV_test_s"+str(scenario)+".csv",index=False)
 
 if scenario != 6:
@@ -413,7 +395,7 @@ if scenario != 6:
 
     get_mean_dataframes(results_raykar_train).to_csv("simCIFAR_Raykar_train_s"+str(scenario)+".csv",index=False)
     get_mean_dataframes(results_raykar_test).to_csv("simCIFAR_Raykar_test_s"+str(scenario)+".csv",index=False)
-
+    """
     get_mean_dataframes(results_ours1_train).to_csv("simCIFAR_Ours1_train_s"+str(scenario)+".csv",index=False)
     get_mean_dataframes(results_ours1_test).to_csv("simCIFAR_Ours1_test_s"+str(scenario)+".csv",index=False)
     get_mean_dataframes(results_ours1_testA).to_csv("simCIFAR_Ours1_testAux_s"+str(scenario)+".csv",index=False)
@@ -421,14 +403,14 @@ if scenario != 6:
     get_mean_dataframes(results_ours2_train).to_csv("simCIFAR_Ours2_train_s"+str(scenario)+".csv",index=False)
     get_mean_dataframes(results_ours2_test).to_csv("simCIFAR_Ours2_test_s"+str(scenario)+".csv",index=False)
     get_mean_dataframes(results_ours2_testA).to_csv("simCIFAR_Ours2_testAux_s"+str(scenario)+".csv",index=False)
-"""
+    """
 get_mean_dataframes(results_ours_global_train).to_csv("simCIFAR_OursGlobal_train_s"+str(scenario)+".csv",index=False)
 get_mean_dataframes(results_ours_global_test).to_csv("simCIFAR_OursGlobal_test_s"+str(scenario)+".csv",index=False)
 get_mean_dataframes(results_ours_global_testA).to_csv("simCIFAR_OursGlobal_testAux_s"+str(scenario)+".csv",index=False)
 
 
 if scenario != 5 and scenario != 6: #calcualte pred annotators
-    #get_mean_dataframes(results_raykar_trainA).to_csv("simCIFAR_Raykar_trainAnn_s"+str(scenario)+".csv",index=False)
+    get_mean_dataframes(results_raykar_trainA).to_csv("simCIFAR_Raykar_trainAnn_s"+str(scenario)+".csv",index=False)
     #get_mean_dataframes(results_ours1_trainA).to_csv("simCIFAR_Ours1_trainAnn_s"+str(scenario)+".csv",index=False)
     #get_mean_dataframes(results_ours2_trainA).to_csv("simCIFAR_Ours2_trainAnn_s"+str(scenario)+".csv",index=False)
     get_mean_dataframes(results_ours_global_trainA).to_csv("simCIFAR_OursGlobal_trainAnn_s"+str(scenario)+".csv",index=False)
