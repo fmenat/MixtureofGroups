@@ -9,6 +9,8 @@ op.add_option("-s", "--scenario", type="int", default='1', help="N scenario in w
 path = opts.path
 M_seted = opts.Ngroups 
 scenario = opts.scenario  #arg
+state_sce = path+"/synthetic/CIFAR/state_CIFAR_s"+str(scenario)+".pickle" #once this work
+#state_sce = None
 
 #GLOBAL Variables
 BATCH_SIZE = 128
@@ -95,15 +97,17 @@ def get_mean_dataframes(df_values):
         RT.insert(0, "", df_values[0].iloc[:,0].values )
     return RT
 
+
+
 from code.generate_data import SinteticData
 
-GenerateData = SinteticData()
+GenerateData = SinteticData(state=state_sce)
 
 #CONFUSION MATRIX CHOOSE
-if scenario == 1 or scenario == 3 or scenario == 4 or scenario == 5 or scenario == 6:
+if scenario == 1 or scenario == 3 or scenario == 4 or scenario ==5 or scenario==7:
     GenerateData.set_probas(asfile=True,file_matrix=path+'/synthetic/CIFAR/matrix_CIFAR_normal.csv',file_groups =path+'/synthetic/CIFAR/groups_CIFAR_normal.csv')
 
-elif scenario == 2 or scenario == 7: #bad MV
+elif scenario == 2 or scenario == 6: #bad MV
     GenerateData.set_probas(asfile=True,file_matrix=path+'/synthetic/CIFAR/matrix_CIFAR_badMV.csv',file_groups =path+'/synthetic/CIFAR/groups_CIFAR_badMV.csv')
 
 real_conf_matrix = GenerateData.conf_matrix.copy()
@@ -113,17 +117,13 @@ if scenario == 1 or scenario ==2 or scenario == 3:
     Tmax = 100
     T_data = 10 
     
-elif scenario == 4 or scenario == 7: #definir 7...
+elif scenario == 4 or scenario == 6 or scenario == 7: 
     Tmax = 2000
-    T_data = 20 
+    T_data = 10 
     
 elif scenario == 5:
-    Tmax = 5000
-    T_data = 25
-
-elif scenario == 6:
     Tmax = 10000
-    T_data = 40
+    T_data = 40 #revisar eso
 
 
 results_softmv_train = []
@@ -146,13 +146,13 @@ results_ours2_trainA = []
 results_ours2_test = []
 results_ours2_testA = []
 results_ours3_train = []
-results_ours3_trainA = []
-results_ours3_test = []
-results_ours3_testA = []
+results_ours_global_trainA = []
+results_ours_global_test = []
+results_ours_global_testA = []
 
 for _ in range(10): #repetitions
     print("New Synthetic data is being generated...",flush=True,end='')
-    if scenario == 3: #soft
+    if scenario == 3 or scenario==7: #soft
         y_obs, groups_annot = GenerateData.sintetic_annotate_data(Z_train,Tmax,T_data,deterministic=False,hard=False)
     else:
         y_obs, groups_annot = GenerateData.sintetic_annotate_data(Z_train,Tmax,T_data,deterministic=False)
@@ -249,12 +249,12 @@ for _ in range(10): #repetitions
                                            ,cluster=True,bulk_annotators=[y_obs_categorical,annotators_pca])
         print("Trained model over Ours (2)")
     """
-    gMixture3 = GroupMixtureOpt(Xstd_train.shape[1:],Kl=r_obs.shape[1],M=M_seted,epochs=1,pre_init=0,optimizer=OPT,dtype_op=DTYPE_OP) 
-    gMixture3.define_model("default cnn")
-    gMixture3.lambda_random = True #with lambda random --necessary
-    logL_hists,i = gMixture3.multiples_run(1,Xstd_train,r_obs,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL
+    gMixture_Global = GroupMixtureOpt(Xstd_train.shape[1:],Kl=r_obs.shape[1],M=M_seted,epochs=1,pre_init=0,optimizer=OPT,dtype_op=DTYPE_OP) 
+    gMixture_Global.define_model("default cnn")
+    gMixture_Global.lambda_random = True #with lambda random --necessary
+    logL_hists,i = gMixture_Global.multiples_run(1,Xstd_train,r_obs,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL
                                    ,cluster=True)
-    print("Trained model over Ours (3)")
+    print("Trained model over Ours Global")
 
     
     ################## MEASURE PERFORMANCE ##################################
@@ -369,29 +369,29 @@ for _ in range(10): #repetitions
         results_ours2_testA.append(results2[0])
         results_ours2_test.append(results2[1])
     """
-    evaluate = Evaluation_metrics(gMixture3,'our1',plot=False)  #no explota
+    evaluate = Evaluation_metrics(gMixture_Global,'our1',plot=False)  #no explota
     if scenario != 5 and scenario != 6: 
-        aux = gMixture3.calculate_extra_components(Xstd_train,y_obs,T=T,calculate_pred_annotator=True)
+        aux = gMixture_Global.calculate_extra_components(Xstd_train,y_obs,T=T,calculate_pred_annotator=True)
         predictions_m,prob_Gt,prob_Yzt,prob_Yxt =  aux #to evaluate...
-        Z_train_pred = gMixture3.base_model.predict_classes(Xstd_train,verbose=0)
+        Z_train_pred = gMixture_Global.base_model.predict_classes(Xstd_train,verbose=0)
         #y_o_groups = predictions_m.argmax(axis=-1)
         results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix,y_o=y_obs,yo_pred=prob_Yxt)
         results1_aux = evaluate.calculate_metrics(y_o=y_obs,yo_pred=prob_Yxt)
     else: #pred annotator memory error
-        aux = gMixture3.calculate_extra_components(Xstd_train,y_obs,T=T,calculate_pred_annotator=False)
+        aux = gMixture_Global.calculate_extra_components(Xstd_train,y_obs,T=T,calculate_pred_annotator=False)
         predictions_m,prob_Gt,prob_Yzt,_ =  aux #to evaluate...
-        Z_train_pred = gMixture3.base_model.predict_classes(Xstd_train,verbose=0)
+        Z_train_pred = gMixture_Global.base_model.predict_classes(Xstd_train,verbose=0)
         results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix)      
         results1_aux = [None]
-    c_M = gMixture3.get_confusionM()
-    y_o_groups = gMixture3.get_predictions_groups(Xstd_test).argmax(axis=-1) #obtain p(y^o|x,g=m) and then argmax
-    Z_test_pred = gMixture3.base_model.predict_classes(Xstd_test,verbose=0)
+    c_M = gMixture_Global.get_confusionM()
+    y_o_groups = gMixture_Global.get_predictions_groups(Xstd_test).argmax(axis=-1) #obtain p(y^o|x,g=m) and then argmax
+    Z_test_pred = gMixture_Global.base_model.predict_classes(Xstd_test,verbose=0)
     results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred,conf_pred=c_M, y_o_groups=y_o_groups)
 
-    results_ours3_train +=  results1
-    results_ours3_trainA += results1_aux
-    results_ours3_testA.append(results2[0])
-    results_ours3_test.append(results2[1])
+    results_ours_global_train +=  results1
+    results_ours_global_trainA += results1_aux
+    results_ours_global_testA.append(results2[0])
+    results_ours_global_test.append(results2[1])
     
     print("All Performance Measured")
     #del model_mvsoft,model_mvhard#,model_ds
@@ -422,15 +422,15 @@ if scenario != 6:
     get_mean_dataframes(results_ours2_test).to_csv("simCIFAR_Ours2_test_s"+str(scenario)+".csv",index=False)
     get_mean_dataframes(results_ours2_testA).to_csv("simCIFAR_Ours2_testAux_s"+str(scenario)+".csv",index=False)
 """
-get_mean_dataframes(results_ours3_train).to_csv("simCIFAR_Ours3_train_s"+str(scenario)+".csv",index=False)
-get_mean_dataframes(results_ours3_test).to_csv("simCIFAR_Ours3_test_s"+str(scenario)+".csv",index=False)
-get_mean_dataframes(results_ours3_testA).to_csv("simCIFAR_Ours3_testAux_s"+str(scenario)+".csv",index=False)
+get_mean_dataframes(results_ours_global_train).to_csv("simCIFAR_OursGlobal_train_s"+str(scenario)+".csv",index=False)
+get_mean_dataframes(results_ours_global_test).to_csv("simCIFAR_OursGlobal_test_s"+str(scenario)+".csv",index=False)
+get_mean_dataframes(results_ours_global_testA).to_csv("simCIFAR_OursGlobal_testAux_s"+str(scenario)+".csv",index=False)
 
 
 if scenario != 5 and scenario != 6: #calcualte pred annotators
     #get_mean_dataframes(results_raykar_trainA).to_csv("simCIFAR_Raykar_trainAnn_s"+str(scenario)+".csv",index=False)
     #get_mean_dataframes(results_ours1_trainA).to_csv("simCIFAR_Ours1_trainAnn_s"+str(scenario)+".csv",index=False)
     #get_mean_dataframes(results_ours2_trainA).to_csv("simCIFAR_Ours2_trainAnn_s"+str(scenario)+".csv",index=False)
-    get_mean_dataframes(results_ours3_trainA).to_csv("simCIFAR_Ours3_trainAnn_s"+str(scenario)+".csv",index=False)
+    get_mean_dataframes(results_ours_global_trainA).to_csv("simCIFAR_OursGlobal_trainAnn_s"+str(scenario)+".csv",index=False)
 
 print("Execution done in %f mins"%((time.time()-start_time_exec)/60.))

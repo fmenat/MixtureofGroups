@@ -56,9 +56,6 @@ def distance_2_centroid(matrixs):
     for m1 in range(matrixs.shape[0]):
         for m2 in range(m1+1,matrixs.shape[0]):
             value.append(JS_confmatrixs(matrixs[m1],matrixs[m2]))
-    #center = np.mean(matrixs,axis=0)
-    #for m in range(matrixs.shape[0]):
-    #value.append(JS_confmatrixs(matrixs[m],center))
     return np.mean(value)
 
 def calculate_diagional_mean(conf_matrix): #weight?
@@ -128,7 +125,7 @@ def JS_confmatrixs(conf_pred,conf_true):
     conf_pred = np.clip(conf_pred,1e-7,1.)
     conf_true = np.clip(conf_true,1e-7,1.)
     aux = 0.5*conf_pred + 0.5*conf_true
-    return 0.5*KL_confmatrixs(aux,conf_pred) + 0.5*KL_confmatrixs(aux,conf_true)    
+    return (0.5*KL_confmatrixs(aux,conf_pred) + 0.5*KL_confmatrixs(aux,conf_true))/np.log(2) #value between 0 and 1
     
     
 def Entropy_confmatrix(conf_ma):

@@ -10,13 +10,15 @@ class Evaluation_metrics(object):
     def __init__(self,class_infered,which='our1',N=None,plot=True):
         self.which=which
         self.plot = plot
+        self.T_weights = []
+        self.T = 0
+        
         if self.which == 'our1':
             self.M = class_infered.M
             self.N = class_infered.N
             self.Kl = class_infered.Kl
             #self.tested_model = class_infered.base_model
             self.probas_group = class_infered.get_alpha()
-            self.T = 0
             
         elif self.which == 'keras':
             self.Kl = class_infered.output_shape[-1]
@@ -24,17 +26,20 @@ class Evaluation_metrics(object):
             #self.tested_model = class_infered
         elif self.which == 'raykar':
             self.T = class_infered.T
-            self.Kl = class_infered.Kl
             self.N = class_infered.N
+            self.Kl = class_infered.Kl
             #self.tested_model = class_infered.base_model
         #and what about raykar or anothers
 
     def calculate_metrics(self,Z=[],Z_pred=[],y_o=[],yo_pred=[],conf_pred=[],conf_true=[],y_o_groups=[]):
-        if len(yo_pred)!=0:
+        if len(y_o)!=0:
+            self.T = y_o.shape[1] #es util para estimar el peso de anotadores
+            self.T_weights = np.sum(y_o != -1,axis=0)/self.T
+            if np.sum(self.T_weights) != 1:
+                print("Sum of weight of annotators ERROR, is :",np.sum(self.T_weights))
+        elif len(yo_pred)!=0:
             self.T = yo_pred.shape[1]
-        elif len(y_o)!=0:
-            self.T = y_o.shape[1]
-            
+          
         to_return = []
         if self.which == 'our1' and len(conf_pred) == self.M: 
             to_return.append(self.report_results_wt_annot(conf_pred,plot=self.plot)) #intrisic metrics
@@ -49,8 +54,7 @@ class Evaluation_metrics(object):
                 
             t = self.report_results(Z_pred, Z, conf_pred, conf_true,self.plot)
             if len(y_o) != 0 and len(yo_pred)!= 0: #if we have annotations and GT: maybe training set
-                value_add = self.rmse_accuracies(Z, y_o, yo_pred)
-                t["Average RMSE"] = np.mean(value_add)
+                t = self.rmse_accuracies(Z, y_o, yo_pred,dataframe=t) #calculate and append on "t" rmse
             to_return.append(t)
             
         else: #if we dont have GT
@@ -87,14 +91,18 @@ class Evaluation_metrics(object):
                 if np.random.rand() >0.5 and sampled_plot < 15 and plot:
                     compare_conf_mats(conf_pred[m], conf_true[m])
                     sampled_plot+=1
-                    print("KL divergence: %.4f\tPearson Correlation between diagonals: %.4f"%(KLs_founded[m],pearson_corr[-1]))        
-            #for now is mean.. maybe weighted 
+                    #print("KL divergence: %.4f\tPearson Correlation between diagonals: %.4f"%(KLs_founded[m],pearson_corr[-1]))        
+                    print("JS divergence: %.4f\tPearson Correlation between diagonals: %.4f"%(JSs_founded[m],pearson_corr[-1]))        
             t["Mean KL"] = np.mean(KLs_founded)
-            t["Mean JS"] = np.mean(JSs_founded)
-            t["Mean PearsonCorr"] = np.mean(pearson_corr)
+            t["Mean JS"] = np.mean(JSs_founded) 
+            t["Mean PearsCorr"] = np.mean(pearson_corr)
+            if len(self.T_weights) != 0:
+                t["Wmean KL"] = np.sum(T_weights*KLs_founded)
+                t["Wmean JS"] = np.sum(T_weights*JSs_founded) 
+                t["Wmean PearsCorr"] = np.sum(T_weights*pearson_corr)
         return t
 
-    def rmse_accuracies(self,Z_argmax,y_o,yo_pred): 
+    def rmse_accuracies(self,Z_argmax,y_o,yo_pred,dataframe=None): 
         """Calculate RMSE between accuracies of real annotators and predictive model of annotators
             Need annotations and ground truth
         """
@@ -114,7 +122,11 @@ class Evaluation_metrics(object):
 
             rmse_results.append(np.sqrt(np.mean(np.square(acc_annot_real- acc_annot_pred ))))
         rmse_results = np.asarray(rmse_results)
-        return rmse_results
+        
+        dataframe["Mean RMSE"] = np.mean(rmse_results)
+        if len(self.T_weights) != 0:
+            t["Wmean RMSE"] = np.sum(T_weights*rmse_results)
+        return dataframe
     
     def report_results_wt_GT(self,y_o,yo_pred): #new
         """Calculate a comparison between annotators and predictive model of annotators without GT"""

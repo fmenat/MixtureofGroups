@@ -1,8 +1,19 @@
 import numpy as np
+import pickle
 
 class SinteticData(object):
-    def __init__(self):
+    def __init__(self,state=None):
         self.probas = False #not yet
+        self.Random_num = np.random.RandomState(None)
+        if type(state) ==str:
+            with open(state, 'rb') as handle:
+                aux = pickle.load(handle)  #read from file
+                self.Random_num.set_state(aux)
+        elif type(state) == tuple or type(state) == int:
+            self.Random_num.set_state(state)
+            
+        #init state:
+        self.init_state = self.Random_num.get_state() #to replicate
 
     def set_probas(self,asfile = True,file_matrix = "matrix.csv",file_groups='groups.csv'):
         """
@@ -41,9 +52,9 @@ class SinteticData(object):
             if hard:
                 S_t = 1
             else: #soft
-                S_t = max([np.random.poisson(self.prob_groups.shape[0]+1),1]) 
+                S_t = max([self.Random_num.poisson(self.prob_groups.shape[0]+1),1]) 
 
-            grupo = np.random.multinomial(S_t,self.prob_groups)
+            grupo = self.Random_num.multinomial(S_t,self.prob_groups)
             
             if hard:
                 grupo = [np.argmax(grupo)]
@@ -63,7 +74,7 @@ class SinteticData(object):
                 z = int(Y[i])
 
             if deterministic:
-                Ti = np.random.choice(np.arange(Tmax), size=T_data, replace=False) #multinomial of index
+                Ti = self.Random_num.choice(np.arange(Tmax), size=T_data, replace=False) #multinomial of index
                 for t in Ti: #index of annotators
                     #get group of annotators
                     g = sintetic_annotators_group[t] #in discrete value, g {0,1,...,M}
@@ -72,11 +83,11 @@ class SinteticData(object):
                     else: #soft
                         sample_prob = np.tensordot(g[:], self.conf_matrix[:,z,:], axes=[[0],[0]]) #mixture
                     #sample trough confusion matrix 
-                    yo = np.argmax( np.random.multinomial(1, sample_prob) )
+                    yo = np.argmax( self.Random_num.multinomial(1, sample_prob) )
                     sintetic_annotators[i,t] = yo
             else:
                 for t in range(Tmax):
-                    if np.random.rand() <= prob: #if she label the data i
+                    if self.Random_num.rand() <= prob: #if she label the data i
                         #get group of annotators
                         g = sintetic_annotators_group[t] #in discrete value, g {0,1,...,M}
                         if hard:
@@ -84,18 +95,18 @@ class SinteticData(object):
                         else: #soft
                             sample_prob = np.tensordot(g[:], self.conf_matrix[:,z,:], axes=[[0],[0]]) #mixture
                         #sample trough confusion matrix 
-                        yo = np.argmax( np.random.multinomial(1, sample_prob) )
+                        yo = np.argmax( self.Random_num.multinomial(1, sample_prob) )
                         sintetic_annotators[i,t] = yo
                         
             if np.sum( sintetic_annotators[i,:] != -1)  == 0: #avoid data not labeled
-                t_rand = np.random.randint(0,Tmax)
+                t_rand = self.Random_num.randint(0,Tmax)
                 g = sintetic_annotators_group[t_rand] #in discrete value, g {0,1,...,M}
                 if hard:
                     sample_prob = self.conf_matrix[g[0],z,:]
                 else: #soft
                     sample_prob = np.tensordot(g[:], self.conf_matrix[:,z,:], axes=[[0],[0]]) #mixture
 
-                sintetic_annotators[i,t_rand] = np.argmax( np.random.multinomial(1, sample_prob) )
+                sintetic_annotators[i,t_rand] = np.argmax( self.Random_num.multinomial(1, sample_prob) )
                 
         #clean the annotators that do not label
         mask_label = np.where(np.sum(sintetic_annotators,axis=0) != sintetic_annotators.shape[0]*-1)[0]

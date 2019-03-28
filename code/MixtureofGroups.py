@@ -14,8 +14,8 @@ from .representation import *
 from .utils import softmax
 
 
-def aux_clusterize_annotators(data_to_cluster,M,DTYPE_OP='float32',option="hard",l=0.005):
-    # Get p(g=m|t)  based on a proyection of the annotator "t" 
+def aux_clusterize(data_to_cluster,M,DTYPE_OP='float32',option="hard",l=0.005):
+    #Clusterize data#
     std = StandardScaler()
     data_to_cluster = std.fit_transform(data_to_cluster) 
         
@@ -36,15 +36,11 @@ def aux_clusterize_annotators(data_to_cluster,M,DTYPE_OP='float32',option="hard"
         probas_t = softmax(1/(l*distances+keras.backend.epsilon())).astype(DTYPE_OP)
     elif option == 'hard':
         probas_t = keras.utils.to_categorical(kmeans.labels_,num_classes=M)
-    #another option??
-        #model = GaussianMixture(n_components=M)
-        #model.fit(data_to_cluster)
-        #probas_t = model.predict_proba(data_to_cluster).astype(DTYPE_OP)
     return probas_t
             
 def clusterize_annotators(y_o,M,no_label=-1,bulk=True,cluster_type='loss',data=[],model=None,DTYPE_OP='float32',BATCH_SIZE=64,option="hard",l=0.005):
     start_time = time.time()
-    if bulk: 
+    if bulk: #Repeat version 
         if len(y_o.shape) == 2:
             M_itj = categorical_representation(y_o,no_label =no_label)
         else:
@@ -59,13 +55,13 @@ def clusterize_annotators(y_o,M,no_label=-1,bulk=True,cluster_type='loss',data=[
             data_to_cluster = data.copy() #annotators_pca
         else:
             data_to_cluster = M_itj.transpose(1,0,2).reshape(M_itj.shape[1],M_itj.shape[0]*M_itj.shape[2])
-            
-        probas_t = aux_clusterize_annotators(data_to_cluster,M,DTYPE_OP,option,l) #0.05 is close to one-hot
-        print("Clustering Done!")
+        print("Doing clustering...",end='',flush=True)  
+        probas_t = aux_clusterize(data_to_cluster,M,DTYPE_OP,option,l) #0.05 is close to one-hot
+        print("Done!")
         #alphas_init = np.tensordot(M_itj_norm,probas_t, axes=[[1],[0]]) 
         alphas_init = np.tensordot(M_itj, probas_t, axes=[[1],[0]]) 
         alphas_init = alphas_init/alphas_init.sum(axis=-1,keepdims=True) #normalize here for efficiency
-    else: #sirve como auxiliar: y_o: is repeats
+    else: #Global Version: y_o: is repeats
         if len(y_o.shape) == 2: 
             mv_soft = majority_voting(y_o,repeats=True,probas=True) 
         else:
@@ -89,8 +85,9 @@ def clusterize_annotators(y_o,M,no_label=-1,bulk=True,cluster_type='loss',data=[
                 f_l = distance_function(true, ob)  #funcion de distancia o similaridad
                 data_to_cluster.append(f_l)  
         data_to_cluster = np.asarray(data_to_cluster)
-        probas_t = aux_clusterize_annotators(data_to_cluster,M,DTYPE_OP,option,l)
-        print("Clustering Done!")
+        print("Doing clustering...",end='',flush=True)
+        probas_t = aux_clusterize(data_to_cluster,M,DTYPE_OP,option,l)
+        print("Done!")
         alphas_init = probas_t.reshape(mv_soft.shape[0],mv_soft.shape[1],M)
     print("Get init alphas in %f mins"%((time.time()-start_time)/60.) )
     return alphas_init
@@ -137,7 +134,7 @@ def project_and_cluster(y_o,M_to_try=20,anothers_visions=True,DTYPE_OP='float32'
     return to_return
 
 
-class GroupMixtureOpt(object): #optimized version
+class GroupMixtureOpt(object): #change name to Rep
     def __init__(self,input_dim,Kl,M=2,epochs=1,optimizer='adam',pre_init=10,dtype_op='float32'): 
         if type(input_dim) != tuple:
             input_dim = (input_dim,)
@@ -348,8 +345,6 @@ class GroupMixtureOpt(object): #optimized version
                 print("Tol1: %.5f\tTol2: %.5f\tTol3: %.5f\t"%(tol,tol2,tol3),end='',flush=True)
             old_betas = self.betas.flatten().copy()         
             old_alphas = self.alphas.copy()
-            #if val:
-            #    print("F1: %.4f"%(f1_score(Z_train, predictions.argmax(axis=1),average='micro')),end='',flush=True)
             self.current_iter+=1
             print("")
             if self.current_iter>max_iter or (tol<=tolerance and tol2<=tolerance): #alphas fuera: and tol3<=tolerance
@@ -387,12 +382,13 @@ class GroupMixtureOpt(object): #optimized version
         self.define_priors('laplace')
         
         if cluster: # do annotator clustering
-            if len(bulk_annotators) == 0:
-                alphas_clusterized = clusterize_annotators(r,M=self.M,bulk=False,cluster_type='mv_close',data=X,model=self.base_model,DTYPE_OP=self.DTYPE_OP,BATCH_SIZE=batch_size) #clusteriza en base aloss
-            elif len(bulk_annotators) == 1:
-                alphas_clusterized = clusterize_annotators(bulk_annotators[0],M=self.M,no_label=-1)
-            else:
-                alphas_clusterized = clusterize_annotators(bulk_annotators[0],M=self.M,no_label=-1,data=bulk_annotators[1])
+            #if len(bulk_annotators) == 0:
+            alphas_clusterized = clusterize_annotators(r,M=self.M,bulk=False,cluster_type='mv_close',data=X,model=self.base_model,DTYPE_OP=self.DTYPE_OP,BATCH_SIZE=batch_size) #clusteriza en base aloss
+            #for REPEAT MODEL
+            #elif len(bulk_annotators) == 1:
+            #    alphas_clusterized = clusterize_annotators(bulk_annotators[0],M=self.M,no_label=-1)
+            #else:
+            #    alphas_clusterized = clusterize_annotators(bulk_annotators[0],M=self.M,no_label=-1,data=bulk_annotators[1])
             self.set_alpha(alphas_clusterized)
 
         logL_hist = self.train(X,r,batch_size=batch_size,max_iter=max_iter,tolerance=tolerance,relative=True,val=False)
@@ -403,15 +399,12 @@ class GroupMixtureOpt(object): #optimized version
         """
             Run multiples max_iter of EM algorithm, with random stars
         """
+        #maybe lamda random here
         self.define_priors('laplace')
         
         if cluster: # do annotator clustering
-            if len(bulk_annotators) == 0:
-                alphas_clusterized = clusterize_annotators(r,M=self.M,bulk=False,cluster_type='mv_close',data=X,model=self.base_model,DTYPE_OP=self.DTYPE_OP,BATCH_SIZE=batch_size) #clusteriza en base aloss -- mv_close
-            elif len(bulk_annotators) == 1:
-                alphas_clusterized = clusterize_annotators(bulk_annotators[0],M=self.M,no_label=-1)
-            else:
-                alphas_clusterized = clusterize_annotators(bulk_annotators[0],M=self.M,no_label=-1,data=bulk_annotators[1],DTYPE_OP=self.DTYPE_OP)
+            #if len(bulk_annotators) == 0:
+            alphas_clusterized = clusterize_annotators(r,M=self.M,bulk=False,cluster_type='mv_close',data=X,model=self.base_model,DTYPE_OP=self.DTYPE_OP,BATCH_SIZE=batch_size) #clusteriza en base aloss -- mv_close
             self.set_alpha(alphas_clusterized)
             
         found_betas = []
