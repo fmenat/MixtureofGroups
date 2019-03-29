@@ -178,7 +178,9 @@ class RaykarMC(object):
             print("You need to create the model first, set .define_model")
             return
         print("Initializing new EM...")
+        start_time = time.time()
         self.init_E(X_train,yo_train)
+        self.init_exectime = time.time()-start_time
         self.batch_size = batch_size
 
         logL = []
@@ -192,7 +194,8 @@ class RaykarMC(object):
             print(" done,  E step:",end='',flush=True)
             predictions = self.get_predictions(X_train) #p(z|x)
             self.E_step(X_train,yo_train,predictions)
-            print(" done //  (in %.2f sec)\t"%(time.time()-start_time),end='',flush=True)
+            self.current_exectime = time.time()-start_time
+            print(" done //  (in %.2f sec)\t"%(self.current_exectime),end='',flush=True)
             #compute lowerbound
             logL.append(self.compute_logL())
             print("logL: %.3f\t"%(logL[-1]),end='',flush=True)

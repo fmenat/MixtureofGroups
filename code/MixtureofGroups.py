@@ -320,7 +320,9 @@ class GroupMixtureOpt(object): #change name to Rep
         print("Initializing new EM...")
         self.batch_size = batch_size
         self.N = X_train.shape[0]
+        start_time = time.time()
         self.init_E(X_train,r_train)
+        self.init_exectime = time.time()-start_time
         
         logL = []
         stop_c = False
@@ -333,7 +335,8 @@ class GroupMixtureOpt(object): #change name to Rep
             print(" done,  E step:",end='',flush=True)
             predictions = self.get_predictions(X_train) #p(z|x) 
             self.E_step(X_train,predictions)
-            print(" done //  (in %.2f sec)\t"%(time.time()-start_time),end='',flush=True)
+            self.current_exectime = time.time()-start_time
+            print(" done //  (in %.2f sec)\t"%(self.current_exectime),end='',flush=True)
             logL.append(self.compute_logL(r_train,predictions))
             print("logL: %.3f\t"%(logL[-1]),end='',flush=True)
             if self.current_iter>=2:

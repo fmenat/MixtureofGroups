@@ -240,7 +240,7 @@ for _ in range(10): #repetitions
     ################## MEASURE PERFORMANCE ##################################
     #"""
     evaluate = Evaluation_metrics(model_mvsoft,'keras',Xstd_train.shape[0],plot=False)
-    Z_train_pred = model_mvsoft.predicts_classes(Xstd_train)
+    Z_train_pred = model_mvsoft.predict_classes(Xstd_train)
     prob_Yzt = np.tile(confusion_matrix(y_true=Z_train,y_pred=Z_train_pred), (T,1,1) )
     results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix)
     Z_test_pred = model_mvsoft.predict_classes(Xstd_test)
