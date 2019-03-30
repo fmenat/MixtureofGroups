@@ -313,7 +313,7 @@ class GroupMixtureOpt(object): #change name to Rep
         """ Compute the log-likelihood of the optimization schedule"""
         return np.tensordot(r , np.log(self.aux_for_like+self.Keps))+0. #safe logarithm
                                                   
-    def train(self,X_train,r_train,batch_size=64,max_iter=500,relative=True,val=False,tolerance=1e-2):
+    def train(self,X_train,r_train,batch_size=64,max_iter=500,relative=True,val=False,tolerance=3e-2):
         if not self.compile:
             print("You need to create the model first, set .define_model")
             return
@@ -368,16 +368,16 @@ class GroupMixtureOpt(object): #change name to Rep
             print("Error, in order to match annotations to a group you need pass the data X or the group predictions")
             return
             
-        result = np.log(self.get_alpha()+self.Keps)
+        result = np.log(self.get_alpha()+self.Keps) #si les saco Keps?
         aux_annotations = [(i,annotation) for i, annotation in enumerate(annotations) if annotation != no_label_sym]
         for i, annotation in aux_annotations:
             if annotation != no_label_sym: #if label it
                 for m in range(self.M):
                     result[m] += np.log(predictions_m[i,m,annotation]+self.Keps)
         result = np.exp(result - result.max(axis=-1, keepdims=True) ) #invert logarithm in safe way
-        return result/np.sum(result)
+        return result/result.sum()
     
-    def stable_train(self,X,r,batch_size=64,max_iter=50,tolerance=1e-2,cluster=True,bulk_annotators=[]):
+    def stable_train(self,X,r,batch_size=64,max_iter=50,tolerance=3e-2,cluster=True,bulk_annotators=[]):
         """
             A stable schedule to train a model on this formulation
         """
@@ -398,7 +398,7 @@ class GroupMixtureOpt(object): #change name to Rep
         return logL_hist
     
     #and multiples runs with lambda random false?
-    def multiples_run(self,Runs,X,r,batch_size=64,max_iter=50,tolerance=1e-2,cluster=True,bulk_annotators=[]): 
+    def multiples_run(self,Runs,X,r,batch_size=64,max_iter=50,tolerance=3e-2,cluster=True,bulk_annotators=[]): 
         """
             Run multiples max_iter of EM algorithm, with random stars
         """
@@ -434,7 +434,7 @@ class GroupMixtureOpt(object): #change name to Rep
         self.alphas = found_alphas[indexs_sort[0]].copy()
         self.base_model = found_model[indexs_sort[0]]
         self.E_step(X,self.get_predictions(X)) #to set up Q
-        print("Epochs to converge= ",np.mean(iter_conv))
+        print("Multiples runs over Ours Global, Epochs to converge= ",np.mean(iter_conv))
         return found_logL,indexs_sort[0]
     
     def get_predictions_group(self,m,X):

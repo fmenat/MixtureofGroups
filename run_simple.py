@@ -16,7 +16,7 @@ state_sce = path+"/synthetic/simple/state_simple_s"+str(scenario)+".pickle" #onc
 BATCH_SIZE = 128
 EPOCHS_BASE = 50
 OPT = 'adam' #optimizer for neural network 
-TOL = 1e-5 #tolerance for relative variation of parameters
+TOL = 3e-2 #tolerance for relative variation of parameters
 
 
 import numpy as np
@@ -62,13 +62,15 @@ from code.MixtureofGroups import GroupMixtureOpt, project_and_cluster,clusterize
 from code.utils import EarlyStopRelative
 ourCallback = EarlyStopRelative(monitor='loss',patience=1,min_delta=TOL)
 
+start_time_exec = time.time()
 
 #upper bound model
 Z_train_onehot = keras.utils.to_categorical(Z_train)
 
-model_UB = MLP_Keras(Xstd_train.shape[1:],Z_train_onehot.shape[1],8,1,BN=False,drop=0.2) #what about bn true?
+model_UB = MLP_Keras(Xstd_train.shape[1:],Z_train_onehot.shape[1],16,1,BN=False,drop=0.2) #what about bn true?
 model_UB.compile(loss='categorical_crossentropy',optimizer=OPT)
-model_UB.fit(Xstd_train,Z_train_onehot,epochs=EPOCHS_BASE,batch_size=BATCH_SIZE,verbose=0,callbacks=[ourCallback])
+hist = model_UB.fit(Xstd_train,Z_train_onehot,epochs=EPOCHS_BASE,batch_size=BATCH_SIZE,verbose=0,callbacks=[ourCallback])
+print("Trained Ideal Model , Epochs to converge =",len(hist.epoch))
 
 evaluate = Evaluation_metrics(model_UB,'keras',Xstd_train.shape[0],plot=False)
 Z_train_pred = model_UB.predict_classes(Xstd_train)
@@ -99,8 +101,8 @@ def get_mean_dataframes(df_values):
         RT.insert(0, "", df_values[0].iloc[:,0].values )
     return RT
 
-from code.generate_data import SinteticData
 
+from code.generate_data import SinteticData
 GenerateData = SinteticData(state=state_sce)
 
 #CONFUSION MATRIX CHOOSE
@@ -158,22 +160,45 @@ print("Done! ")
 if len(groups_annot.shape) ==1 or groups_annot.shape[1] ==  1: 
     groups_annot = keras.utils.to_categorical(groups_annot)  #only if it is hard clustering
 confe_matrix = np.tensordot(groups_annot,real_conf_matrix, axes=[[1],[0]])
+T_weights = np.sum(y_obs != -1,axis=0)
 
 N,T = y_obs.shape
 K = np.max(y_obs)+1 # asumiendo que estan ordenadas
 print("Shape (data,annotators): ",(N,T))
 print("Classes: ",K)
 
-#Deterministic
+############### MV/DS and calculate representations##############################
+start_time = time.time()
 label_I = LabelInference(y_obs,TOL,type_inf = 'all')  #Infer Labels
+print("Representation for Our/MV/D&S in %f mins"%((time.time()-start_time)/60.) )
 
 mv_onehot = label_I.mv_labels('onehot')
 mv_probas = label_I.mv_labels('probas')
 
+#Deterministic
 ds_labels, ds_conf = label_I.DS_labels()
 
 print("ACC MV on train:",np.mean(mv_onehot.argmax(axis=1)==Z_train))
 print("ACC D&S on train:",np.mean(ds_labels.argmax(axis=1)==Z_train))
+
+#get representation needed for Raykar
+start_time = time.time()
+y_obs_categorical = set_representation(y_obs,'onehot') 
+print("shape:",y_obs_categorical.shape)
+print("Representation for Raykar in %f mins"%((time.time()-start_time)/60.) )
+
+#get our global representation 
+r_obs = label_I.y_obs_repeat.copy() #set_representation(y_obs_categorical,"repeat")
+print("vector of repeats:\n",r_obs)
+print("shape:",r_obs.shape)
+
+#analysis
+aux = [entropy(example)/np.log(r_obs.shape[1]) for example in mv_probas]
+print("Normalized entropy (0-1) of repeats annotations:",np.mean(aux))
+
+#representation for our repeat model
+#annotators_pca = project_and_cluster(y_obs_categorical,DTYPE_OP=DTYPE_OP,printed=False,mode_project="pca")[0]
+#print("Annotators PCA of annotations shape: ",annotators_pca.shape)
 
 for _ in range(10): #repetitions
     ############# EXECUTE ALGORITHMS #############################
@@ -191,29 +216,12 @@ for _ in range(10): #repetitions
     model_ds.compile(loss='categorical_crossentropy',optimizer=OPT)
     hist=model_ds.fit(Xstd_train, ds_labels, epochs=EPOCHS_BASE,batch_size=BATCH_SIZE,verbose=0,callbacks=[ourCallback])
     print("Trained model over D&S, Epochs to converge =",len(hist.epoch))
-    #"""
-    #get representation needed for Raykar
-    #y_obs_categorical = set_representation(y_obs,'onehot') 
-    y_obs_categorical = label_I.y_obs_categ
     
     raykarMC = RaykarMC(Xstd_train.shape[1:],y_obs_categorical.shape[-1],T,epochs=1,optimizer=OPT,DTYPE_OP=DTYPE_OP)
-    raykarMC.define_model('mlp',8,1,BatchN=False,drop=0.2)
+    raykarMC.define_model('mlp',16,1,BatchN=False,drop=0.2)
     logL_hists,i_r = raykarMC.multiples_run(20,Xstd_train,y_obs_categorical,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL)
-    print("Trained model over Raykar")
-
-    #get our representation 
-    r_obs = set_representation(y_obs_categorical,"repeat")
-    print("vector of repeats:\n",r_obs)
-    print("shape:",r_obs.shape)
-    
-    #pre analysis
+   
     """
-    annotators_pca = project_and_cluster(y_obs_categorical,DTYPE_OP=DTYPE_OP,printed=False,mode_project="pca")[0]
-    print("Annotators PCA of annotations shape: ",annotators_pca.shape)
-
-    #aux = [entropy(example)/np.log(r_obs.shape[1]) for example in mv_probas]
-    #print("Normalized entropy (0-1) of repeats annotations:",np.mean(aux))
-    
     gMixture1 = GroupMixtureOpt(Xstd_train.shape[1:],Kl=r_obs.shape[1],M=M_seted,epochs=1,pre_init=0,optimizer=OPT,dtype_op=DTYPE_OP) 
     gMixture1.define_model("mlp",8,1,BatchN=False,drop=0.2)
     gMixture1.lambda_random = False #lambda=1     
@@ -230,16 +238,14 @@ for _ in range(10): #repetitions
     """
     
     gMixture_Global = GroupMixtureOpt(Xstd_train.shape[1:],Kl=r_obs.shape[1],M=M_seted,epochs=1,pre_init=0,optimizer=OPT,dtype_op=DTYPE_OP) 
-    gMixture_Global.define_model("mlp",8,1,BatchN=False,drop=0.2)
+    gMixture_Global.define_model("mlp",16,1,BatchN=False,drop=0.2)
     gMixture_Global.lambda_random = True #with lambda random --necessary
     logL_hists,i = gMixture_Global.multiples_run(20,Xstd_train,r_obs,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL
                                    ,cluster=True)
-    print("Trained model over Ours Global")
 
-    
     ################## MEASURE PERFORMANCE ##################################
-    #"""
     evaluate = Evaluation_metrics(model_mvsoft,'keras',Xstd_train.shape[0],plot=False)
+    evaluate.set_T_weights(T_weights)
     Z_train_pred = model_mvsoft.predict_classes(Xstd_train)
     prob_Yzt = np.tile(confusion_matrix(y_true=Z_train,y_pred=Z_train_pred), (T,1,1) )
     results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix)
@@ -250,6 +256,7 @@ for _ in range(10): #repetitions
     results_softmv_test += results2
 
     evaluate = Evaluation_metrics(model_mvhard,'keras',Xstd_train.shape[0],plot=False)
+    evaluate.set_T_weights(T_weights)
     Z_train_pred = model_mvhard.predict_classes(Xstd_train)
     prob_Yzt = np.tile(confusion_matrix(y_true=Z_train,y_pred=Z_train_pred), (T,1,1) )
     results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix)
@@ -260,6 +267,7 @@ for _ in range(10): #repetitions
     results_hardmv_test += results2
 
     evaluate = Evaluation_metrics(model_ds,'keras',Xstd_train.shape[0],plot=False)
+    evaluate.set_T_weights(T_weights)
     Z_train_pred = model_ds.predict_classes(Xstd_train)
     results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=ds_conf,conf_true=confe_matrix)
     Z_test_pred = model_ds.predict_classes(Xstd_test)
@@ -343,11 +351,10 @@ for _ in range(10): #repetitions
     results_ours_global_test.append(results2[1])
     
     print("All Performance Measured")
-    #del model_mvsoft,model_mvhard,model_ds
+    del model_mvsoft,model_mvhard,model_ds,raykarMC,gMixture_Global,evaluate
     gc.collect()
 
 #plot measures    
-#"""
 get_mean_dataframes(results_softmv_train).to_csv("synthetic_softMV_train_s"+str(scenario)+".csv",index=False)
 get_mean_dataframes(results_softmv_test).to_csv("synthetic_softMV_test_s"+str(scenario)+".csv",index=False)
 
@@ -370,9 +377,11 @@ get_mean_dataframes(results_raykar_test).to_csv("synthetic_Raykar_test_s"+str(sc
 #get_mean_dataframes(results_ours2_trainA).to_csv("synthetic_Ours2_trainAnn_s"+str(scenario)+".csv",index=False)
 #get_mean_dataframes(results_ours2_test).to_csv("synthetic_Ours2_test_s"+str(scenario)+".csv",index=False)
 #get_mean_dataframes(results_ours2_testA).to_csv("synthetic_Ours2_testAux_s"+str(scenario)+".csv",index=False)
-#"""
 
 get_mean_dataframes(results_ours_global_train).to_csv("synthetic_OursGlobal_train_s"+str(scenario)+".csv",index=False)
 get_mean_dataframes(results_ours_global_trainA).to_csv("synthetic_OursGlobal_trainAnn_s"+str(scenario)+".csv",index=False)
 get_mean_dataframes(results_ours_global_test).to_csv("synthetic_OursGlobal_test_s"+str(scenario)+".csv",index=False)
 get_mean_dataframes(results_ours_global_testA).to_csv("synthetic_OursGlobal_testAux_s"+str(scenario)+".csv",index=False)
+
+print("Execution done in %f mins"%((time.time()-start_time_exec)/60.))
+

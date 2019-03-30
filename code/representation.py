@@ -93,7 +93,7 @@ def majority_voting(observed,repeats=True,onehot=True,probas=False):
     if probas:
         return r_obs/np.expand_dims(np.sum(r_obs,axis=-1,dtype='float32'),axis=1)
 
-    mv = np.argmax(r_obs,axis=1) #over classes axis
+    mv = r_obs.argmax(axis=1) #over classes axis
     if onehot: 
         mv = keras.utils.to_categorical(mv)
     return mv

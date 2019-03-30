@@ -32,7 +32,10 @@ class Evaluation_metrics(object):
         #and what about raykar or anothers
     
     def set_T_weights(self,T_weights):
-        self.T_weights = T_weights.copy()        
+        if np.abs(np.sum(self.T_weights) -1) > 0.0001:
+            self.T_weights =  T_weights/ T_weights.sum(axis=0,keepdims=True) #normalize
+        else:
+            self.T_weights = T_weights.copy()        
     
     def calculate_metrics(self,Z=[],Z_pred=[],y_o=[],yo_pred=[],conf_pred=[],conf_true=[],y_o_groups=[]):
         if len(y_o)!=0:
@@ -40,7 +43,7 @@ class Evaluation_metrics(object):
             if len(self.T_weights) == 0:
                 self.T_weights = np.sum(y_o != -1,axis=0)
                 self.T_weights =  self.T_weights/ self.T_weights.sum(axis=0,keepdims=True)
-                if np.sum(self.T_weights) != 1:
+                if np.abs(np.sum(self.T_weights) -1) > 0.0001:
                     print("Sum of weight of annotators ERROR, is :",np.sum(self.T_weights))
                     return
         elif len(yo_pred)!=0:
@@ -153,8 +156,11 @@ class Evaluation_metrics(object):
             else:
                 accuracy = accuracy_score(t_annotations, prob_data)
             metric_acc.append(accuracy)
-        DT["ACC imiting Annotator"] = [np.mean(metric_acc)]
-        DT["CE imiting Annotator"] = [np.mean(metric_CE)]
+        DT["Mean ACC imiting Annot"] = [np.mean(metric_acc)]
+        DT["Mean cross-entropy"] = [np.mean(metric_CE)]
+        if len(self.T_weights) != 0:
+            DT["Wmean ACC imiting Annot"] = [np.sum(self.T_weights*metric_acc)]
+            DT["wMean cross entropy"] = [np.sum(self.T_weights*metric_CE)]
         return DT
             
      

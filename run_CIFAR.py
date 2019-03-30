@@ -61,11 +61,10 @@ start_time_exec = time.time()
 
 #upper bound model
 Z_train_onehot = keras.utils.to_categorical(Z_train)
-
-"""
 model_UB = default_CNN(Xstd_train.shape[1:],Z_train_onehot.shape[1])
 model_UB.compile(loss='categorical_crossentropy',optimizer=OPT)
-model_UB.fit(Xstd_train,Z_train_onehot,epochs=EPOCHS_BASE,batch_size=BATCH_SIZE,verbose=0,callbacks=[ourCallback])
+hist = model_UB.fit(Xstd_train,Z_train_onehot,epochs=EPOCHS_BASE,batch_size=BATCH_SIZE,verbose=0,callbacks=[ourCallback])
+print("Trained Ideal Model, Epochs to converge =",len(hist.epoch))
 
 evaluate = Evaluation_metrics(model_UB,'keras',Xstd_train.shape[0],plot=False)
 Z_train_pred = model_UB.predict_classes(Xstd_train,verbose=0)
@@ -77,7 +76,6 @@ results1[0].to_csv("simCIFAR_UpperBound_train.csv",index=False)
 results2[0].to_csv("simCIFAR_UpperBound_test.csv",index=False)
 del evaluate,Z_train_pred,Z_test_pred,results1,results2
 gc.collect()
-"""
 
 def get_mean_dataframes(df_values):
     if df_values[0].iloc[:,0].dtype == object:
@@ -96,7 +94,6 @@ def get_mean_dataframes(df_values):
     if df_values[0].iloc[:,0].dtype == object:
         RT.insert(0, "", df_values[0].iloc[:,0].values )
     return RT
-
 
 
 from code.generate_data import SinteticData
@@ -148,91 +145,93 @@ results_ours_global_trainA = []
 results_ours_global_test = []
 results_ours_global_testA = []
 
-for _ in range(10): #repetitions
-    print("New Synthetic data is being generated...",flush=True,end='')
-    if scenario == 3 or scenario==7: #soft
-        y_obs, groups_annot = GenerateData.sintetic_annotate_data(Z_train,Tmax,T_data,deterministic=False,hard=False)
-    else:
-        y_obs, groups_annot = GenerateData.sintetic_annotate_data(Z_train,Tmax,T_data,deterministic=False)
-    print("Done! ")
-    
-    if len(groups_annot.shape) ==1 or groups_annot.shape[1] ==  1: 
-        groups_annot = keras.utils.to_categorical(groups_annot)  #only if it is hard clustering
-    confe_matrix = np.tensordot(groups_annot,real_conf_matrix, axes=[[1],[0]])
 
-    N,T = y_obs.shape
-    K = np.max(y_obs)+1 # asumiendo que estan ordenadas
-    print("Shape (data,annotators): ",(N,T))
-    print("Classes: ",K)
-    
-    ############# EXECUTE ALGORITHMS #############################
-    
+print("New Synthetic data is being generated...",flush=True,end='')
+if scenario == 3 or scenario==7: #soft
+    y_obs, groups_annot = GenerateData.sintetic_annotate_data(Z_train,Tmax,T_data,deterministic=False,hard=False)
+else:
+    y_obs, groups_annot = GenerateData.sintetic_annotate_data(Z_train,Tmax,T_data,deterministic=False)
+print("Done! ")
+
+if len(groups_annot.shape) ==1 or groups_annot.shape[1] ==  1: 
+    groups_annot = keras.utils.to_categorical(groups_annot)  #only if it is hard clustering
+confe_matrix = np.tensordot(groups_annot,real_conf_matrix, axes=[[1],[0]])
+T_weights = np.sum(y_obs != -1,axis=0) #weight of annotators (how much appear in data)
+
+N,T = y_obs.shape
+K = np.max(y_obs)+1 # asumiendo que estan ordenadas
+print("Shape (data,annotators): ",(N,T))
+print("Classes: ",K)
+
+############### MV/DS and calculate representations##############################
+start_time = time.time()
+label_I = LabelInference(y_obs,TOL,type_inf = 'all')  #Infer Labels
+print("Representation for Our/MV/D&S in %f mins"%((time.time()-start_time)/60.) )
+
+mv_onehot = label_I.mv_labels('onehot')
+mv_probas = label_I.mv_labels('probas')
+
+print("ACC MV on train:",np.mean(mv_onehot.argmax(axis=1)==Z_train))
+
+#get our global representation 
+r_obs = label_I.y_obs_repeat.copy() #set_representation(y_obs_categorical,"repeat")
+print("vector of repeats:\n",r_obs)
+print("shape:",r_obs.shape)
+
+aux = [entropy(example)/np.log(r_obs.shape[1]) for example in mv_probas]
+print("Normalized entropy (0-1) of repeats annotations:",np.mean(aux))        
+
+
+if Tmax <3000: #other wise cannot be done
+    #Deterministic
+    ds_labels, ds_conf = label_I.DS_labels()
+    print("ACC D&S on train:",np.mean(ds_labels.argmax(axis=1)==Z_train))
+
+    #get representation needed for Raykar
     start_time = time.time()
-    #"""
-    label_I = LabelInference(y_obs,TOL,type_inf = 'all')  #Infer Labels
-    print("Representation for Raykar/MV/D&S in %f mins"%((time.time()-start_time)/60.) )
+    y_obs_categorical = set_representation(y_obs,'onehot') 
+    print("shape:",y_obs_categorical.shape)
+    print("Representation for Raykar in %f mins"%((time.time()-start_time)/60.) )
 
-    mv_onehot = label_I.mv_labels('onehot')
-    mv_probas = label_I.mv_labels('probas')
-    
-    print("ACC MV on train:",np.mean(mv_onehot.argmax(axis=1)==Z_train))
-    #print("ACC D&S on train:",np.mean(ds_labels.argmax(axis=1)==Z_train))
-        
+"""
+if Tmax >= 3000 and Tmax<8000: #error de memoria solucionado con truncated SVD
+    #pre analysis
+    start_time = time.time()
+    annotators_pca = project_and_cluster(y_obs_categorical,DTYPE_OP=DTYPE_OP,printed=False,mode_project="tpca")[0]
+    print("Projection of annotations in %f mins"%((time.time()-start_time)/60.) )
+    print("Annotators PCA of annotations shape: ",annotators_pca.shape)
+elif Tmax< 3000:
+    #pre analysis
+    start_time = time.time()
+    annotators_pca = project_and_cluster(y_obs_categorical,DTYPE_OP=DTYPE_OP,printed=False,mode_project="pca")[0]
+    print("Projection of annotations in %f mins"%((time.time()-start_time)/60.) )
+    print("Annotators PCA of annotations shape: ",annotators_pca.shape)
+"""
+
+for _ in range(10): #repetitions --- si se demora mucho bajar a 5
+    ############# EXECUTE ALGORITHMS #############################
     model_mvsoft = clone_model(model_UB) 
     model_mvsoft.compile(loss='categorical_crossentropy',optimizer=OPT)
-    model_mvsoft.fit(Xstd_train, mv_probas, epochs=EPOCHS_BASE,batch_size=BATCH_SIZE,verbose=0,callbacks=[ourCallback])
-    print("Trained model over soft-MV")
+    hist=model_mvsoft.fit(Xstd_train, mv_probas, epochs=EPOCHS_BASE,batch_size=BATCH_SIZE,verbose=0,callbacks=[ourCallback])
+    print("Trained model over soft-MV, Epochs to converge =",len(hist.epoch))
 
     model_mvhard = clone_model(model_UB) 
     model_mvhard.compile(loss='categorical_crossentropy',optimizer=OPT)
-    model_mvhard.fit(Xstd_train, mv_onehot, epochs=EPOCHS_BASE,batch_size=BATCH_SIZE,verbose=0,callbacks=[ourCallback])
-    print("Trained model over hard-MV")
+    hist=model_mvhard.fit(Xstd_train, mv_onehot, epochs=EPOCHS_BASE,batch_size=BATCH_SIZE,verbose=0,callbacks=[ourCallback])
+    print("Trained model over hard-MV, Epochs to converge =",len(hist.epoch))
+    
+    model_ds = clone_model(model_UB) 
+    model_ds.compile(loss='categorical_crossentropy',optimizer=OPT)
+    hist=model_ds.fit(Xstd_train, ds_labels, epochs=EPOCHS_BASE,batch_size=BATCH_SIZE,verbose=0,callbacks=[ourCallback])
+    print("Trained model over D&S, Epochs to converge =",len(hist.epoch))
    
-    if scenario != 6 : #explota
-        ds_labels, ds_conf = label_I.DS_labels()
-
-        model_ds = clone_model(model_UB) 
-        model_ds.compile(loss='categorical_crossentropy',optimizer=OPT)
-        model_ds.fit(Xstd_train, ds_labels, epochs=EPOCHS_BASE,batch_size=BATCH_SIZE,verbose=0,callbacks=[ourCallback])
-        print("Trained model over D&S")
-
-        #get representation needed for Raykar
-        #y_obs_categorical = set_representation(y_obs,'onehot') 
-        y_obs_categorical = label_I.y_obs_categ
-
+    if Tmax <3000: #other wise cannot be done
         raykarMC = RaykarMC(Xstd_train.shape[1:],y_obs_categorical.shape[-1],T,epochs=1,optimizer=OPT,DTYPE_OP=DTYPE_OP)
         raykarMC.define_model("default cnn")
-        logL_hist = raykarMC.stable_train(Xstd_train,y_obs_categorical,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL)
-        print("Trained model over Raykar")
-    #"""          
-    #get our representation 
-    start_time = time.time()
-    if scenario != 6:
-        r_obs = set_representation(y_obs_categorical,"repeat")
-    else: #big scenarios (manny annotators)
-        r_obs = set_representation(y_obs,"repeat") #raykar not done
-    print("Representation for Our in %f mins"%((time.time()-start_time)/60.) )
-    print("shape:",r_obs.shape)
-    """
-    if scenario == 5: #error de memoria solucionado con truncated SVD
-        #pre analysis
-        start_time = time.time()
-        annotators_pca = project_and_cluster(y_obs_categorical,DTYPE_OP=DTYPE_OP,printed=False,mode_project="tpca")[0]
-        print("Projection of annotations in %f mins"%((time.time()-start_time)/60.) )
-        print("Annotators PCA of annotations shape: ",annotators_pca.shape)
-    elif scenario == 6: #error de memoria
-        pass
-    else:
-        #pre analysis
-        start_time = time.time()
-        annotators_pca = project_and_cluster(y_obs_categorical,DTYPE_OP=DTYPE_OP,printed=False,mode_project="pca")[0]
-        print("Projection of annotations in %f mins"%((time.time()-start_time)/60.) )
-        print("Annotators PCA of annotations shape: ",annotators_pca.shape)
+        logL_hists,i_r = raykarMC.multiples_run(10,Xstd_train,y_obs_categorical,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL)
 
-    #aux = [entropy(example)/np.log(r_obs.shape[1]) for example in mv_probas]
-    #print("Normalized entropy (0-1) of repeats annotations:",np.mean(aux))        
-    
-    if scenario != 6:
+    """
+    if scenario != 5:
         gMixture1 = GroupMixtureOpt(Xstd_train.shape[1:],Kl=r_obs.shape[1],M=M_seted,epochs=1,pre_init=0,optimizer=OPT,dtype_op=DTYPE_OP) 
         gMixture1.define_model("default cnn")
         gMixture1.lambda_random = False #lambda=1     
@@ -250,14 +249,13 @@ for _ in range(10): #repetitions
     gMixture_Global = GroupMixtureOpt(Xstd_train.shape[1:],Kl=r_obs.shape[1],M=M_seted,epochs=1,pre_init=0,optimizer=OPT,dtype_op=DTYPE_OP) 
     gMixture_Global.define_model("default cnn")
     gMixture_Global.lambda_random = True #with lambda random --necessary
-    logL_hists,i = gMixture_Global.multiples_run(1,Xstd_train,r_obs,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL
+    logL_hists,i = gMixture_Global.multiples_run(10,Xstd_train,r_obs,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL
                                    ,cluster=True)
-    print("Trained model over Ours Global")
 
     
     ################## MEASURE PERFORMANCE ##################################
-    #"""
     evaluate = Evaluation_metrics(model_mvsoft,'keras',Xstd_train.shape[0],plot=False)
+    evaluate.set_T_weights(T_weights)
     Z_train_pred = model_mvsoft.predicts_classes(Xstd_train)
     prob_Yzt = np.tile(confusion_matrix(y_true=Z_train,y_pred=Z_train_pred), (T,1,1) )
     results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix)
@@ -268,6 +266,7 @@ for _ in range(10): #repetitions
     results_softmv_test += results2
 
     evaluate = Evaluation_metrics(model_mvhard,'keras',Xstd_train.shape[0],plot=False)
+    evaluate.set_T_weights(T_weights)
     Z_train_pred = model_mvhard.predict_classes(Xstd_train)
     prob_Yzt = np.tile(confusion_matrix(y_true=Z_train,y_pred=Z_train_pred), (T,1,1) )
     results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix)
@@ -277,9 +276,9 @@ for _ in range(10): #repetitions
     results_hardmv_train += results1
     results_hardmv_test += results2
     
-    if scenario != 6 : #error de memoria algunos
-
+    if scenario != 5 : #error de memoria algunos
         evaluate = Evaluation_metrics(model_ds,'keras',Xstd_train.shape[0],plot=False)
+        evaluate.set_T_weights(T_weights)
         Z_train_pred = model_ds.predict_classes(Xstd_train,verbose=0)
         results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=ds_conf,conf_true=confe_matrix)
         Z_test_pred = model_ds.predict_classes(Xstd_test,verbose=0)
@@ -291,13 +290,12 @@ for _ in range(10): #repetitions
         evaluate = Evaluation_metrics(raykarMC,'raykar',plot=False)
         Z_train_pred = raykarMC.base_model.predict_classes(Xstd_train,verbose=0)
         prob_Yzt = raykarMC.get_confusionM()
-        if scenario != 5 and scenario != 6: 
-            prob_Yxt = raykarMC.get_predictions_annot(Xstd_train)
-            results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix,y_o=y_obs,yo_pred=prob_Yxt)
-            results1_aux = evaluate.calculate_metrics(y_o=y_obs,yo_pred=prob_Yxt)
-        else:  #pred annotator memory error
-            results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix)
-            results1_aux = [None]
+        prob_Yxt = raykarMC.get_predictions_annot(Xstd_train)
+        results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix,y_o=y_obs,yo_pred=prob_Yxt)
+        results1_aux = evaluate.calculate_metrics(y_o=y_obs,yo_pred=prob_Yxt)
+        #else:  #pred annotator memory error
+        #    results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix)
+        #    results1_aux = [None]
             
         Z_test_pred = raykarMC.base_model.predict_classes(Xstd_test,verbose=0)
         results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred)
@@ -306,19 +304,18 @@ for _ in range(10): #repetitions
         results_raykar_test += results2            
         """
         evaluate = Evaluation_metrics(gMixture1,'our1',plot=False) 
-        if scenario != 5 and scenario != 6: 
-            aux = gMixture1.calculate_extra_components(Xstd_train,y_obs,T=T,calculate_pred_annotator=True)
-            predictions_m,prob_Gt,prob_Yzt,prob_Yxt =  aux #to evaluate...
-            Z_train_pred = gMixture1.base_model.predict_classes(Xstd_train,verbose=0)
-            #y_o_groups = predictions_m.argmax(axis=-1)
-            results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix,y_o=y_obs,yo_pred=prob_Yxt)
-            results1_aux = evaluate.calculate_metrics(y_o=y_obs,yo_pred=prob_Yxt)
-        else: #pred annotator memory error
-            aux = gMixture1.calculate_extra_components(Xstd_train,y_obs,T=T,calculate_pred_annotator=False)
-            predictions_m,prob_Gt,prob_Yzt,_ =  aux #to evaluate...
-            Z_train_pred = gMixture1.base_model.predict_classes(Xstd_train,verbose=0)
-            results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix)      
-            results1_aux = [None]
+        aux = gMixture1.calculate_extra_components(Xstd_train,y_obs,T=T,calculate_pred_annotator=True)
+        predictions_m,prob_Gt,prob_Yzt,prob_Yxt =  aux #to evaluate...
+        Z_train_pred = gMixture1.base_model.predict_classes(Xstd_train,verbose=0)
+        #y_o_groups = predictions_m.argmax(axis=-1)
+        results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix,y_o=y_obs,yo_pred=prob_Yxt)
+        results1_aux = evaluate.calculate_metrics(y_o=y_obs,yo_pred=prob_Yxt)
+        #else: #pred annotator memory error
+        #    aux = gMixture1.calculate_extra_components(Xstd_train,y_obs,T=T,calculate_pred_annotator=False)
+        #    predictions_m,prob_Gt,prob_Yzt,_ =  aux #to evaluate...
+        #    Z_train_pred = gMixture1.base_model.predict_classes(Xstd_train,verbose=0)
+        #    results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix)      
+        #    results1_aux = [None]
         c_M = gMixture1.get_confusionM()
         y_o_groups = gMixture1.get_predictions_groups(Xstd_test).argmax(axis=-1) #obtain p(y^o|x,g=m) and then argmax
         Z_test_pred = gMixture1.base_model.predict_classes(Xstd_test,verbose=0)
@@ -330,19 +327,18 @@ for _ in range(10): #repetitions
         results_ours1_test.append(results2[1])
 
         evaluate = Evaluation_metrics(gMixture2,'our1',plot=False) 
-        if scenario != 5 and scenario != 6: 
-            aux = gMixture2.calculate_extra_components(Xstd_train,y_obs,T=T,calculate_pred_annotator=True)
-            predictions_m,prob_Gt,prob_Yzt,prob_Yxt =  aux #to evaluate...
-            Z_train_pred = gMixture2.base_model.predict_classes(Xstd_train,verbose=0)
-            #y_o_groups = predictions_m.argmax(axis=-1)
-            results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix,y_o=y_obs,yo_pred=prob_Yxt)
-            results1_aux = evaluate.calculate_metrics(y_o=y_obs,yo_pred=prob_Yxt)
-        else: #pred annotator memory error
-            aux = gMixture2.calculate_extra_components(Xstd_train,y_obs,T=T,calculate_pred_annotator=False)
-            predictions_m,prob_Gt,prob_Yzt,_ =  aux #to evaluate...
-            Z_train_pred = gMixture2.base_model.predict_classes(Xstd_train,verbose=0)
-            results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix)      
-            results1_aux = [None]
+        aux = gMixture2.calculate_extra_components(Xstd_train,y_obs,T=T,calculate_pred_annotator=True)
+        predictions_m,prob_Gt,prob_Yzt,prob_Yxt =  aux #to evaluate...
+        Z_train_pred = gMixture2.base_model.predict_classes(Xstd_train,verbose=0)
+        #y_o_groups = predictions_m.argmax(axis=-1)
+        results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix,y_o=y_obs,yo_pred=prob_Yxt)
+        results1_aux = evaluate.calculate_metrics(y_o=y_obs,yo_pred=prob_Yxt)
+        #else: #pred annotator memory error
+        #    aux = gMixture2.calculate_extra_components(Xstd_train,y_obs,T=T,calculate_pred_annotator=False)
+        #    predictions_m,prob_Gt,prob_Yzt,_ =  aux #to evaluate...
+        #    Z_train_pred = gMixture2.base_model.predict_classes(Xstd_train,verbose=0)
+        #    results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix)      
+        #    results1_aux = [None]
         c_M = gMixture2.get_confusionM()
         y_o_groups = gMixture2.get_predictions_groups(Xstd_test).argmax(axis=-1) #obtain p(y^o|x,g=m) and then argmax
         Z_test_pred = gMixture2.base_model.predict_classes(Xstd_test,verbose=0)
@@ -355,7 +351,7 @@ for _ in range(10): #repetitions
         """
         
     evaluate = Evaluation_metrics(gMixture_Global,'our1',plot=False)  #no explota
-    if scenario != 5 and scenario != 6: 
+    if Tmax < 3000:
         aux = gMixture_Global.calculate_extra_components(Xstd_train,y_obs,T=T,calculate_pred_annotator=True)
         predictions_m,prob_Gt,prob_Yzt,prob_Yxt =  aux #to evaluate...
         Z_train_pred = gMixture_Global.base_model.predict_classes(Xstd_train,verbose=0)
@@ -378,18 +374,19 @@ for _ in range(10): #repetitions
     results_ours_global_test.append(results2[1])
     
     print("All Performance Measured")
-    #del model_mvsoft,model_mvhard#,model_ds
+    del model_mvsoft,model_mvhard,gMixture_Global,evaluate
+    if Tmax <3000: #other wise cannot be done
+        del model_ds,raykarMC
     gc.collect()
 
 #plot measures    
-#"""
 get_mean_dataframes(results_softmv_train).to_csv("simCIFAR_softMV_train_s"+str(scenario)+".csv",index=False)
 get_mean_dataframes(results_softmv_test).to_csv("simCIFAR_softMV_test_s"+str(scenario)+".csv",index=False)
 
 get_mean_dataframes(results_hardmv_train).to_csv("simCIFAR_hardMV_train_s"+str(scenario)+".csv",index=False)
 get_mean_dataframes(results_hardmv_test).to_csv("simCIFAR_hardMV_test_s"+str(scenario)+".csv",index=False)
 
-if scenario != 6:
+if scenario != 5: #tmax >50000
     get_mean_dataframes(results_ds_train).to_csv("simCIFAR_DS_train_s"+str(scenario)+".csv",index=False)
     get_mean_dataframes(results_ds_test).to_csv("simCIFAR_DS_test_s"+str(scenario)+".csv",index=False)
 
@@ -408,8 +405,7 @@ get_mean_dataframes(results_ours_global_train).to_csv("simCIFAR_OursGlobal_train
 get_mean_dataframes(results_ours_global_test).to_csv("simCIFAR_OursGlobal_test_s"+str(scenario)+".csv",index=False)
 get_mean_dataframes(results_ours_global_testA).to_csv("simCIFAR_OursGlobal_testAux_s"+str(scenario)+".csv",index=False)
 
-
-if scenario != 5 and scenario != 6: #calcualte pred annotators
+if Tmax < 3000: #calcualte pred annotators
     get_mean_dataframes(results_raykar_trainA).to_csv("simCIFAR_Raykar_trainAnn_s"+str(scenario)+".csv",index=False)
     #get_mean_dataframes(results_ours1_trainA).to_csv("simCIFAR_Ours1_trainAnn_s"+str(scenario)+".csv",index=False)
     #get_mean_dataframes(results_ours2_trainA).to_csv("simCIFAR_Ours2_trainAnn_s"+str(scenario)+".csv",index=False)

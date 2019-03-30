@@ -16,7 +16,8 @@ class LabelInference(object): #no predictive model
 
         if 'mv' in type_inf.lower() or 'majority voting' in type_inf.lower():
             if len(labels.shape) ==2:
-                self.y_obs_categ = set_representation(labels,'onehot') #for MV
+                #self.y_obs_categ = set_representation(labels,'onehot') #for MV
+                self.y_obs_repeat = set_representation(labels,'repeat') #for MV
             else:
                 self.y_obs_categ = labels.copy()
         if 'd&s' in type_inf.lower() or "dawid" in type_inf.lower():
@@ -27,18 +28,17 @@ class LabelInference(object): #no predictive model
         self.T = labels.shape[1]
         self.calc_MV = False
          
-        
     def mv_labels(self, type_return):
         if not self.calc_MV:
-            self.mv_probas = majority_voting(self.y_obs_categ,repeats=False,probas=True) #aka soft-MV
+            self.mv_probas = majority_voting(self.y_obs_repeat,repeats=True,probas=True) #aka soft-MV
             self.calc_MV = True            
             
         if type_return.lower() == 'probas': 
             return self.mv_probas
         elif type_return.lower() == "classes":
-            return np.argmax(self.mv_probas,axis=1)
+            return self.mv_probas.argmax(axis=1)
         elif type_return.lower() == 'onehot' or type_return.lower() == 'one-hot': #also known as hard-MV
-            return keras.utils.to_categorical(np.argmax(self.mv_probas,axis=1))        
+            return keras.utils.to_categorical(self.mv_probas.argmax(axis=1))        
         
     def DS_labels(self):
         # https://github.com/dallascard/dawid_skene
@@ -251,7 +251,7 @@ class RaykarMC(object):
         self.betas = found_betas[indexs_sort[0]].copy()
         self.base_model = found_model[indexs_sort[0]]
         self.E_step(X,y_ann,predictions=self.get_predictions(X)) #to set up Q
-        print("Epochs to converge= ",np.mean(iter_conv))
+        print("Multiples runs over Raykar, Epochs to converge= ",np.mean(iter_conv))
         gc.collect()
         return found_logL,indexs_sort[0]
 
