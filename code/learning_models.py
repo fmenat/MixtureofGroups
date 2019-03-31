@@ -128,15 +128,16 @@ def RNN_simple(input_dim,output_dim,units,hidden_deep,drop=0.0,embed=False,len=0
 
 from keras.applications.vgg16 import VGG16
 from keras.applications.vgg16 import preprocess_input as p16
-def through_VGG(X):
+def through_VGG(X,pooling_mode=None):
     """
         Pass data X through VGG 16
+        * pooling_mode: as keras say could be None, 'avg' or 'max' (in order to reduce dimensionality)
     """
     X_vgg = p16(X)
     input_tensor=Input(shape=X_vgg.shape[1:])
-    modelVGG = VGG16(weights='imagenet', include_top=False,input_tensor=input_tensor ) # LOAD PRETRAINED MODEL 
+    modelVGG = VGG16(weights='imagenet', include_top=False,input_tensor=input_tensor,pooling=pooling_mode ) # LOAD PRETRAINED MODEL 
     return_value = modelVGG.predict(X_vgg)
-    return return_value.reshape(return_value.shape[0],np.prod(return_value.shape[1:]))
+    return return_value#.reshape(return_value.shape[0],np.prod(return_value.shape[1:]))
 
 from keras.applications.inception_v3 import InceptionV3
 from keras.applications.inception_v3 import preprocess_input as pIncept
@@ -146,5 +147,5 @@ def through_InceptionV3(X):
     """
     X_incept = pIncept(X)
     input_tensor=Input(shape=X_incept.shape[1:])
-    modelInception = InceptionV3(weights='imagenet', include_top=False,input_tensor=input_tensor ) # LOAD PRETRAINED MODEL 
+    modelInception = InceptionV3(weights='imagenet', include_top=False,input_tensor=input_tensor,pooling=None ) # LOAD PRETRAINED MODEL 
     return modelInception.predict(X_incept)
