@@ -207,20 +207,29 @@ for _ in range(20): #repetitions
     model_mvsoft.compile(loss='categorical_crossentropy',optimizer=OPT)
     hist = model_mvsoft.fit(Xstd_train, mv_probas, epochs=EPOCHS_BASE,batch_size=BATCH_SIZE,verbose=0,callbacks=[ourCallback])
     print("Trained model over soft-MV, Epochs to converge =",len(hist.epoch))
+    Z_train_pred_mvsoft = model_mvsoft.predict_classes(Xstd_train)
+    Z_test_pred_mvsoft = model_mvsoft.predict_classes(Xstd_test)
 
     model_mvhard = clone_model(model_UB) 
     model_mvhard.compile(loss='categorical_crossentropy',optimizer=OPT)
     hist=model_mvhard.fit(Xstd_train, mv_onehot, epochs=EPOCHS_BASE,batch_size=BATCH_SIZE,verbose=0,callbacks=[ourCallback])
     print("Trained model over hard-MV, Epochs to converge =",len(hist.epoch))
+    Z_train_pred_mvhard = model_mvhard.predict_classes(Xstd_train)
+    Z_test_pred_mvhard = model_mvhard.predict_classes(Xstd_test)
 
     model_ds = clone_model(model_UB) 
     model_ds.compile(loss='categorical_crossentropy',optimizer=OPT)
     hist=model_ds.fit(Xstd_train, ds_labels, epochs=EPOCHS_BASE,batch_size=BATCH_SIZE,verbose=0,callbacks=[ourCallback])
     print("Trained model over D&S, Epochs to converge =",len(hist.epoch))
+    Z_train_pred_ds = model_ds.predict_classes(Xstd_train)
+    Z_test_pred_ds = model_ds.predict_classes(Xstd_test)
     
     raykarMC = RaykarMC(Xstd_train.shape[1:],y_obs_categorical.shape[-1],T,epochs=1,optimizer=OPT,DTYPE_OP=DTYPE_OP)
     raykarMC.define_model('mlp',16,1,BatchN=False,drop=0.2)
     logL_hists,i_r = raykarMC.multiples_run(30,Xstd_train,y_obs_categorical,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL)
+    Z_train_p_Ray = raykarMC.base_model.predict(Xstd_train)
+    Z_test_pred_Ray = raykarMC.base_model.predict_classes(Xstd_test)
+    
    
     """
     gMixture1 = GroupMixtureOpt(Xstd_train.shape[1:],Kl=r_obs.shape[1],M=M_seted,epochs=1,pre_init=0,optimizer=OPT,dtype_op=DTYPE_OP) 
@@ -243,50 +252,44 @@ for _ in range(20): #repetitions
     gMixture_Global.lambda_random = True #with lambda random --necessary
     logL_hists,i = gMixture_Global.multiples_run(30,Xstd_train,r_obs,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL
                                    ,cluster=True)
-
+    Z_train_p_OG = gMixture_Global.base_model.predict(Xstd_train)
+    Z_test_p_OG = gMixture_Global.base_model.predict(Xstd_test)
+    
+    
     ################## MEASURE PERFORMANCE ##################################
     evaluate = Evaluation_metrics(model_mvsoft,'keras',Xstd_train.shape[0],plot=False)
     evaluate.set_T_weights(T_weights)
-    Z_train_pred = model_mvsoft.predict_classes(Xstd_train)
-    prob_Yzt = np.tile(confusion_matrix(y_true=Z_train,y_pred=Z_train_pred), (T,1,1) )
-    results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix)
-    Z_test_pred = model_mvsoft.predict_classes(Xstd_test)
-    results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred)
+    prob_Yzt = np.tile(confusion_matrix(y_true=Z_train,y_pred=Z_train_pred_mvsoft), (T,1,1) )
+    results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_mvsoft,conf_pred=prob_Yzt,conf_true=confe_matrix)
+    results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred_mvsoft)
     
     results_softmv_train += results1
     results_softmv_test += results2
 
     evaluate = Evaluation_metrics(model_mvhard,'keras',Xstd_train.shape[0],plot=False)
     evaluate.set_T_weights(T_weights)
-    Z_train_pred = model_mvhard.predict_classes(Xstd_train)
-    prob_Yzt = np.tile(confusion_matrix(y_true=Z_train,y_pred=Z_train_pred), (T,1,1) )
-    results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix)
-    Z_test_pred = model_mvhard.predict_classes(Xstd_test)
-    results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred)
+    prob_Yzt = np.tile(confusion_matrix(y_true=Z_train,y_pred=Z_train_pred_mvhard), (T,1,1) )
+    results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_mvhard,conf_pred=prob_Yzt,conf_true=confe_matrix)
+    results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred_mvhard)
     
     results_hardmv_train += results1
     results_hardmv_test += results2
 
     evaluate = Evaluation_metrics(model_ds,'keras',Xstd_train.shape[0],plot=False)
     evaluate.set_T_weights(T_weights)
-    Z_train_pred = model_ds.predict_classes(Xstd_train)
-    results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=ds_conf,conf_true=confe_matrix)
-    Z_test_pred = model_ds.predict_classes(Xstd_test)
-    results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred)
+    results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_ds,conf_pred=ds_conf,conf_true=confe_matrix)
+    results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred_ds)
     
     results_ds_train += results1
     results_ds_test += results2
     
     evaluate = Evaluation_metrics(raykarMC,'raykar',plot=False)
-    Z_train_pred = raykarMC.base_model.predict_classes(Xstd_train)
     prob_Yzt = raykarMC.get_confusionM()
-    prob_Yxt = raykarMC.get_predictions_annot(Xstd_train)
-    results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix,y_o=y_obs,yo_pred=prob_Yxt)
-
+    prob_Yxt = raykarMC.get_predictions_annot(Xstd_train,data=Z_train_p_Ray)
+    Z_train_pred_Ray = Z_train_p_Ray.argmax(axis=-1)
+    results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_Ray,conf_pred=prob_Yzt,conf_true=confe_matrix,y_o=y_obs,yo_pred=prob_Yxt)
     results1_aux = evaluate.calculate_metrics(y_o=y_obs,yo_pred=prob_Yxt)
-
-    Z_test_pred = raykarMC.base_model.predict_classes(Xstd_test)
-    results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred)
+    results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred_Ray)
     
     results_raykar_train += results1
     results_raykar_trainA += results1_aux
@@ -333,18 +336,15 @@ for _ in range(20): #repetitions
     """
     
     evaluate = Evaluation_metrics(gMixture_Global,'our1',plot=False) 
-    aux = gMixture_Global.calculate_extra_components(Xstd_train,y_obs,T=T,calculate_pred_annotator=True)
+    aux = gMixture_Global.calculate_extra_components(Xstd_train,y_obs,T=T,calculate_pred_annotator=True,p_z=Z_train_p_OG)
     predictions_m,prob_Gt,prob_Yzt,prob_Yxt =  aux #to evaluate...
-    Z_train_pred = gMixture_Global.base_model.predict_classes(Xstd_train)
-    #y_o_groups = predictions_m.argmax(axis=-1)
-    results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix,y_o=y_obs,yo_pred=prob_Yxt)
-
+    Z_train_pred_OG = Z_train_p_OG.argmax(axis=-1)
+    results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_OG,conf_pred=prob_Yzt,conf_true=confe_matrix,y_o=y_obs,yo_pred=prob_Yxt)
     results1_aux = evaluate.calculate_metrics(y_o=y_obs,yo_pred=prob_Yxt)
-
     c_M = gMixture_Global.get_confusionM()
-    y_o_groups = gMixture_Global.get_predictions_groups(Xstd_test).argmax(axis=-1) #obtain p(y^o|x,g=m) and then argmax
-    Z_test_pred = gMixture_Global.base_model.predict_classes(Xstd_test)
-    results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred,conf_pred=c_M, y_o_groups=y_o_groups)
+    y_o_groups = gMixture_Global.get_predictions_groups(Xstd_test,data=Z_test_p_OG).argmax(axis=-1) #obtain p(y^o|x,g=m) and then argmax
+    Z_test_pred_OG = Z_test_p_OG.argmax(axis=-1)
+    results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred_OG,conf_pred=c_M, y_o_groups=y_o_groups)
 
     results_ours_global_train +=  results1
     results_ours_global_trainA += results1_aux

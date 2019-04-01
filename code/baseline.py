@@ -260,9 +260,12 @@ class RaykarMC(object):
         print("Multiples runs over Raykar, Epochs to converge= ",np.mean(iter_conv))
         return found_logL,indexs_sort[0]
 
-    def get_predictions_annot(self,X):
+    def get_predictions_annot(self,X,data=[]):
         """ Predictions of all annotators , p(y^o | xi, t) """
-        p_z = self.get_predictions(X)
+        if len(data) != 0:
+            p_z = data
+        else:
+            p_z = self.get_predictions(X)
         predictions_a= np.tensordot(p_z ,self.betas,axes=[[1],[1]] ) # sum_z p(z|xi) * p(yo|z,t)
         return predictions_a#.transpose(1,0,2)
 

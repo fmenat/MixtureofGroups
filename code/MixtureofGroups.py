@@ -454,17 +454,20 @@ class GroupMixtureOpt(object): #change name to Rep
             p_y_m[i] = np.tensordot(p_z[i,:] ,self.betas[m,:,:],axes=[[0],[0]] ) # sum_z p(z|xi) * p(yo|z,g=m)
         return p_y_m 
     
-    def get_predictions_groups(self,X):
+    def get_predictions_groups(self,X,data=[]):
         """ Predictions of all groups , p(y^o | xi, g) """
-        p_z = self.get_predictions(X)
+        if len(data) != 0:
+            p_z = data
+        else:
+            p_z = self.get_predictions(X)
         predictions_m = np.tensordot(p_z ,self.betas,axes=[[1],[1]] ) #sum_z p(z|xi) * p(yo|z,g)
         return predictions_m#.transpose(1,0,2)
 
-    def calculate_extra_components(self,X,y_o,T,calculate_pred_annotator=True):
+    def calculate_extra_components(self,X,y_o,T,calculate_pred_annotator=True,p_z=[]):
         """
             Measure indirect probabilities through bayes and total probability of annotators
         """
-        predictions_m = self.get_predictions_groups(X) #p(y^o|x,g=m)
+        predictions_m = self.get_predictions_groups(X,data=p_z) #p(y^o|x,g=m)
         
         prob_Gt = np.zeros((T,self.M)) #p(g|t)
         for t in range(T):
