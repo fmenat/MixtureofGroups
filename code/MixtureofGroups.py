@@ -85,6 +85,12 @@ def clusterize_annotators(y_o,M,no_label=-1,bulk=True,cluster_type='loss',data=[
                 f_l = distance_function(true, ob)  #funcion de distancia o similaridad
                 data_to_cluster.append(f_l)  
         data_to_cluster = np.asarray(data_to_cluster)
+        #if manny classes or low entropy?
+        #necesito ver qué valor poner aca...
+        #standarize data
+        #model = PCA(n_components=)
+        #data_to_cluster = model.fit_transform(data_to_cluster)
+        
         print("Doing clustering...",end='',flush=True)
         probas_t = aux_clusterize(data_to_cluster,M,DTYPE_OP,option,l)
         print("Done!")
@@ -439,8 +445,8 @@ class GroupMixtureOpt(object): #change name to Rep
         
         self.betas = found_betas[indexs_sort[0]].copy()
         self.alphas = found_alphas[indexs_sort[0]].copy()
-        it = keras.layers.Input(shape=X.shape[1:])
-        self.base_model = keras.models.clone_model(aux_clonable_model, input_tensors=it)
+        #it = keras.layers.Input(shape=X.shape[1:])
+        self.base_model = keras.models.clone_model(aux_clonable_model)#, input_tensors=it)
         self.base_model.set_weights(found_model[indexs_sort[0]])
         self.E_step(X,self.get_predictions(X)) #to set up Q
         print("Multiples runs over Ours Global, Epochs to converge= ",np.mean(iter_conv))

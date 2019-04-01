@@ -253,8 +253,8 @@ class RaykarMC(object):
         indexs_sort = np.argsort(logL_iter)[::-1] 
         
         self.betas = found_betas[indexs_sort[0]].copy()
-        it = keras.layers.Input(shape=X.shape[1:])
-        self.base_model = keras.models.clone_model(aux_clonable_model, input_tensors=it)
+        #it = keras.layers.Input(shape=X.shape[1:])
+        self.base_model = keras.models.clone_model(aux_clonable_model)#, input_tensors=it)
         self.base_model.set_weights(found_model[indexs_sort[0]])
         self.E_step(X,y_ann,predictions=self.get_predictions(X)) #to set up Q
         print("Multiples runs over Raykar, Epochs to converge= ",np.mean(iter_conv))
