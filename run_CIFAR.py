@@ -235,7 +235,7 @@ for _ in range(5): #repetitions --- si se demora mucho bajar a 5
 
         raykarMC = RaykarMC(Xstd_train.shape[1:],y_obs_categorical.shape[-1],T,epochs=1,optimizer=OPT,DTYPE_OP=DTYPE_OP)
         raykarMC.define_model("default cnn")
-        logL_hists,i_r = raykarMC.multiples_run(10,Xstd_train,y_obs_categorical,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL)
+        logL_hists,i_r = raykarMC.multiples_run(15,Xstd_train,y_obs_categorical,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL)
         Z_train_p_Ray = raykarMC.base_model.predict(Xstd_train)
         Z_test_pred_Ray = raykarMC.base_model.predict_classes(Xstd_test)
 
