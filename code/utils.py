@@ -7,6 +7,10 @@ import matplotlib.cm as cm
 from scipy.stats import entropy
 
 def get_confusionM(pred,y_ann):
+    """
+        * pred is prediction probabilities or one hot, p(z=gamma|x)
+        * y_ann is annotator probabilities shape is (N,T,K)
+    """
     aux = np.tensordot(pred, y_ann, axes=[[0],[0]]).transpose(1,0,2)
     return aux/np.sum(aux, axis=-1)[:,:,None] #normalize
 

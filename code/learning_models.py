@@ -20,6 +20,8 @@ def LogisticRegression_Keras(input_dim,output_dim):
 def MLP_Keras(input_dim,output_dim,units,hidden_deep,BN=False,drop=0.0):
     model = Sequential() 
     model.add(InputLayer(input_shape=input_dim))
+    if len(input_dim) > 1:
+        model.add(Flatten())
     for i in range(hidden_deep): #all the deep layers
         model.add(Dense(units,activation='relu'))
         if BN:

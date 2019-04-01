@@ -24,7 +24,7 @@ f_2_read = ["/"+folder+"/"+name for folder,name in zip(names,f_names)]
 
 X_images = []
 for values in f_2_read:
-    I = np.asarray(Image.open(folder+set_name+values)) #rodrigues resize images to 150x150 (but VGG was trained with 224x224)
+    I = np.asarray(Image.open(folder+"/"+set_name+values)) #rodrigues resize images to 150x150 (but VGG was trained with 224x224)
     X_images.append(I)
 X_images = np.asarray(X_images)
 print("Images shapes: ",X_images.shape)
