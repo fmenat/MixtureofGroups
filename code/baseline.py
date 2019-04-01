@@ -233,14 +233,12 @@ class RaykarMC(object):
         found_model = []
         found_logL = []
         iter_conv = []
-        #it = keras.layers.Input(shape=X.shape[1:])
-        aux_clonable_model = keras.models.clone_model(self.base_model)#,input_tensors=it) #architecture to clone
+        aux_clonable_model = keras.models.clone_model(self.base_model) #architecture to clone
         for run in range(Runs):
             self.base_model = clone_model(aux_clonable_model) #reset-weigths            
             self.base_model.compile(loss='categorical_crossentropy',optimizer=self.optimizer)
 
             logL_hist = self.train(X,y_ann,batch_size=batch_size,max_iter=max_iter,relative=True,tolerance=tolerance) 
-            
             found_betas.append(self.betas.copy())
             found_model.append(self.base_model.get_weights()) #revisar si se resetean los pesos o algo asi..
             found_logL.append(logL_hist)
@@ -253,8 +251,11 @@ class RaykarMC(object):
         indexs_sort = np.argsort(logL_iter)[::-1] 
         
         self.betas = found_betas[indexs_sort[0]].copy()
-        it = keras.layers.Input(shape=X.shape[1:])
-        self.base_model = keras.models.clone_model(aux_clonable_model, input_tensors=it)
+        if type(aux_clonable_model.layers[0]) == keras.layers.InputLayer:
+            self.base_model = keras.models.clone_model(aux_clonable_model) #change
+        else:
+            it = keras.layers.Input(shape=X.shape[1:])
+            self.base_model = keras.models.clone_model(aux_clonable_model, input_tensors=it) #change
         self.base_model.set_weights(found_model[indexs_sort[0]])
         self.E_step(X,y_ann,predictions=self.get_predictions(X)) #to set up Q
         print("Multiples runs over Raykar, Epochs to converge= ",np.mean(iter_conv))

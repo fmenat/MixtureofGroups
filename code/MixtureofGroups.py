@@ -420,10 +420,8 @@ class GroupMixtureOpt(object): #change name to Rep
         found_model = [] #quizas guardar pesos del modelo
         found_logL = []
         iter_conv = []
-        #it = keras.layers.Input(shape=X.shape[1:])
-        aux_clonable_model = keras.models.clone_model(self.base_model)#,input_tensors=it) #architecture to clone
+        aux_clonable_model = keras.models.clone_model(self.base_model) #architecture to clone
         for run in range(Runs):
-            #it = keras.layers.Input(shape=X.shape[1:])
             self.base_model = keras.models.clone_model(aux_clonable_model) #reset-weigths
             self.base_model.compile(loss='categorical_crossentropy',optimizer=self.optimizer)
 
@@ -443,8 +441,11 @@ class GroupMixtureOpt(object): #change name to Rep
         
         self.betas = found_betas[indexs_sort[0]].copy()
         self.alphas = found_alphas[indexs_sort[0]].copy()
-        it = keras.layers.Input(shape=X.shape[1:])
-        self.base_model = keras.models.clone_model(aux_clonable_model, input_tensors=it)
+        if type(aux_clonable_model.layers[0]) == keras.layers.InputLayer:
+            self.base_model = keras.models.clone_model(aux_clonable_model) #change
+        else:
+            it = keras.layers.Input(shape=X.shape[1:])
+            self.base_model = keras.models.clone_model(aux_clonable_model, input_tensors=it) #change
         self.base_model.set_weights(found_model[indexs_sort[0]])
         self.E_step(X,self.get_predictions(X)) #to set up Q
         print("Multiples runs over Ours Global, Epochs to converge= ",np.mean(iter_conv))
