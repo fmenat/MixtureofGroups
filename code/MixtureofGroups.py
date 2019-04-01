@@ -416,11 +416,11 @@ class GroupMixtureOpt(object): #change name to Rep
         found_model = [] #quizas guardar pesos del modelo
         found_logL = []
         iter_conv = []
-        #it = keras.layers.Input(shape=X.shape[1:])
-        aux_clonable_model = keras.models.clone_model(self.base_model) #architecture to clone
+        it = keras.layers.Input(shape=X.shape[1:])
+        aux_clonable_model = keras.models.clone_model(self.base_model,input_tensors=it) #architecture to clone
         for run in range(Runs):
-            it = keras.layers.Input(shape=X.shape[1:])
-            self.base_model = keras.models.clone_model(aux_clonable_model, input_tensors=it) #reset-weigths
+            #it = keras.layers.Input(shape=X.shape[1:])
+            self.base_model = keras.models.clone_model(aux_clonable_model) #reset-weigths
             self.base_model.compile(loss='categorical_crossentropy',optimizer=self.optimizer)
 
             logL_hist = self.train(X,r,batch_size=batch_size,max_iter=max_iter,tolerance=tolerance,relative=True) #here the models get resets
