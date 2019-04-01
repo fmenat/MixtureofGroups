@@ -355,7 +355,6 @@ class GroupMixtureOpt(object): #change name to Rep
             if self.current_iter>max_iter or (tol<=tolerance and tol2<=tolerance): #alphas fuera: and tol3<=tolerance
                 stop_c = True 
         print("Finished training!")
-        gc.collect()
         return np.asarray(logL)
     
     def annotations_2_group(self,annotations,data=[],pred=[],no_label_sym = -1):
@@ -414,31 +413,36 @@ class GroupMixtureOpt(object): #change name to Rep
             
         found_betas = []
         found_alphas = []
-        found_model = []
+        found_model = [] #quizas guardar pesos del modelo
         found_logL = []
         iter_conv = []
+        #it = keras.layers.Input(shape=X.shape[1:])
+        aux_clonable_model = keras.models.clone_model(self.base_model) #architecture to clone
         for run in range(Runs):
             it = keras.layers.Input(shape=X.shape[1:])
-            self.base_model = keras.models.clone_model(self.base_model,input_tensors=it) #reset-weigths
+            self.base_model = keras.models.clone_model(aux_clonable_model, input_tensors=it) #reset-weigths
             self.base_model.compile(loss='categorical_crossentropy',optimizer=self.optimizer)
 
             logL_hist = self.train(X,r,batch_size=batch_size,max_iter=max_iter,tolerance=tolerance,relative=True) #here the models get resets
             
             found_betas.append(self.betas.copy())
             found_alphas.append(self.alphas.copy())
-            found_model.append(self.base_model) #revisar si se resetean los pesos o algo asi..
+            found_model.append(self.base_model.get_weights()) #revisar si se resetean los pesos o algo asi..
             found_logL.append(logL_hist)
             iter_conv.append(self.current_iter-1)
+            del self.base_model
             gc.collect()
+            keras.backend.clear_session()
         #setup the configuration with maximum log-likelihood
         logL_iter = np.asarray([np.max(a) for a in found_logL])
         indexs_sort = np.argsort(logL_iter)[::-1] 
         
         self.betas = found_betas[indexs_sort[0]].copy()
         self.alphas = found_alphas[indexs_sort[0]].copy()
-        self.base_model = found_model[indexs_sort[0]]
+        it = keras.layers.Input(shape=X.shape[1:])
+        self.base_model = keras.models.clone_model(aux_clonable_model, input_tensors=it)
+        self.base_model.set_weights(found_model[indexs_sort[0]])
         self.E_step(X,self.get_predictions(X)) #to set up Q
-        gc.collect()
         print("Multiples runs over Ours Global, Epochs to converge= ",np.mean(iter_conv))
         return found_logL,indexs_sort[0]
     

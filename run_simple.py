@@ -82,6 +82,7 @@ results1[0].to_csv("synthetic_UpperBound_train.csv",index=False)
 results2[0].to_csv("synthetic_UpperBound_test.csv",index=False)
 del evaluate,Z_train_pred,Z_test_pred,results1,results2
 gc.collect()
+keras.backend.clear_session()
 
 def get_mean_dataframes(df_values):
     if df_values[0].iloc[:,0].dtype == object:
@@ -353,6 +354,7 @@ for _ in range(20): #repetitions
     print("All Performance Measured")
     del model_mvsoft,model_mvhard,model_ds,raykarMC,gMixture_Global,evaluate
     gc.collect()
+    keras.backend.clear_session()
 
 #plot measures    
 get_mean_dataframes(results_softmv_train).to_csv("synthetic_softMV_train_s"+str(scenario)+".csv",index=False)

@@ -76,6 +76,7 @@ results1[0].to_csv("simCIFAR_UpperBound_train.csv",index=False)
 results2[0].to_csv("simCIFAR_UpperBound_test.csv",index=False)
 del evaluate,Z_train_pred,Z_test_pred,results1,results2
 gc.collect()
+keras.backend.clear_session()
 
 def get_mean_dataframes(df_values):
     if df_values[0].iloc[:,0].dtype == object:
@@ -378,6 +379,7 @@ for _ in range(10): #repetitions --- si se demora mucho bajar a 5
     if Tmax <3000: #other wise cannot be done
         del model_ds,raykarMC
     gc.collect()
+    keras.backend.clear_session()
 
 #plot measures    
 get_mean_dataframes(results_softmv_train).to_csv("simCIFAR_softMV_train_s"+str(scenario)+".csv",index=False)
