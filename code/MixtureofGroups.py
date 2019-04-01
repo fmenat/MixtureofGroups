@@ -224,11 +224,12 @@ class GroupMixtureOpt(object): #change name to Rep
         self.mv_probs_j = majority_voting(r,repeats=True,probas=True) # soft -- p(y=j|xi)
         
         print("Pre-train network on %d epochs..."%(self.pre_init),end='',flush=True)
-        self.base_model.fit(X,self.mv_probs_j,batch_size=self.batch_size,epochs=self.pre_init,verbose=0)
+        if self.pre_init != 0:
+            self.base_model.fit(X,self.mv_probs_j,batch_size=self.batch_size,epochs=self.pre_init,verbose=0)
+            #reset optimizer but hold weights--necessary for stability 
+            self.base_model.compile(loss='categorical_crossentropy',optimizer=self.optimizer)
         print(" Done!")
-        #reset optimizer but hold weights--necessary for stability 
-        self.base_model.compile(loss='categorical_crossentropy',optimizer=self.optimizer)
-
+        
         #-------> Initialize p(z=gamma|xi,y=j,g): Combination of mv and belive observable
         lambda_group = np.ones((self.M),dtype=self.DTYPE_OP) 
         if self.lambda_random:
@@ -250,11 +251,12 @@ class GroupMixtureOpt(object): #change name to Rep
 
         #-------> init alphas
         self.alphas = np.zeros((self.M),dtype=self.DTYPE_OP)
-     
+        
         print("Alphas: ",self.alphas.shape)
         print("MV init: ",self.mv_probs_j.shape)
         print("Betas: ",self.betas.shape)
         print("Q estimate: ",self.Qij_mgamma.shape)
+        del self.mv_probs_j
             
     def define_priors(self,priors):
         """
@@ -408,6 +410,7 @@ class GroupMixtureOpt(object): #change name to Rep
         if cluster: # do annotator clustering
             alphas_clusterized = clusterize_annotators(r,M=self.M,bulk=False,cluster_type='mv_close',data=X,model=self.base_model,DTYPE_OP=self.DTYPE_OP,BATCH_SIZE=batch_size) #clusteriza en base aloss -- mv_close
             self.set_alpha(alphas_clusterized)
+            del alphas_clusterized
             
         found_betas = []
         found_alphas = []
@@ -415,7 +418,8 @@ class GroupMixtureOpt(object): #change name to Rep
         found_logL = []
         iter_conv = []
         for run in range(Runs):
-            self.base_model = keras.models.clone_model(self.base_model) #reset-weigths
+            it = keras.layers.Input(shape=X.shape[1:])
+            self.base_model = keras.models.clone_model(self.base_model,input_tensors=it) #reset-weigths
             self.base_model.compile(loss='categorical_crossentropy',optimizer=self.optimizer)
 
             logL_hist = self.train(X,r,batch_size=batch_size,max_iter=max_iter,tolerance=tolerance,relative=True) #here the models get resets
@@ -434,6 +438,7 @@ class GroupMixtureOpt(object): #change name to Rep
         self.alphas = found_alphas[indexs_sort[0]].copy()
         self.base_model = found_model[indexs_sort[0]]
         self.E_step(X,self.get_predictions(X)) #to set up Q
+        gc.collect()
         print("Multiples runs over Ours Global, Epochs to converge= ",np.mean(iter_conv))
         return found_logL,indexs_sort[0]
     

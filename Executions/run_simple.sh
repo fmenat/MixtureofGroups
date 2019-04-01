@@ -1,5 +1,5 @@
 #!/bin/bash
-cd simple_tol3
+cd simple_tol3_extense
 python ../../run_simple.py -M 3 -p ../../ -s 1 > result_scenario1.txt
 python ../../run_simple.py -M 3 -p ../../ -s 2 > result_scenario2.txt
 python ../../run_simple.py -M 3 -p ../../ -s 3 > result_scenario3.txt

@@ -168,7 +168,7 @@ class RaykarMC(object):
         self.betas = np.tensordot(self.Qi_gamma, y_ann, axes=[[0],[0]]).transpose(1,0,2)
         if self.priors: #as a annotator not label all data:
             self.betas += self.Mpriors
-        self.betas = self.betas/ np.sum(self.betas,axis=-1)[:,:,None] #normalize
+        self.betas = self.betas/self.betas.sum(axis=-1,keepdims=True) #normalize
     
     def compute_logL(self):#,yo,predictions):
         return np.sum( np.log( self.sum_unnormalized_q +self.Keps))
@@ -251,8 +251,8 @@ class RaykarMC(object):
         self.betas = found_betas[indexs_sort[0]].copy()
         self.base_model = found_model[indexs_sort[0]]
         self.E_step(X,y_ann,predictions=self.get_predictions(X)) #to set up Q
-        print("Multiples runs over Raykar, Epochs to converge= ",np.mean(iter_conv))
         gc.collect()
+        print("Multiples runs over Raykar, Epochs to converge= ",np.mean(iter_conv))
         return found_logL,indexs_sort[0]
 
     def get_predictions_annot(self,X):

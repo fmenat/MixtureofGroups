@@ -200,7 +200,7 @@ print("Normalized entropy (0-1) of repeats annotations:",np.mean(aux))
 #annotators_pca = project_and_cluster(y_obs_categorical,DTYPE_OP=DTYPE_OP,printed=False,mode_project="pca")[0]
 #print("Annotators PCA of annotations shape: ",annotators_pca.shape)
 
-for _ in range(10): #repetitions
+for _ in range(20): #repetitions
     ############# EXECUTE ALGORITHMS #############################
     model_mvsoft = clone_model(model_UB) 
     model_mvsoft.compile(loss='categorical_crossentropy',optimizer=OPT)
@@ -219,7 +219,7 @@ for _ in range(10): #repetitions
     
     raykarMC = RaykarMC(Xstd_train.shape[1:],y_obs_categorical.shape[-1],T,epochs=1,optimizer=OPT,DTYPE_OP=DTYPE_OP)
     raykarMC.define_model('mlp',16,1,BatchN=False,drop=0.2)
-    logL_hists,i_r = raykarMC.multiples_run(20,Xstd_train,y_obs_categorical,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL)
+    logL_hists,i_r = raykarMC.multiples_run(30,Xstd_train,y_obs_categorical,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL)
    
     """
     gMixture1 = GroupMixtureOpt(Xstd_train.shape[1:],Kl=r_obs.shape[1],M=M_seted,epochs=1,pre_init=0,optimizer=OPT,dtype_op=DTYPE_OP) 
@@ -240,7 +240,7 @@ for _ in range(10): #repetitions
     gMixture_Global = GroupMixtureOpt(Xstd_train.shape[1:],Kl=r_obs.shape[1],M=M_seted,epochs=1,pre_init=0,optimizer=OPT,dtype_op=DTYPE_OP) 
     gMixture_Global.define_model("mlp",16,1,BatchN=False,drop=0.2)
     gMixture_Global.lambda_random = True #with lambda random --necessary
-    logL_hists,i = gMixture_Global.multiples_run(20,Xstd_train,r_obs,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL
+    logL_hists,i = gMixture_Global.multiples_run(30,Xstd_train,r_obs,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL
                                    ,cluster=True)
 
     ################## MEASURE PERFORMANCE ##################################
