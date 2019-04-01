@@ -86,8 +86,8 @@ def clusterize_annotators(y_o,M,no_label=-1,bulk=True,cluster_type='loss',data=[
                 data_to_cluster.append(f_l)  
         data_to_cluster = np.asarray(data_to_cluster)
         #if manny classes or low entropy?
-        #model = PCA(n_components=2) # 2-3-4
-        #data_to_cluster = model.fit_transform(data_to_cluster) #re ejecutar todo con esto
+        model = PCA(n_components=min(3,mv_soft.shape[0]) ) # 2-3
+        data_to_cluster = model.fit_transform(data_to_cluster) #re ejecutar todo con esto
 
         print("Doing clustering...",end='',flush=True)
         probas_t = aux_clusterize(data_to_cluster,M,DTYPE_OP,option,l)
@@ -306,8 +306,8 @@ class GroupMixtureOpt(object): #change name to Rep
         Qij_m = self.Qij_mgamma.sum(axis=-1) #qij(m)
         self.alphas = np.tensordot(Qij_m, r , axes=[[0,1],[0,1]]) # sum_ij r_ij(g) = Qij_m[i]*r[i] 
         self.alphas = self.alphas.astype(self.DTYPE_OP) #necessary
-        #if self.priors:
-        #    self.alphas += self.Mpriors #prior here also?
+        if self.priors:
+            self.alphas += self.Mpriors #prior here also?
         self.alphas = self.alphas/self.alphas.sum(axis=-1,keepdims=True) #p(g) -- normalize
         
         #-------> beta
@@ -425,8 +425,8 @@ class GroupMixtureOpt(object): #change name to Rep
         found_model = [] #quizas guardar pesos del modelo
         found_logL = []
         iter_conv = []
-        it = keras.layers.Input(shape=X.shape[1:])
-        aux_clonable_model = keras.models.clone_model(self.base_model,input_tensors=it) #architecture to clone
+        #it = keras.layers.Input(shape=X.shape[1:])
+        aux_clonable_model = keras.models.clone_model(self.base_model)#,input_tensors=it) #architecture to clone
         for run in range(Runs):
             #it = keras.layers.Input(shape=X.shape[1:])
             self.base_model = keras.models.clone_model(aux_clonable_model) #reset-weigths
@@ -448,8 +448,11 @@ class GroupMixtureOpt(object): #change name to Rep
         
         self.betas = found_betas[indexs_sort[0]].copy()
         self.alphas = found_alphas[indexs_sort[0]].copy()
-        #it = keras.layers.Input(shape=X.shape[1:])
-        self.base_model = keras.models.clone_model(aux_clonable_model)#, input_tensors=it)
+        if type(aux_clonable_model.layers[0]) == keras.layers.InputLayer:
+            self.base_model = keras.models.clone_model(aux_clonable_model) #change
+        else:
+            it = keras.layers.Input(shape=X.shape[1:])
+            self.base_model = keras.models.clone_model(aux_clonable_model, input_tensors=it) #change
         self.base_model.set_weights(found_model[indexs_sort[0]])
         self.E_step(X,self.get_predictions(X)) #to set up Q
         print("Multiples runs over Ours Global, Epochs to converge= ",np.mean(iter_conv))

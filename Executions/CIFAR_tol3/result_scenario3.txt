@@ -318,4 +318,10 @@ M step: done,  E step: done //  (in 12.41 sec)	logL: -935899.160	Tol1: 0.00336	T
 Iter 23/50
 M step: done,  E step: done //  (in 12.14 sec)	logL: -933242.794	Tol1: 0.00284	Tol2: 0.06104	Tol3: 0.00362	
 Iter 24/50
-M step:
+M step: done,  E step: done //  (in 12.25 sec)	logL: -937223.573	Tol1: 0.00427	Tol2: 0.04972	Tol3: 0.00295	
+Iter 25/50
+M step: done,  E step: done //  (in 12.06 sec)	logL: -933115.928	Tol1: 0.00438	Tol2: 0.06482	Tol3: 0.00589	
+Iter 26/50
+M step: done,  E step: done //  (in 12.05 sec)	logL: -930887.325	Tol1: 0.00239	Tol2: 0.05826	Tol3: 0.00886	
+Iter 27/50
+M step: done,  E step:
