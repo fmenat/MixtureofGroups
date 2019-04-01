@@ -1,6 +1,6 @@
 from sklearn.metrics import confusion_matrix,f1_score
 from sklearn.preprocessing import normalize
-import itertools, keras
+import itertools, keras, math
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
@@ -253,3 +253,62 @@ class EarlyStopRelative(keras.callbacks.Callback):
                 (self.monitor, ','.join(list(logs.keys()))), RuntimeWarning
             )
         return monitor_value
+
+def plot_Mchange(logL_Mchange,
+         accTR_Mchange,
+         accTE_Mchange,
+         best_group_acc_Mchange,
+         probas_Mchange,
+         divergence1_Mchange,
+        divergence2_Mchange,
+         probGt_Mchange,
+         inertia_Mchange):
+    def add_plot(aux):
+        aux.xticks(M_values)
+        aux.xlabel("M change")
+        aux.legend()
+    #first some plots
+    M_values = range(1,1+len(logL_Mchange))
+    
+    aux = math.ceil(len(M_values)/3)
+    f,axx = plt.subplots(3,aux,figsize=(15,7))
+    for m in range(len(M_values)):
+        axx[int(m/aux),m%aux].bar(range(len(probas_Mchange[m])),probas_Mchange[m])
+        axx[int(m/aux),m%aux].set_title("#%d groups"%(m+1))
+    f.tight_layout()
+    plt.show()
+
+    try:
+        plt.figure(figsize=(15,5))
+        for m in range(len(M_values)):
+            plt.plot(range(len(logL_Mchange[m])),logL_Mchange[m],'o-',label="Log-like training #"+str(m+1))
+        plt.legend()
+        plt.show()
+        plot_logL = [L[-1] for L in logL_Mchange]
+        plt.figure(figsize=(15,5))
+        plt.plot(M_values,plot_logL,label="Log-like final")
+        add_plot(plt) #add ticks, x label and legend
+        plt.show()
+    except:
+        plt.clf() #clf()
+        #plot_logL = [L[-1] for L in logL_Mchange]
+        plt.figure(figsize=(15,5))
+        plt.plot(M_values,logL_Mchange,label="Log-like final")
+        add_plot(plt) #add ticks, x label and legend
+        plt.show()
+    
+    plt.figure(figsize=(15,5))
+    plt.plot(M_values,divergence2_Mchange,label="Divergence JS to real T matrixs")
+    plt.plot(M_values,divergence1_Mchange,label="Divergence weighted JS to real T matrixs")
+    plt.plot(M_values,inertia_Mchange,label="Inertia of M matrixs")
+    add_plot(plt) #add ticks, x label and legend
+    plt.ylim(0)
+    plt.show()
+
+    plt.figure(figsize=(15,5))
+    plt.plot(M_values,accTR_Mchange,label="Acc training")
+    plt.plot(M_values,accTE_Mchange,label="Acc val")
+    plt.plot(M_values,best_group_acc_Mchange,label="Acc val best group")
+    add_plot(plt) #add ticks, x label and legend
+    plt.ylim(0,1)
+    plt.show()

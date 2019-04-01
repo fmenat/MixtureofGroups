@@ -86,11 +86,9 @@ def clusterize_annotators(y_o,M,no_label=-1,bulk=True,cluster_type='loss',data=[
                 data_to_cluster.append(f_l)  
         data_to_cluster = np.asarray(data_to_cluster)
         #if manny classes or low entropy?
-        #necesito ver qué valor poner aca...
-        #standarize data
-        #model = PCA(n_components=)
-        #data_to_cluster = model.fit_transform(data_to_cluster)
-        
+        #model = PCA(n_components=2) # 2-3-4
+        #data_to_cluster = model.fit_transform(data_to_cluster) #re ejecutar todo con esto
+
         print("Doing clustering...",end='',flush=True)
         probas_t = aux_clusterize(data_to_cluster,M,DTYPE_OP,option,l)
         print("Done!")
@@ -422,8 +420,8 @@ class GroupMixtureOpt(object): #change name to Rep
         found_model = [] #quizas guardar pesos del modelo
         found_logL = []
         iter_conv = []
-        it = keras.layers.Input(shape=X.shape[1:])
-        aux_clonable_model = keras.models.clone_model(self.base_model,input_tensors=it) #architecture to clone
+        #it = keras.layers.Input(shape=X.shape[1:])
+        aux_clonable_model = keras.models.clone_model(self.base_model)#,input_tensors=it) #architecture to clone
         for run in range(Runs):
             #it = keras.layers.Input(shape=X.shape[1:])
             self.base_model = keras.models.clone_model(aux_clonable_model) #reset-weigths
@@ -445,8 +443,8 @@ class GroupMixtureOpt(object): #change name to Rep
         
         self.betas = found_betas[indexs_sort[0]].copy()
         self.alphas = found_alphas[indexs_sort[0]].copy()
-        #it = keras.layers.Input(shape=X.shape[1:])
-        self.base_model = keras.models.clone_model(aux_clonable_model)#, input_tensors=it)
+        it = keras.layers.Input(shape=X.shape[1:])
+        self.base_model = keras.models.clone_model(aux_clonable_model, input_tensors=it)
         self.base_model.set_weights(found_model[indexs_sort[0]])
         self.E_step(X,self.get_predictions(X)) #to set up Q
         print("Multiples runs over Ours Global, Epochs to converge= ",np.mean(iter_conv))
