@@ -269,6 +269,7 @@ def plot_Mchange(logL_Mchange,
         aux.legend()
     #first some plots
     M_values = range(1,1+len(logL_Mchange))
+    entropy_values = [entropy(value)/np.log(len(value)) for value in probas_Mchange]
     
     aux = math.ceil(len(M_values)/3)
     f,axx = plt.subplots(3,aux,figsize=(15,7))
@@ -293,22 +294,29 @@ def plot_Mchange(logL_Mchange,
         plt.clf() #clf()
         #plot_logL = [L[-1] for L in logL_Mchange]
         plt.figure(figsize=(15,5))
-        plt.plot(M_values,logL_Mchange,label="Log-like final")
+        plt.plot(M_values,logL_Mchange,'o-',label="Log-like final")
         add_plot(plt) #add ticks, x label and legend
         plt.show()
     
     plt.figure(figsize=(15,5))
-    plt.plot(M_values,divergence2_Mchange,label="Divergence JS to real T matrixs")
-    plt.plot(M_values,divergence1_Mchange,label="Divergence weighted JS to real T matrixs")
-    plt.plot(M_values,inertia_Mchange,label="Inertia of M matrixs")
+    plt.plot(M_values,divergence2_Mchange,'o-',label="Divergence JS to real T matrixs")
+    plt.plot(M_values,divergence1_Mchange,'o-',label="Divergence weighted JS to real T matrixs")
+    plt.plot(M_values,inertia_Mchange,'o-',label="Inertia of M matrixs")
     add_plot(plt) #add ticks, x label and legend
     plt.ylim(0)
     plt.show()
 
     plt.figure(figsize=(15,5))
-    plt.plot(M_values,accTR_Mchange,label="Acc training")
-    plt.plot(M_values,accTE_Mchange,label="Acc val")
-    plt.plot(M_values,best_group_acc_Mchange,label="Acc val best group")
+    plt.plot(M_values,accTR_Mchange,'o-',label="Acc training")
+    plt.plot(M_values,accTE_Mchange,'o-',label="Acc val")
+    plt.plot(M_values,best_group_acc_Mchange,'o-',label="Acc val best group")
+    plt.plot(M_values,entropy_values,'o-',label="Entropy of p(g)")
+    add_plot(plt) #add ticks, x label and legend
+    plt.ylim(0,1)
+    plt.show()
+    
+    plt.figure(figsize=(15,5))
+    plt.plot(M_values,entropy_values,'o-',label="Entropy of p(g)")
     add_plot(plt) #add ticks, x label and legend
     plt.ylim(0,1)
     plt.show()
