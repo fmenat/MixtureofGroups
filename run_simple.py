@@ -13,7 +13,7 @@ state_sce = path+"/synthetic/simple/state_simple_s"+str(scenario)+".pickle" #onc
 #state_sce = None
 
 #GLOBAL Variables
-BATCH_SIZE = 128
+BATCH_SIZE = 64 #128
 EPOCHS_BASE = 50
 OPT = 'adam' #optimizer for neural network 
 TOL = 3e-2 #tolerance for relative variation of parameters
@@ -152,10 +152,6 @@ results_ours_global_train = []
 results_ours_global_trainA = []
 results_ours_global_test = []
 results_ours_global_testA = []
-results_ours_global_train2 = []
-results_ours_global_trainA2 = []
-results_ours_global_test2 = []
-results_ours_global_testA2 = []
 
 print("New Synthetic data is being generated...",flush=True,end='')
 if scenario == 3 or scenario==7: #soft
@@ -207,7 +203,7 @@ print("Normalized entropy (0-1) of repeats annotations:",np.mean(aux))
 #annotators_pca = project_and_cluster(y_obs_categorical,DTYPE_OP=DTYPE_OP,printed=False,mode_project="pca")[0]
 #print("Annotators PCA of annotations shape: ",annotators_pca.shape)
 
-for _ in range(10): #repetitions
+for _ in range(20): #repetitions
     ############# EXECUTE ALGORITHMS #############################
     model_mvsoft = clone_model(model_UB) 
     model_mvsoft.compile(loss='categorical_crossentropy',optimizer=OPT)
@@ -260,15 +256,6 @@ for _ in range(10): #repetitions
                                    ,cluster=True)
     Z_train_p_OG = gMixture_Global.base_model.predict(Xstd_train)
     Z_test_p_OG = gMixture_Global.base_model.predict(Xstd_test)
-    
-    gMixture_Global2 = GroupMixtureOpt(Xstd_train.shape[1:],Kl=r_obs.shape[1],M=M_seted,epochs=1,pre_init=0,optimizer=OPT,dtype_op=DTYPE_OP) 
-    gMixture_Global2.define_model("mlp",16,1,BatchN=False,drop=0.2)
-    gMixture_Global2.lambda_random = False #with lambda =1
-    logL_hists,i = gMixture_Global2.multiples_run(20,Xstd_train,r_obs,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL
-                                   ,cluster=True)
-    Z_train_p_OG2 = gMixture_Global2.base_model.predict(Xstd_train)
-    Z_test_p_OG2 = gMixture_Global2.base_model.predict(Xstd_test)
-    
     
     ################## MEASURE PERFORMANCE ##################################
     evaluate = Evaluation_metrics(model_mvsoft,'keras',Xstd_train.shape[0],plot=False)
@@ -364,26 +351,9 @@ for _ in range(10): #repetitions
     results_ours_global_trainA += results1_aux
     results_ours_global_testA.append(results2[0])
     results_ours_global_test.append(results2[1])
-    
-    
-    evaluate = Evaluation_metrics(gMixture_Global2,'our1',plot=False) 
-    aux = gMixture_Global2.calculate_extra_components(Xstd_train,y_obs,T=T,calculate_pred_annotator=True,p_z=Z_train_p_OG2)
-    predictions_m,prob_Gt,prob_Yzt,prob_Yxt =  aux #to evaluate...
-    Z_train_pred_OG2 = Z_train_p_OG2.argmax(axis=-1)
-    results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_OG2,conf_pred=prob_Yzt,conf_true=confe_matrix,y_o=y_obs,yo_pred=prob_Yxt)
-    results1_aux = evaluate.calculate_metrics(y_o=y_obs,yo_pred=prob_Yxt)
-    c_M = gMixture_Global2.get_confusionM()
-    y_o_groups = gMixture_Global2.get_predictions_groups(Xstd_test,data=Z_test_p_OG2).argmax(axis=-1) #obtain p(y^o|x,g=m) and then argmax
-    Z_test_pred_OG2 = Z_test_p_OG2.argmax(axis=-1)
-    results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred_OG2,conf_pred=c_M, y_o_groups=y_o_groups)
-
-    results_ours_global_train2 +=  results1
-    results_ours_global_trainA2 += results1_aux
-    results_ours_global_testA2.append(results2[0])
-    results_ours_global_test2.append(results2[1])
-    
+       
     print("All Performance Measured")
-    del model_mvsoft,model_mvhard,model_ds,raykarMC,gMixture_Global,evaluate,gMixture_Global2
+    del model_mvsoft,model_mvhard,model_ds,raykarMC,gMixture_Global,evaluate
     gc.collect()
     keras.backend.clear_session()
 
@@ -415,11 +385,6 @@ get_mean_dataframes(results_ours_global_train).to_csv("synthetic_OursGlobal_trai
 get_mean_dataframes(results_ours_global_trainA).to_csv("synthetic_OursGlobal_trainAnn_s"+str(scenario)+".csv",index=False)
 get_mean_dataframes(results_ours_global_test).to_csv("synthetic_OursGlobal_test_s"+str(scenario)+".csv",index=False)
 get_mean_dataframes(results_ours_global_testA).to_csv("synthetic_OursGlobal_testAux_s"+str(scenario)+".csv",index=False)
-
-get_mean_dataframes(results_ours_global_train2).to_csv("synthetic_OursGlobal2_train_s"+str(scenario)+".csv",index=False)
-get_mean_dataframes(results_ours_global_trainA2).to_csv("synthetic_OursGlobal2_trainAnn_s"+str(scenario)+".csv",index=False)
-get_mean_dataframes(results_ours_global_test2).to_csv("synthetic_OursGlobal2_test_s"+str(scenario)+".csv",index=False)
-get_mean_dataframes(results_ours_global_testA2).to_csv("synthetic_OursGlobal2_testAux_s"+str(scenario)+".csv",index=False)
 
 print("Execution done in %f mins"%((time.time()-start_time_exec)/60.))
 
