@@ -86,9 +86,8 @@ def clusterize_annotators(y_o,M,no_label=-1,bulk=True,cluster_type='loss',data=[
                 data_to_cluster.append(f_l)  
         data_to_cluster = np.asarray(data_to_cluster)
         #if manny classes or low entropy?
-        #model = PCA(n_components=2) # 2-3-4
-        #data_to_cluster = model.fit_transform(data_to_cluster) #re ejecutar todo con esto
-
+        model = PCA(n_components=min(3,mv_soft.shape[0]) ) # 2-3
+        data_to_cluster = model.fit_transform(data_to_cluster) #re ejecutar todo con esto
         print("Doing clustering...",end='',flush=True)
         probas_t = aux_clusterize(data_to_cluster,M,DTYPE_OP,option,l)
         print("Done!")
@@ -306,6 +305,8 @@ class GroupMixtureOpt(object): #change name to Rep
         Qij_m = self.Qij_mgamma.sum(axis=-1) #qij(m)
         self.alphas = np.tensordot(Qij_m, r , axes=[[0,1],[0,1]]) # sum_ij r_ij(g) = Qij_m[i]*r[i] 
         self.alphas = self.alphas.astype(self.DTYPE_OP) #necessary
+        if self.priors:
+            self.alphas += self.Mpriors #prior here also?
         self.alphas = self.alphas/self.alphas.sum(axis=-1,keepdims=True) #p(g) -- normalize
         
         #-------> beta
@@ -386,7 +387,7 @@ class GroupMixtureOpt(object): #change name to Rep
         """
             A stable schedule to train a model on this formulation
         """
-        self.lambda_random = False #lambda=1
+        #self.lambda_random = False #lambda=1
         self.define_priors('laplace')
         
         if cluster: # do annotator clustering
@@ -407,6 +408,9 @@ class GroupMixtureOpt(object): #change name to Rep
         """
             Run multiples max_iter of EM algorithm, with random stars
         """
+        if Runs==1:
+            return self.stable_train(X,r,batch_size=batch_size,max_iter=max_iter,tolerance=tolerance,cluster=True,bulk_annotators=bulk_annotators), 0
+
         #maybe lamda random here
         self.define_priors('laplace')
         

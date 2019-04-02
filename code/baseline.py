@@ -227,6 +227,8 @@ class RaykarMC(object):
         return logL_hist
     
     def multiples_run(self,Runs,X,y_ann,batch_size=64,max_iter=50,tolerance=1e-2):  #tolerance can change
+        if Runs==1:
+            return self.stable_train(X,y_ann,batch_size=batch_size,max_iter=max_iter,tolerance=tolerance), 0
         self.define_priors('laplace') #cada anotadora dijo al menos una clase
      
         found_betas = []
