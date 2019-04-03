@@ -361,7 +361,7 @@ for _ in range(5): #repetitions --- si se demora mucho bajar a 5
     else: #pred annotator memory error
         aux = gMixture_Global.calculate_extra_components(Xstd_train,y_obs,T=T,calculate_pred_annotator=False,p_z=Z_train_p_OG)
         predictions_m,prob_Gt,prob_Yzt,_ =  aux #to evaluate...
-        results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred,conf_pred=prob_Yzt,conf_true=confe_matrix)      
+        results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_OG,conf_pred=prob_Yzt,conf_true=confe_matrix)      
         results1_aux = [None]    
     c_M = gMixture_Global.get_confusionM()
     y_o_groups = gMixture_Global.get_predictions_groups(Xstd_test,data=Z_test_p_OG).argmax(axis=-1) #obtain p(y^o|x,g=m) and then argmax
