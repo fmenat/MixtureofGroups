@@ -86,8 +86,9 @@ class Evaluation_metrics(object):
         t["F1 (micro)"] = [f1_score(y_true=y_true, y_pred=y_pred, average='micro')]
         sampled_plot = 0
         if len(conf_true) != 0:
-            KLs_founded = calculateKL_matrixs(conf_pred,conf_true)
+            #KLs_founded = calculateKL_matrixs(conf_pred,conf_true)
             JSs_founded = calculateJS_matrixs(conf_pred,conf_true)
+            NormFs_founded = calculateNormF_matrixs(conf_pred,conf_true)
             
             pearson_corr = []
             for m in range(len(conf_pred)):
@@ -102,13 +103,13 @@ class Evaluation_metrics(object):
                     sampled_plot+=1
                     #print("KL divergence: %.4f\tPearson Correlation between diagonals: %.4f"%(KLs_founded[m],pearson_corr[-1]))        
                     #print("JS divergence: %.4f\tPearson Correlation between diagonals: %.4f"%(JSs_founded[m],pearson_corr[-1]))  
-                    print("JS divergence: %.4f\tKL divergence: %.4f"%(JSs_founded[m],KLs_founded[m]))        
+                    print("JS divergence: %.4f\tNorm Frobenius: %.4f"%(JSs_founded[m],NormFs_founded[m]))        
 
-            t["Mean KL"] = np.mean(KLs_founded)
+            t["Mean NormF"] = np.mean(NormFs_founded)
             t["Mean JS"] = np.mean(JSs_founded) 
             #t["Mean PearsCorr"] = np.mean(pearson_corr)
             if len(self.T_weights) != 0:
-                t["Wmean KL"] = np.sum(self.T_weights*KLs_founded)
+                t["Wmean NormF"] = np.sum(self.T_weights*NormFs_founded)
                 t["Wmean JS"] = np.sum(self.T_weights*JSs_founded) 
                 #t["Wmean PearsCorr"] = np.sum(self.T_weights*pearson_corr)
         return t

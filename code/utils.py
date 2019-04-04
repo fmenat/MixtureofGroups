@@ -91,7 +91,19 @@ def calculateJS_matrixs(confs_pred,confs_true):
         return JSs
     else:
         print("ERROR! There are %d real and %d predicted conf matrices"%(M_t,M_p))
-        
+
+def calculateNormF_matrixs(confs_pred,confs_true):
+    M_p = confs_pred.shape[0] #number of matrices on pred
+    M_t = confs_true.shape[0] #number of matrices on true
+    NormFs = np.zeros(M_t)
+    if  M_p == M_t:
+        for m1 in range(M_t):
+            NormFs[m1] = np.sqrt(np.sum((confs_pred[m1]-confs_true[m1])**2))/confs_pred[m1].shape[0]
+            #np.linalg.norm(confs_pred[m1]-confs_true[m1], ord='fro')/confs_pred[m1].shape[0]
+        return NormFs
+    else:
+        print("ERROR! There are %d real and %d predicted conf matrices"%(M_t,M_p))
+
 def compare_conf_mats(pred_conf_mat,true_conf_mat=[]):
     classes = np.arange(pred_conf_mat[0].shape[0])
     sp = plt.subplot(1,2,2)
