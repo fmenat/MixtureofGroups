@@ -8,3 +8,7 @@ python ../../run_simple.py -M 3 -p ../../ -s 5 > result_scenario5.txt
 #python ../../run_simple.py -M 3 -p ../../ -s 6 > result_scenario6.txt
 #python ../../run_simple.py -M 3 -p ../../ -s 7 > result_scenario7.txt
 cd ..
+
+cd LabelMe_norm
+python ../../run_LabelMe.py -M 3 -p ../../LabelMe > result.txt
+cd ..

@@ -203,7 +203,7 @@ print("Normalized entropy (0-1) of repeats annotations:",np.mean(aux))
 #annotators_pca = project_and_cluster(y_obs_categorical,DTYPE_OP=DTYPE_OP,printed=False,mode_project="pca")[0]
 #print("Annotators PCA of annotations shape: ",annotators_pca.shape)
 
-for _ in range(20): #repetitions
+for _ in range(30): #repetitions
     ############# EXECUTE ALGORITHMS #############################
     model_mvsoft = clone_model(model_UB) 
     model_mvsoft.compile(loss='categorical_crossentropy',optimizer=OPT)
@@ -260,7 +260,7 @@ for _ in range(20): #repetitions
     ################## MEASURE PERFORMANCE ##################################
     evaluate = Evaluation_metrics(model_mvsoft,'keras',Xstd_train.shape[0],plot=False)
     evaluate.set_T_weights(T_weights)
-    prob_Yzt = np.tile(confusion_matrix(y_true=Z_train,y_pred=Z_train_pred_mvsoft), (T,1,1) )
+    prob_Yzt = np.tile(normalize(confusion_matrix(y_true=Z_train,y_pred=Z_train_pred_mvsoft),norm='l1'), (T,1,1) )
     results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_mvsoft,conf_pred=prob_Yzt,conf_true=confe_matrix)
     results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred_mvsoft)
     
@@ -269,7 +269,7 @@ for _ in range(20): #repetitions
 
     evaluate = Evaluation_metrics(model_mvhard,'keras',Xstd_train.shape[0],plot=False)
     evaluate.set_T_weights(T_weights)
-    prob_Yzt = np.tile(confusion_matrix(y_true=Z_train,y_pred=Z_train_pred_mvhard), (T,1,1) )
+    prob_Yzt = np.tile(normalize(confusion_matrix(y_true=Z_train,y_pred=Z_train_pred_mvhard),norm='l1'), (T,1,1) )
     results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_mvhard,conf_pred=prob_Yzt,conf_true=confe_matrix)
     results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred_mvhard)
     
