@@ -38,7 +38,7 @@ def aux_clusterize(data_to_cluster,M,DTYPE_OP='float32',option="hard",l=0.005):
         probas_t = keras.utils.to_categorical(kmeans.labels_,num_classes=M)
     return probas_t
             
-def clusterize_annotators(y_o,M,no_label=-1,bulk=True,cluster_type='loss',data=[],model=None,DTYPE_OP='float32',BATCH_SIZE=64,option="hard",l=0.005):
+def clusterize_annotators(y_o,M,no_label=-1,bulk=True,cluster_type='mv_close',data=[],model=None,DTYPE_OP='float32',BATCH_SIZE=64,option="hard",l=0.005):
     start_time = time.time()
     if bulk: #Repeat version 
         if len(y_o.shape) == 2:

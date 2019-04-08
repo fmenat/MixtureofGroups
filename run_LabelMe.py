@@ -32,13 +32,13 @@ elif DTYPE_OP == 'float32':
     keras.backend.set_epsilon(np.finfo(np.float32).eps)
     
 ### Load Data
-Xstd_train = np.load(folder+"/LabelMe_VGG_train.npy")
+Xstd_train = np.load(folder+"/LabelMe_VGG_avg_train.npy")
 Z_train = np.loadtxt(folder+"/LabelMe_Z_train.txt",dtype='int')
 
-Xstd_val = np.load(folder+"/LabelMe_VGG_valid.npy")
+Xstd_val = np.load(folder+"/LabelMe_VGG_avg_valid.npy")
 Z_val = np.loadtxt(folder+"/LabelMe_Z_valid.txt",dtype='int')
 
-Xstd_test = np.load(folder+"/LabelMe_VGG_test.npy")
+Xstd_test = np.load(folder+"/LabelMe_VGG_avg_test.npy")
 Z_test = np.loadtxt(folder+"/LabelMe_Z_test.txt",dtype='int')
 
 print("Input shape:",Xstd_train.shape)
