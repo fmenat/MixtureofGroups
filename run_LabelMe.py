@@ -3,10 +3,12 @@ from optparse import OptionParser
 op = OptionParser()
 op.add_option("-M", "--Ngroups", type=int, default=3, help="number of groups in propose formulation")
 op.add_option("-p", "--path", type="string", default='data/', help="path for data (path/LabelMe_Z_train.....)")
+op.add_option("-v", "--version", type="int", default=1, help="version of annotations (1, 2 or 3)")
 
 (opts, args) = op.parse_args()
 folder = opts.path
 M_seted = opts.Ngroups 
+version = opts.version 
 
 #GLOBAL Variables
 BATCH_SIZE = 64 #128
@@ -99,7 +101,11 @@ def get_mean_dataframes(df_values):
 
 # data from Amazon Mechanical Turk
 print("Loading AMT data...")
-y_obs = np.loadtxt(folder+"/answers.txt",dtype='int16') #not annotation symbol ==-1
+if version == 1:
+    file_annot = "/answers.txt"
+else:
+    file_annot = "/answers_v"+str(version)+".txt"
+y_obs = np.loadtxt(folder+file_annot,dtype='int16') #not annotation symbol ==-1
 T_weights = np.sum(y_obs != -1,axis=0) #distribucion de anotaciones
 
 print("Remove %d annotators that do not annotate on this set "%(np.sum(T_weights==0)))
@@ -144,13 +150,13 @@ start_time = time.time()
 label_I = LabelInference(y_obs,TOL,type_inf = 'all')  #Infer Labels
 print("Representation for Our/MV/D&S in %f mins"%((time.time()-start_time)/60.) )
 
-mv_onehot = label_I.mv_labels('onehot')
-mv_probas = label_I.mv_labels('probas')
+if True: #version == 1 or version ==3:
+    mv_onehot = label_I.mv_labels('onehot')
+    mv_probas = label_I.mv_labels('probas')
+    print("ACC MV on train:",np.mean(mv_onehot.argmax(axis=1)==Z_train))
 
 #Deterministic
 ds_labels, ds_conf = label_I.DS_labels()
-
-print("ACC MV on train:",np.mean(mv_onehot.argmax(axis=1)==Z_train))
 print("ACC D&S on train:",np.mean(ds_labels.argmax(axis=1)==Z_train))
 
 #get representation needed for Raykar
@@ -159,30 +165,34 @@ y_obs_categorical = set_representation(y_obs,'onehot')
 print("shape:",y_obs_categorical.shape)
 print("Representation for Raykar in %f mins"%((time.time()-start_time)/60.) )
 
-#get our global representation 
-r_obs = label_I.y_obs_repeat.copy() #set_representation(y_obs_categorical,"repeat")
-print("vector of repeats:\n",r_obs)
-print("shape:",r_obs.shape)
+if version == 1 or version ==3: #normal
+    #get our global representation 
+    r_obs = label_I.y_obs_repeat.copy() #set_representation(y_obs_categorical,"repeat")
+    print("vector of repeats:\n",r_obs)
+    print("shape:",r_obs.shape)
 
-#analysis
-aux = [entropy(example)/np.log(r_obs.shape[1]) for example in mv_probas]
-print("Normalized entropy (0-1) of repeats annotations:",np.mean(aux))
+    #analysis
+    aux = [entropy(example)/np.log(r_obs.shape[1]) for example in mv_probas]
+    print("Normalized entropy (0-1) of repeats annotations:",np.mean(aux))
 
 for _ in range(30): #repetitions
     ############# EXECUTE ALGORITHMS #############################
-    model_mvsoft = clone_model(model_UB) 
-    model_mvsoft.compile(loss='categorical_crossentropy',optimizer=OPT)
-    hist = model_mvsoft.fit(Xstd_train, mv_probas, epochs=EPOCHS_BASE,batch_size=BATCH_SIZE,verbose=0,callbacks=[ourCallback])
-    print("Trained model over soft-MV, Epochs to converge =",len(hist.epoch))
-    Z_train_pred_mvsoft = model_mvsoft.predict_classes(Xstd_train)
-    Z_test_pred_mvsoft = model_mvsoft.predict_classes(Xstd_test)
-
-    model_mvhard = clone_model(model_UB) 
-    model_mvhard.compile(loss='categorical_crossentropy',optimizer=OPT)
-    hist=model_mvhard.fit(Xstd_train, mv_onehot, epochs=EPOCHS_BASE,batch_size=BATCH_SIZE,verbose=0,callbacks=[ourCallback])
-    print("Trained model over hard-MV, Epochs to converge =",len(hist.epoch))
-    Z_train_pred_mvhard = model_mvhard.predict_classes(Xstd_train)
-    Z_test_pred_mvhard = model_mvhard.predict_classes(Xstd_test)
+    if version == 1 or version == 3:
+        model_mvsoft = clone_model(model_UB) 
+        model_mvsoft.compile(loss='categorical_crossentropy',optimizer=OPT)
+        hist = model_mvsoft.fit(Xstd_train, mv_probas, epochs=EPOCHS_BASE,batch_size=BATCH_SIZE,verbose=0,callbacks=[ourCallback])
+        print("Trained model over soft-MV, Epochs to converge =",len(hist.epoch))
+        Z_train_pred_mvsoft = model_mvsoft.predict_classes(Xstd_train)
+        Z_test_pred_mvsoft = model_mvsoft.predict_classes(Xstd_test)
+        keras.backend.clear_session()
+        
+        model_mvhard = clone_model(model_UB) 
+        model_mvhard.compile(loss='categorical_crossentropy',optimizer=OPT)
+        hist=model_mvhard.fit(Xstd_train, mv_onehot, epochs=EPOCHS_BASE,batch_size=BATCH_SIZE,verbose=0,callbacks=[ourCallback])
+        print("Trained model over hard-MV, Epochs to converge =",len(hist.epoch))
+        Z_train_pred_mvhard = model_mvhard.predict_classes(Xstd_train)
+        Z_test_pred_mvhard = model_mvhard.predict_classes(Xstd_test)
+        keras.backend.clear_session()
 
     model_ds = clone_model(model_UB) 
     model_ds.compile(loss='categorical_crossentropy',optimizer=OPT)
@@ -190,39 +200,43 @@ for _ in range(30): #repetitions
     print("Trained model over D&S, Epochs to converge =",len(hist.epoch))
     Z_train_pred_ds = model_ds.predict_classes(Xstd_train)
     Z_test_pred_ds = model_ds.predict_classes(Xstd_test)
+    keras.backend.clear_session()
     
     raykarMC = RaykarMC(Xstd_train.shape[1:],y_obs_categorical.shape[-1],T,epochs=1,optimizer=OPT,DTYPE_OP=DTYPE_OP)
     raykarMC.define_model("mlp",128,1,BatchN=False,drop=0.5) 
     logL_hists,i_r = raykarMC.multiples_run(20,Xstd_train,y_obs_categorical,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL)
     Z_train_p_Ray = raykarMC.base_model.predict(Xstd_train)
     Z_test_pred_Ray = raykarMC.base_model.predict_classes(Xstd_test)
+    keras.backend.clear_session()
     
-    gMixture_Global = GroupMixtureOpt(Xstd_train.shape[1:],Kl=r_obs.shape[1],M=M_seted,epochs=1,pre_init=0,optimizer=OPT,dtype_op=DTYPE_OP) 
-    gMixture_Global.define_model("mlp",128,1,BatchN=False,drop=0.5)
-    gMixture_Global.lambda_random = True #with lambda random --necessary
-    logL_hists,i = gMixture_Global.multiples_run(20,Xstd_train,r_obs,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL
-                                   ,cluster=True)
-    Z_train_p_OG = gMixture_Global.base_model.predict(Xstd_train)
-    Z_test_p_OG = gMixture_Global.base_model.predict(Xstd_test)
-    
+    if version == 1 or version == 3:
+        gMixture_Global = GroupMixtureOpt(Xstd_train.shape[1:],Kl=r_obs.shape[1],M=M_seted,epochs=1,pre_init=0,optimizer=OPT,dtype_op=DTYPE_OP) 
+        gMixture_Global.define_model("mlp",128,1,BatchN=False,drop=0.5)
+        gMixture_Global.lambda_random = True #with lambda random --necessary
+        logL_hists,i = gMixture_Global.multiples_run(20,Xstd_train,r_obs,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL
+                                       ,cluster=True)
+        Z_train_p_OG = gMixture_Global.base_model.predict(Xstd_train)
+        Z_test_p_OG = gMixture_Global.base_model.predict(Xstd_test)
+        keras.backend.clear_session()
    
     ################## MEASURE PERFORMANCE ##################################
-    evaluate = Evaluation_metrics(model_mvsoft,'keras',Xstd_train.shape[0],plot=False)
-    evaluate.set_T_weights(T_weights)
-    prob_Yzt = np.tile(normalize(confusion_matrix(y_true=Z_train,y_pred=Z_train_pred_mvsoft),norm='l1'), (T,1,1) )
-    results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_mvsoft,conf_pred=prob_Yzt,conf_true=confe_matrix)
-    results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred_mvsoft)
-    results_softmv_train += results1
-    results_softmv_test += results2
+    if version == 1 or version == 3:
+        evaluate = Evaluation_metrics(model_mvsoft,'keras',Xstd_train.shape[0],plot=False)
+        evaluate.set_T_weights(T_weights)
+        prob_Yzt = np.tile(normalize(confusion_matrix(y_true=Z_train,y_pred=Z_train_pred_mvsoft),norm='l1'), (T,1,1) )
+        results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_mvsoft,conf_pred=prob_Yzt,conf_true=confe_matrix)
+        results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred_mvsoft)
+        results_softmv_train += results1
+        results_softmv_test += results2
 
-    evaluate = Evaluation_metrics(model_mvhard,'keras',Xstd_train.shape[0],plot=False)
-    evaluate.set_T_weights(T_weights)
-    prob_Yzt = np.tile(normalize(confusion_matrix(y_true=Z_train,y_pred=Z_train_pred_mvhard),norm='l1'), (T,1,1) )
-    results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_mvhard,conf_pred=prob_Yzt,conf_true=confe_matrix)
-    results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred_mvhard)
-    
-    results_hardmv_train += results1
-    results_hardmv_test += results2
+        evaluate = Evaluation_metrics(model_mvhard,'keras',Xstd_train.shape[0],plot=False)
+        evaluate.set_T_weights(T_weights)
+        prob_Yzt = np.tile(normalize(confusion_matrix(y_true=Z_train,y_pred=Z_train_pred_mvhard),norm='l1'), (T,1,1) )
+        results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_mvhard,conf_pred=prob_Yzt,conf_true=confe_matrix)
+        results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred_mvhard)
+
+        results_hardmv_train += results1
+        results_hardmv_test += results2
 
     evaluate = Evaluation_metrics(model_ds,'keras',Xstd_train.shape[0],plot=False)
     evaluate.set_T_weights(T_weights)
@@ -244,34 +258,36 @@ for _ in range(30): #repetitions
     results_raykar_trainA += results1_aux
     results_raykar_test += results2
     
-    evaluate = Evaluation_metrics(gMixture_Global,'our1',plot=False) 
-    aux = gMixture_Global.calculate_extra_components(Xstd_train,y_obs,T=T,calculate_pred_annotator=True,p_z=Z_train_p_OG)
-    predictions_m,prob_Gt,prob_Yzt,prob_Yxt =  aux #to evaluate...
-    Z_train_pred_OG = Z_train_p_OG.argmax(axis=-1)
-    results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_OG,conf_pred=prob_Yzt,conf_true=confe_matrix,y_o=y_obs,yo_pred=prob_Yxt)
-    results1_aux = evaluate.calculate_metrics(y_o=y_obs,yo_pred=prob_Yxt)
-    c_M = gMixture_Global.get_confusionM()
-    y_o_groups = gMixture_Global.get_predictions_groups(Xstd_test,data=Z_test_p_OG).argmax(axis=-1) #obtain p(y^o|x,g=m) and then argmax
-    Z_test_pred_OG = Z_test_p_OG.argmax(axis=-1)
-    results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred_OG,conf_pred=c_M, y_o_groups=y_o_groups)
+    if version == 1 or version == 3:
+        evaluate = Evaluation_metrics(gMixture_Global,'our1',plot=False) 
+        aux = gMixture_Global.calculate_extra_components(Xstd_train,y_obs,T=T,calculate_pred_annotator=True,p_z=Z_train_p_OG)
+        predictions_m,prob_Gt,prob_Yzt,prob_Yxt =  aux #to evaluate...
+        Z_train_pred_OG = Z_train_p_OG.argmax(axis=-1)
+        results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_OG,conf_pred=prob_Yzt,conf_true=confe_matrix,y_o=y_obs,yo_pred=prob_Yxt)
+        results1_aux = evaluate.calculate_metrics(y_o=y_obs,yo_pred=prob_Yxt)
+        c_M = gMixture_Global.get_confusionM()
+        y_o_groups = gMixture_Global.get_predictions_groups(Xstd_test,data=Z_test_p_OG).argmax(axis=-1) #obtain p(y^o|x,g=m) and then argmax
+        Z_test_pred_OG = Z_test_p_OG.argmax(axis=-1)
+        results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred_OG,conf_pred=c_M, y_o_groups=y_o_groups)
 
-    results_ours_global_train +=  results1
-    results_ours_global_trainA += results1_aux
-    results_ours_global_testA.append(results2[0])
-    results_ours_global_test.append(results2[1])
-    
+        results_ours_global_train +=  results1
+        results_ours_global_trainA += results1_aux
+        results_ours_global_testA.append(results2[0])
+        results_ours_global_test.append(results2[1])
     
     print("All Performance Measured")
-    del model_mvsoft,model_mvhard,model_ds,raykarMC,gMixture_Global,evaluate
+    if version == 1 or version ==3:
+        del gMixture_Global,model_mvsoft,model_mvhard
+    del model_ds,raykarMC,evaluate
     gc.collect()
-    keras.backend.clear_session()
+    
+#plot measures 
+if version == 1 or version == 3:
+    get_mean_dataframes(results_softmv_train).to_csv("LabelMe_softMV_train.csv",index=False)
+    get_mean_dataframes(results_softmv_test).to_csv("LabelMe_softMV_test.csv",index=False)
 
-#plot measures    
-get_mean_dataframes(results_softmv_train).to_csv("LabelMe_softMV_train.csv",index=False)
-get_mean_dataframes(results_softmv_test).to_csv("LabelMe_softMV_test.csv",index=False)
-
-get_mean_dataframes(results_hardmv_train).to_csv("LabelMe_hardMV_train.csv",index=False)
-get_mean_dataframes(results_hardmv_test).to_csv("LabelMe_hardMV_test.csv",index=False)
+    get_mean_dataframes(results_hardmv_train).to_csv("LabelMe_hardMV_train.csv",index=False)
+    get_mean_dataframes(results_hardmv_test).to_csv("LabelMe_hardMV_test.csv",index=False)
 
 get_mean_dataframes(results_ds_train).to_csv("LabelMe_DS_train.csv",index=False)
 get_mean_dataframes(results_ds_test).to_csv("LabelMe_DS_test.csv",index=False)
@@ -280,10 +296,11 @@ get_mean_dataframes(results_raykar_train).to_csv("LabelMe_Raykar_train.csv",inde
 get_mean_dataframes(results_raykar_trainA).to_csv("LabelMe_Raykar_trainAnn.csv",index=False)
 get_mean_dataframes(results_raykar_test).to_csv("LabelMe_Raykar_test.csv",index=False)
 
-get_mean_dataframes(results_ours_global_train).to_csv("LabelMe_OursGlobal_train.csv",index=False)
-get_mean_dataframes(results_ours_global_trainA).to_csv("LabelMe_OursGlobal_trainAnn.csv",index=False)
-get_mean_dataframes(results_ours_global_test).to_csv("LabelMe_OursGlobal_test.csv",index=False)
-get_mean_dataframes(results_ours_global_testA).to_csv("LabelMe_OursGlobal_testAux.csv",index=False)
+if version == 1 or version ==3:
+    get_mean_dataframes(results_ours_global_train).to_csv("LabelMe_OursGlobal_train.csv",index=False)
+    get_mean_dataframes(results_ours_global_trainA).to_csv("LabelMe_OursGlobal_trainAnn.csv",index=False)
+    get_mean_dataframes(results_ours_global_test).to_csv("LabelMe_OursGlobal_test.csv",index=False)
+    get_mean_dataframes(results_ours_global_testA).to_csv("LabelMe_OursGlobal_testAux.csv",index=False)
 
 print("Execution done in %f mins"%((time.time()-start_time_exec)/60.))
 

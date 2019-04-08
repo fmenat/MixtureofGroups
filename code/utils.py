@@ -1,6 +1,6 @@
 from sklearn.metrics import confusion_matrix,f1_score
 from sklearn.preprocessing import normalize
-import itertools, keras, math
+import itertools, keras, math,gc
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
@@ -274,7 +274,8 @@ def plot_Mchange(logL_Mchange,
          divergence1_Mchange,
         divergence2_Mchange,
          probGt_Mchange,
-         inertia_Mchange):
+         inertia_Mchange,
+                best_group=True):
     def add_plot(aux):
         aux.xticks(M_values)
         aux.xlabel("M change")
@@ -312,7 +313,7 @@ def plot_Mchange(logL_Mchange,
     
     plt.figure(figsize=(15,5))
     plt.plot(M_values,divergence2_Mchange,'o-',label="Divergence JS to real T matrixs")
-    plt.plot(M_values,divergence1_Mchange,'o-',label="Divergence weighted JS to real T matrixs")
+    plt.plot(M_values,divergence1_Mchange,'o-',label="Norm F to real T matrixs")
     plt.plot(M_values,inertia_Mchange,'o-',label="Inertia of M matrixs")
     add_plot(plt) #add ticks, x label and legend
     plt.ylim(0)
@@ -321,7 +322,8 @@ def plot_Mchange(logL_Mchange,
     plt.figure(figsize=(15,5))
     plt.plot(M_values,accTR_Mchange,'o-',label="Acc training")
     plt.plot(M_values,accTE_Mchange,'o-',label="Acc val")
-    plt.plot(M_values,best_group_acc_Mchange,'o-',label="Acc val best group")
+    if best_group:
+        plt.plot(M_values,best_group_acc_Mchange,'o-',label="Acc val best group")
     plt.plot(M_values,entropy_values,'o-',label="Entropy of p(g)")
     add_plot(plt) #add ticks, x label and legend
     plt.ylim(0,1)

@@ -245,9 +245,10 @@ class RaykarMC(object):
             found_model.append(self.base_model.get_weights()) #revisar si se resetean los pesos o algo asi..
             found_logL.append(logL_hist)
             iter_conv.append(self.current_iter-1)
+            
             del self.base_model
-            gc.collect()
             keras.backend.clear_session()
+            gc.collect()
         #setup the configuration with maximum log-likelihood
         logL_iter = np.asarray([np.max(a) for a in found_logL])
         indexs_sort = np.argsort(logL_iter)[::-1] 

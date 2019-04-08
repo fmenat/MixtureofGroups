@@ -12,6 +12,7 @@ class Evaluation_metrics(object):
         self.plot = plot
         self.T_weights = []
         self.T = 0
+        self.Gt = []
         
         if self.which == 'our1':
             self.M = class_infered.M
@@ -36,6 +37,9 @@ class Evaluation_metrics(object):
             self.T_weights =  T_weights/ T_weights.sum(axis=0,keepdims=True) #normalize
         else:
             self.T_weights = T_weights.copy()        
+            
+    def set_Gt(self,Gt):
+        self.Gt = Gt.copy()
     
     def calculate_metrics(self,Z=[],Z_pred=[],y_o=[],yo_pred=[],conf_pred=[],conf_true=[],y_o_groups=[]):
         if len(y_o)!=0:
@@ -102,8 +106,11 @@ class Evaluation_metrics(object):
                     compare_conf_mats(conf_pred[m], conf_true[m])
                     sampled_plot+=1
                     #print("KL divergence: %.4f\tPearson Correlation between diagonals: %.4f"%(KLs_founded[m],pearson_corr[-1]))        
-                    #print("JS divergence: %.4f\tPearson Correlation between diagonals: %.4f"%(JSs_founded[m],pearson_corr[-1]))  
-                    print("JS divergence: %.4f\tNorm Frobenius: %.4f"%(JSs_founded[m],NormFs_founded[m]))        
+                    #print("JS divergence: %.4f\tPearson Correlation between diagonals: %.4f"%(JSs_founded[m],pearson_corr[-1])) 
+                    #agregar probabilidad de grupos..
+                    print("JS divergence: %.4f\tNorm Frobenius: %.4f"%(JSs_founded[m],NormFs_founded[m]))   
+                    if len(self.Gt) != 0:
+                        print("Groups probabilities: ",self.Gt[m])
 
             t["Mean NormF"] = np.mean(NormFs_founded)
             t["Mean JS"] = np.mean(JSs_founded) 
