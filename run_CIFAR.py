@@ -211,21 +211,21 @@ elif Tmax< 3000:
 
 for _ in range(5): #repetitions --- si se demora mucho bajar a 5
     ############# EXECUTE ALGORITHMS #############################
-    #model_mvsoft = clone_model(model_UB) 
-    #model_mvsoft.compile(loss='categorical_crossentropy',optimizer=OPT)
-    #hist=model_mvsoft.fit(Xstd_train, mv_probas, epochs=EPOCHS_BASE,batch_size=BATCH_SIZE,verbose=0,callbacks=[ourCallback])
-    #print("Trained model over soft-MV, Epochs to converge =",len(hist.epoch))
-    #Z_train_pred_mvsoft = model_mvsoft.predict_classes(Xstd_train)
-    #Z_test_pred_mvsoft = model_mvsoft.predict_classes(Xstd_test)
-    #keras.backend.clear_session()
+    model_mvsoft = clone_model(model_UB) 
+    model_mvsoft.compile(loss='categorical_crossentropy',optimizer=OPT)
+    hist=model_mvsoft.fit(Xstd_train, mv_probas, epochs=EPOCHS_BASE,batch_size=BATCH_SIZE,verbose=0,callbacks=[ourCallback])
+    print("Trained model over soft-MV, Epochs to converge =",len(hist.epoch))
+    Z_train_pred_mvsoft = model_mvsoft.predict_classes(Xstd_train)
+    Z_test_pred_mvsoft = model_mvsoft.predict_classes(Xstd_test)
+    keras.backend.clear_session()
 
-    #model_mvhard = clone_model(model_UB) 
-    #model_mvhard.compile(loss='categorical_crossentropy',optimizer=OPT)
-    #hist=model_mvhard.fit(Xstd_train, mv_onehot, epochs=EPOCHS_BASE,batch_size=BATCH_SIZE,verbose=0,callbacks=[ourCallback])
-    #print("Trained model over hard-MV, Epochs to converge =",len(hist.epoch))
-    #Z_train_pred_mvhard = model_mvhard.predict_classes(Xstd_train)
-    #Z_test_pred_mvhard = model_mvhard.predict_classes(Xstd_test)
-    #keras.backend.clear_session()
+    model_mvhard = clone_model(model_UB) 
+    model_mvhard.compile(loss='categorical_crossentropy',optimizer=OPT)
+    hist=model_mvhard.fit(Xstd_train, mv_onehot, epochs=EPOCHS_BASE,batch_size=BATCH_SIZE,verbose=0,callbacks=[ourCallback])
+    print("Trained model over hard-MV, Epochs to converge =",len(hist.epoch))
+    Z_train_pred_mvhard = model_mvhard.predict_classes(Xstd_train)
+    Z_test_pred_mvhard = model_mvhard.predict_classes(Xstd_test)
+    keras.backend.clear_session()
     
     if Tmax <3000: #other wise cannot be done
         model_ds = clone_model(model_UB) 
@@ -237,7 +237,7 @@ for _ in range(5): #repetitions --- si se demora mucho bajar a 5
 
         raykarMC = RaykarMC(Xstd_train.shape[1:],y_obs_categorical.shape[-1],T,epochs=1,optimizer=OPT,DTYPE_OP=DTYPE_OP)
         raykarMC.define_model("default cnn")
-        logL_hists,i_r = raykarMC.multiples_run(20,Xstd_train,y_obs_categorical,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL)
+        logL_hists,i_r = raykarMC.multiples_run(15,Xstd_train,y_obs_categorical,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL)
         Z_train_p_Ray = raykarMC.base_model.predict(Xstd_train)
         Z_test_pred_Ray = raykarMC.base_model.predict_classes(Xstd_test)
         keras.backend.clear_session()
@@ -261,30 +261,30 @@ for _ in range(5): #repetitions --- si se demora mucho bajar a 5
     gMixture_Global = GroupMixtureOpt(Xstd_train.shape[1:],Kl=r_obs.shape[1],M=M_seted,epochs=1,pre_init=0,optimizer=OPT,dtype_op=DTYPE_OP) 
     gMixture_Global.define_model("default cnn")
     gMixture_Global.lambda_random = True #with lambda random --necessary
-    logL_hists,i = gMixture_Global.multiples_run(20,Xstd_train,r_obs,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL
+    logL_hists,i = gMixture_Global.multiples_run(15,Xstd_train,r_obs,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL
                                    ,cluster=True)
     Z_train_p_OG = gMixture_Global.base_model.predict(Xstd_train)
     Z_test_p_OG = gMixture_Global.base_model.predict(Xstd_test)
     keras.backend.clear_session()
     
     ################## MEASURE PERFORMANCE ##################################
-    #evaluate = Evaluation_metrics(model_mvsoft,'keras',Xstd_train.shape[0],plot=False)
-    #evaluate.set_T_weights(T_weights)
-    #prob_Yzt = np.tile(normalize(confusion_matrix(y_true=Z_train,y_pred=Z_train_pred_mvsoft),norm='l1'), (T,1,1) )
-    #results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_mvsoft,conf_pred=prob_Yzt,conf_true=confe_matrix)
-    #results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred_mvsoft)
+    evaluate = Evaluation_metrics(model_mvsoft,'keras',Xstd_train.shape[0],plot=False)
+    evaluate.set_T_weights(T_weights)
+    prob_Yzt = np.tile(normalize(confusion_matrix(y_true=Z_train,y_pred=Z_train_pred_mvsoft),norm='l1'), (T,1,1) )
+    results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_mvsoft,conf_pred=prob_Yzt,conf_true=confe_matrix)
+    results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred_mvsoft)
     
-    #results_softmv_train += results1
-    #results_softmv_test += results2
+    results_softmv_train += results1
+    results_softmv_test += results2
 
-    #evaluate = Evaluation_metrics(model_mvhard,'keras',Xstd_train.shape[0],plot=False)
-    #evaluate.set_T_weights(T_weights)
-    #prob_Yzt = np.tile(normalize(confusion_matrix(y_true=Z_train,y_pred=Z_train_pred_mvhard),norm='l1'), (T,1,1) )
-    #results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_mvhard,conf_pred=prob_Yzt,conf_true=confe_matrix)
-    #results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred_mvhard)
+    evaluate = Evaluation_metrics(model_mvhard,'keras',Xstd_train.shape[0],plot=False)
+    evaluate.set_T_weights(T_weights)
+    prob_Yzt = np.tile(normalize(confusion_matrix(y_true=Z_train,y_pred=Z_train_pred_mvhard),norm='l1'), (T,1,1) )
+    results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_mvhard,conf_pred=prob_Yzt,conf_true=confe_matrix)
+    results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred_mvhard)
     
-    #results_hardmv_train += results1
-    #results_hardmv_test += results2
+    results_hardmv_train += results1
+    results_hardmv_test += results2
     
     if Tmax <3000: #other wise cannot be done
         evaluate = Evaluation_metrics(model_ds,'keras',Xstd_train.shape[0],plot=False)
@@ -377,17 +377,17 @@ for _ in range(5): #repetitions --- si se demora mucho bajar a 5
     results_ours_global_test.append(results2[1])
     
     print("All Performance Measured")
-    del gMixture_Global,evaluate #model_mvsoft,model_mvhard
+    del gMixture_Global,evaluate, model_mvsoft,model_mvhard
     if Tmax <3000: #other wise cannot be done
         del model_ds,raykarMC
     gc.collect()
 
 #plot measures    
-#get_mean_dataframes(results_softmv_train).to_csv("simCIFAR_softMV_train_s"+str(scenario)+".csv",index=False)
-#get_mean_dataframes(results_softmv_test).to_csv("simCIFAR_softMV_test_s"+str(scenario)+".csv",index=False)
+get_mean_dataframes(results_softmv_train).to_csv("simCIFAR_softMV_train_s"+str(scenario)+".csv",index=False)
+get_mean_dataframes(results_softmv_test).to_csv("simCIFAR_softMV_test_s"+str(scenario)+".csv",index=False)
 
-#get_mean_dataframes(results_hardmv_train).to_csv("simCIFAR_hardMV_train_s"+str(scenario)+".csv",index=False)
-#get_mean_dataframes(results_hardmv_test).to_csv("simCIFAR_hardMV_test_s"+str(scenario)+".csv",index=False)
+get_mean_dataframes(results_hardmv_train).to_csv("simCIFAR_hardMV_train_s"+str(scenario)+".csv",index=False)
+get_mean_dataframes(results_hardmv_test).to_csv("simCIFAR_hardMV_test_s"+str(scenario)+".csv",index=False)
 
 if Tmax <3000: #other wise cannot be done
     get_mean_dataframes(results_ds_train).to_csv("simCIFAR_DS_train_s"+str(scenario)+".csv",index=False)
