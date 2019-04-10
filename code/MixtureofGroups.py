@@ -267,14 +267,17 @@ class GroupMixtureOpt(object): #change name to Rep
         """
         if type(priors) == str:
             if priors == "laplace":
-                priors = 1
+                self.Apriors = self.Bpriors = 1
             else:
                 print("Prior string do not understand")
                 return
         else:
             if len(priors.shape)==2:
-                priors=np.expand_dims(priors,axis=2)
-        self.Mpriors = priors
+                self.Bpriors = np.expand_dims(priors,axis=2)
+                print("Remember to prior alphas")
+            elif len(priors.shape) == 1: 
+                self.Apriors = priors.copy()
+                print("Remember to prior bethas")
         self.priors = True
         
     def E_step(self,X,predictions):
@@ -302,16 +305,16 @@ class GroupMixtureOpt(object): #change name to Rep
         #-------> alpha 
         Qij_m = self.Qij_mgamma.sum(axis=-1) #qij(m)
         self.alphas = np.tensordot(Qij_m, r , axes=[[0,1],[0,1]]) # sum_ij r_ij(g) = Qij_m[i]*r[i] 
-        self.alphas = self.alphas.astype(self.DTYPE_OP) #necessary
         if self.priors:
-            self.alphas += self.Mpriors #prior here also?
+            self.alphas += self.Apriors
+        self.alphas = self.alphas.astype(self.DTYPE_OP) #necessary
         self.alphas = self.alphas/self.alphas.sum(axis=-1,keepdims=True) #p(g) -- normalize
         
         #-------> beta
         for j_ob in range(self.Kl):
             self.betas[:,:,j_ob] = np.tensordot(self.Qij_mgamma[:,j_ob,:,:],r[:,j_ob], axes=[[0],[0]]) # ~p(yo=j|g,z)              
         if self.priors:
-            self.betas += self.Mpriors #priors has to be shape: (M,Kl,Kl)--read define-prior functio
+            self.betas += self.Bpriors #priors has to be shape: (M,Kl,Kl)--read define-prior functio
         self.betas = self.betas/self.betas.sum(axis=-1,keepdims=True) #normalize (=p(yo|g,z))
 
     def compute_logL(self,r,predictions):
@@ -386,7 +389,8 @@ class GroupMixtureOpt(object): #change name to Rep
             A stable schedule to train a model on this formulation
         """
         #self.lambda_random = False #lambda=1
-        self.define_priors('laplace')
+        if not self.priors:
+            self.define_priors('laplace') #needed..
         
         if cluster: # do annotator clustering
             #if len(bulk_annotators) == 0:
@@ -410,7 +414,8 @@ class GroupMixtureOpt(object): #change name to Rep
             return self.stable_train(X,r,batch_size=batch_size,max_iter=max_iter,tolerance=tolerance,cluster=True,bulk_annotators=bulk_annotators), 0
 
         #maybe lamda random here
-        self.define_priors('laplace')
+        if not self.priors:
+            self.define_priors('laplace') #needed!
         
         if cluster: # do annotator clustering
             alphas_clusterized = clusterize_annotators(r,M=self.M,bulk=False,cluster_type='mv_close',data=X,model=self.base_model,DTYPE_OP=self.DTYPE_OP,BATCH_SIZE=batch_size) #clusteriza en base aloss -- mv_close
