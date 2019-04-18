@@ -205,16 +205,16 @@ for Tmax in to_check:
             keras.backend.clear_session()
 
             raykarMC = RaykarMC(Xstd_train.shape[1:],y_obs_categorical.shape[-1],T,epochs=1,optimizer=OPT,DTYPE_OP=DTYPE_OP)
-            raykarMC.define_model('mlp',16,1,BatchN=False,drop=0.2)
-            logL_hists,i_r = raykarMC.multiples_run(20,Xstd_train,y_obs_categorical,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL)
+            raykarMC.define_model('default cnn')
+            logL_hists,i_r = raykarMC.multiples_run(15,Xstd_train,y_obs_categorical,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL)
             Z_train_p_Ray = raykarMC.base_model.predict(Xstd_train)
             Z_test_pred_Ray = raykarMC.base_model.predict_classes(Xstd_test)
             keras.backend.clear_session()
 
         gMixture_Global = GroupMixtureOpt(Xstd_train.shape[1:],Kl=r_obs.shape[1],M=M_seted,epochs=1,pre_init=0,optimizer=OPT,dtype_op=DTYPE_OP) 
-        gMixture_Global.define_model("mlp",16,1,BatchN=False,drop=0.2)
+        gMixture_Global.define_model("default cnn")
         gMixture_Global.lambda_random = True #with lambda random --necessary
-        logL_hists,i = gMixture_Global.multiples_run(20,Xstd_train,r_obs,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL
+        logL_hists,i = gMixture_Global.multiples_run(15,Xstd_train,r_obs,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL
                                        ,cluster=True)
         Z_train_p_OG = gMixture_Global.base_model.predict(Xstd_train)
         Z_test_p_OG = gMixture_Global.base_model.predict(Xstd_test)
@@ -250,10 +250,14 @@ for Tmax in to_check:
 
             evaluate = Evaluation_metrics(raykarMC,'raykar',plot=False)
             prob_Yzt = raykarMC.get_confusionM()
-            prob_Yxt = raykarMC.get_predictions_annot(Xstd_train,data=Z_train_p_Ray)
             Z_train_pred_Ray = Z_train_p_Ray.argmax(axis=-1)
-            results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_Ray,conf_pred=prob_Yzt,conf_true=confe_matrix,y_o=y_obs,yo_pred=prob_Yxt)
-            results1_aux = evaluate.calculate_metrics(y_o=y_obs,yo_pred=prob_Yxt)
+            if Tmax < 3000:
+                prob_Yxt = raykarMC.get_predictions_annot(Xstd_train,data=Z_train_p_Ray)
+                results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_Ray,conf_pred=prob_Yzt,conf_true=confe_matrix,y_o=y_obs,yo_pred=prob_Yxt)
+                results1_aux = evaluate.calculate_metrics(y_o=y_obs,yo_pred=prob_Yxt)
+            else:
+                results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_Ray,conf_pred=prob_Yzt,conf_true=confe_matrix)
+                results1_aux = [None]
             results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred_Ray)
 
             aux_raykar_train += results1
@@ -262,7 +266,7 @@ for Tmax in to_check:
             
         evaluate = Evaluation_metrics(gMixture_Global,'our1',plot=False)  #no explota
         Z_train_pred_OG = Z_train_p_OG.argmax(axis=-1)
-        if Tmax < 4000:
+        if Tmax < 3000:
             aux = gMixture_Global.calculate_extra_components(Xstd_train,y_obs,T=T,calculate_pred_annotator=True,p_z=Z_train_p_OG)
             predictions_m,prob_Gt,prob_Yzt,prob_Yxt =  aux #to evaluate...
             results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_OG,conf_pred=prob_Yzt,conf_true=confe_matrix,y_o=y_obs,yo_pred=prob_Yxt)
