@@ -84,7 +84,7 @@ def default_RNNw_emb(input_dim,output_dim,len): #len is the length of the vocabu
 
 
 #### idea: tener representaciones de modelos neuronales bases para tipos de problemas
-def CNN_simple(input_dim,output_dim,units,hidden_deep,double=False,BN=False,drop=0.0): #CP
+def CNN_simple(input_dim,output_dim,units,hidden_deep,double=False,BN=False,drop=0.0,dense_units=128): #CP
     model = Sequential() 
     model.add(InputLayer(input_shape=input_dim))
     start_unit = units
@@ -101,7 +101,7 @@ def CNN_simple(input_dim,output_dim,units,hidden_deep,double=False,BN=False,drop
             model.add(Dropout(drop))
         start_unit = start_unit*2
     model.add(Flatten())
-    model.add(Dense(128,activation='relu'))
+    model.add(Dense(dense_units,activation='relu'))
     if BN:
         model.add(BatchNormalization())
     if drop!= 0 and drop != None and drop != False:
