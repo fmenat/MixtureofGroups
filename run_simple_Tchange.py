@@ -138,11 +138,10 @@ for Tmax in to_check:
     GenerateData = SinteticData(state=state_sce) #por la semilla quedan similares..
     #CONFUSION MATRIX CHOOSE
     GenerateData.set_probas(asfile=True,file_matrix=path+'/synthetic/simple/matrix_datasim_normal.csv',file_groups =path+'/synthetic/simple/groups_datasim_normal.csv')
-    #GenerateData.set_probas(asfile=True,file_matrix=path+'/synthetic/simple/matrix_simple_Td5.csv',file_groups =path+'/synthetic/simple/groups_simple_Td5.csv')
     real_conf_matrix = GenerateData.conf_matrix.copy()
 
     print("New Synthetic data is being generated...",flush=True,end='')
-    y_obs, groups_annot = GenerateData.sintetic_annotate_data(Z_train,Tmax,T_data,deterministic=False)
+    y_obs, groups_annot = GenerateData.sintetic_annotate_data(Z_train,Tmax,T_data,deterministic=False,hard=False)
     print("Done! ")
     if len(groups_annot.shape) ==1 or groups_annot.shape[1] ==  1: 
         groups_annot = keras.utils.to_categorical(groups_annot)  #only if it is hard clustering
@@ -156,9 +155,7 @@ for Tmax in to_check:
     print("Classes: ",K)
 
     ############### MV/DS and calculate representations##############################
-    start_time = time.time()
     label_I = LabelInference(y_obs,TOL,type_inf = 'all')  #Infer Labels
-    print("Representation for Our/MV/D&S in %f mins"%((time.time()-start_time)/60.) )
 
     mv_onehot = label_I.mv_labels('onehot')
     mv_probas = label_I.mv_labels('probas')

@@ -15,14 +15,18 @@ class LabelInference(object): #no predictive model
             type_inf = "mv and d&s"
 
         if 'mv' in type_inf.lower() or 'majority voting' in type_inf.lower():
+            start_time = time.time()
             if len(labels.shape) ==2:
                 #self.y_obs_categ = set_representation(labels,'onehot') #for MV
                 self.y_obs_repeat = set_representation(labels,'repeat') #for MV
             else:
                 self.y_obs_categ = labels.copy()
+            print("Representation for MV in %f sec"%(time.time()-start_time))
         if 'd&s' in type_inf.lower() or "dawid" in type_inf.lower():
+            start_time = time.time()
             self.annotations = set_representation(labels,'dawid') #for D&S
-
+            print("Representation for DS in %f sec"%(time.time()-start_time))
+            
         self.Tol = tolerance #tolerance of D&S
         self.type = type_inf
         self.T = labels.shape[1]
@@ -30,8 +34,10 @@ class LabelInference(object): #no predictive model
          
     def mv_labels(self, type_return):
         if not self.calc_MV:
+            start_time = time.time()
             self.mv_probas = majority_voting(self.y_obs_repeat,repeats=True,probas=True) #aka soft-MV
-            self.calc_MV = True            
+            self.calc_MV = True   
+            print("Estimation MV in %f sec"%(time.time()-start_time))
             
         if type_return.lower() == 'probas': 
             return self.mv_probas
@@ -42,8 +48,10 @@ class LabelInference(object): #no predictive model
         
     def DS_labels(self):
         # https://github.com/dallascard/dawid_skene
+        start_time =time.time()
         aux = dawid_skene.run(self.annotations,tol=self.Tol, max_iter=50, init='average')
         (_, _, _, _, class_marginals, error_rates, groundtruth_estimate) = aux
+        print("Estimation for DS in %f sec"%(time.time()-start_time))
         return groundtruth_estimate, error_rates
     
     def train(self):
