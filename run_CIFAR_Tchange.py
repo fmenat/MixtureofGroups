@@ -108,10 +108,10 @@ results_hardmv_test = []
 results_ds_train = []
 results_ds_test = []
 results_raykar_train = []
-results_raykar_trainA = []
+#results_raykar_trainA = []
 results_raykar_test = []
 results_ours_global_train = []
-results_ours_global_trainA = []
+#results_ours_global_trainA = []
 results_ours_global_test = []
 results_ours_global_testA = []
 for Tmax in to_check:
@@ -122,10 +122,10 @@ for Tmax in to_check:
     aux_ds_train = []
     aux_ds_test = []
     aux_raykar_train = []
-    aux_raykar_trainA = []
+    #aux_raykar_trainA = []
     aux_raykar_test = []
     aux_ours_global_train = []
-    aux_ours_global_trainA = []
+    #aux_ours_global_trainA = []
     aux_ours_global_test = []
     aux_ours_global_testA = []
     
@@ -254,14 +254,11 @@ for Tmax in to_check:
             if Tmax < 3000:
                 prob_Yxt = raykarMC.get_predictions_annot(Xstd_train,data=Z_train_p_Ray)
                 results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_Ray,conf_pred=prob_Yzt,conf_true=confe_matrix,y_o=y_obs,yo_pred=prob_Yxt)
-                results1_aux = evaluate.calculate_metrics(y_o=y_obs,yo_pred=prob_Yxt)
             else:
                 results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_Ray,conf_pred=prob_Yzt,conf_true=confe_matrix)
-                results1_aux = [None]
             results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred_Ray)
 
             aux_raykar_train += results1
-            aux_raykar_trainA += results1_aux
             aux_raykar_test += results2
             
         evaluate = Evaluation_metrics(gMixture_Global,'our1',plot=False)  #no explota
@@ -270,19 +267,16 @@ for Tmax in to_check:
             aux = gMixture_Global.calculate_extra_components(Xstd_train,y_obs,T=T,calculate_pred_annotator=True,p_z=Z_train_p_OG)
             predictions_m,prob_Gt,prob_Yzt,prob_Yxt =  aux #to evaluate...
             results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_OG,conf_pred=prob_Yzt,conf_true=confe_matrix,y_o=y_obs,yo_pred=prob_Yxt)
-            results1_aux = evaluate.calculate_metrics(y_o=y_obs,yo_pred=prob_Yxt)
         else: #pred annotator memory error
             aux = gMixture_Global.calculate_extra_components(Xstd_train,y_obs,T=T,calculate_pred_annotator=False,p_z=Z_train_p_OG)
             predictions_m,prob_Gt,prob_Yzt,_ =  aux #to evaluate...
             results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_OG,conf_pred=prob_Yzt,conf_true=confe_matrix)      
-            results1_aux = [None]    
         c_M = gMixture_Global.get_confusionM()
         y_o_groups = gMixture_Global.get_predictions_groups(Xstd_test,data=Z_test_p_OG).argmax(axis=-1) #obtain p(y^o|x,g=m) and then argmax
         Z_test_pred_OG = Z_test_p_OG.argmax(axis=-1)
         results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred_OG,conf_pred=c_M, y_o_groups=y_o_groups)
 
         aux_ours_global_train +=  results1
-        aux_ours_global_trainA += results1_aux
         aux_ours_global_testA.append(results2[0])
         aux_ours_global_test.append(results2[1])
 
@@ -301,16 +295,13 @@ for Tmax in to_check:
         results_ds_train.append(get_mean_dataframes(aux_ds_train))
         results_ds_test.append(get_mean_dataframes(aux_ds_test))
         results_raykar_train.append(get_mean_dataframes(aux_raykar_train))
-        results_raykar_trainA.append(get_mean_dataframes(aux_raykar_trainA))
         results_raykar_test.append(get_mean_dataframes(aux_raykar_test))
     else:
         results_ds_train.append(np.nan)
         results_ds_test.append(np.nan)
         results_raykar_train.append(np.nan)
-        results_raykar_trainA.append(np.nan)
         results_raykar_test.append(np.nan)
     results_ours_global_train.append(get_mean_dataframes(aux_ours_global_train))
-    results_ours_global_trainA.append(get_mean_dataframes(aux_ours_global_trainA))
     results_ours_global_test.append(get_mean_dataframes(aux_ours_global_test))
     results_ours_global_testA.append(get_mean_dataframes(aux_ours_global_testA))
     gc.collect()
@@ -330,14 +321,10 @@ with open('synthetic_DS_test.pickle', 'wb') as handle:
     pickle.dump(results_ds_test, handle, protocol=pickle.HIGHEST_PROTOCOL)
 with open('synthetic_Raykar_train.pickle', 'wb') as handle:
     pickle.dump(results_raykar_train, handle, protocol=pickle.HIGHEST_PROTOCOL)
-with open('synthetic_Raykar_trainAnn.pickle', 'wb') as handle:
-    pickle.dump(results_raykar_trainA, handle, protocol=pickle.HIGHEST_PROTOCOL)
 with open('synthetic_Raykar_test.pickle', 'wb') as handle:
     pickle.dump(results_raykar_test, handle, protocol=pickle.HIGHEST_PROTOCOL)
 with open('synthetic_OursGlobal_train.pickle', 'wb') as handle:
     pickle.dump(results_ours_global_train, handle, protocol=pickle.HIGHEST_PROTOCOL)
-with open('synthetic_OursGlobal_trainAnn.pickle', 'wb') as handle:
-    pickle.dump(results_ours_global_trainA, handle, protocol=pickle.HIGHEST_PROTOCOL)
 with open('synthetic_OursGlobal_test.pickle', 'wb') as handle:
     pickle.dump(results_ours_global_test, handle, protocol=pickle.HIGHEST_PROTOCOL)
 with open('synthetic_OursGlobal_testAux.pickle', 'wb') as handle:
