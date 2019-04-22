@@ -28,6 +28,8 @@ References:
 ( Dawid and Skene (1979). Maximum Likelihood Estimation of Observer
 Error-Rates Using the EM Algorithm. Journal of the Royal Statistical Society.
 Series C (Applied Statistics), Vol. 28, No. 1, pp. 20-28. 
+
+https://github.com/ipeirotis/Get-Another-Label
 """
 
 import numpy as np
