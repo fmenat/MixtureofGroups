@@ -170,7 +170,7 @@ class GroupMixtureOpt(object): #change name to Rep
         """Get Q estimation param, this is Q_ij(g,z) = p(g,z|xi,y=j)"""
         return self.Qij_mgamma.copy()
         
-    def define_model(self,tipo,start_units=1,deep=1,double=False,drop=0.0,embed=True,BatchN=True):
+    def define_model(self,tipo,start_units=1,deep=1,double=False,drop=0.0,embed=True,BatchN=True,h_units=128):
         """Define the base model and other structures"""
         self.type = tipo.lower()     
         if self.type == "keras_shallow" or 'perceptron' in self.type: 
@@ -195,7 +195,7 @@ class GroupMixtureOpt(object): #change name to Rep
 
         elif self.type=='simplecnn' or self.type=='simple cnn' or 'cnn' in self.type:
             print("Needed params (units,deep,drop,double?,BatchN?)") #default activation is relu
-            self.base_model = CNN_simple(self.input_dim,self.Kl,start_units,deep,double=double,BN=BatchN,drop=drop)
+            self.base_model = CNN_simple(self.input_dim,self.Kl,start_units,deep,double=double,BN=BatchN,drop=drop,dense_units=h_units)
         
         elif self.type=='simplernn' or self.type=='simple rnn' or 'rnn' in self.type:
             print("Needed params (units,deep,drop,embed?)")

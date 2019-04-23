@@ -131,7 +131,7 @@ for Tmax in to_check:
     
     GenerateData = SinteticData(state=state_sce) #por la semilla quedan similares..
     #CONFUSION MATRIX CHOOSE
-    GenerateData.set_probas(asfile=True,file_matrix=path+'/synthetic/CIFAR/matrix_CIFAR_Td3.csv',file_groups =path+'/synthetic/CIFAR/groups_CIFAR_Td3.csv')
+    GenerateData.set_probas(asfile=True,file_matrix=path+'/synthetic/CIFAR/matrix_CIFAR_Td3_v2.csv',file_groups =path+'/synthetic/CIFAR/groups_CIFAR_Td3_v2.csv') #mejor acc mv
     real_conf_matrix = GenerateData.conf_matrix.copy()
 
     print("New Synthetic data is being generated...",flush=True,end='')

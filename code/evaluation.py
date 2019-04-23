@@ -10,6 +10,7 @@ class Evaluation_metrics(object):
     def __init__(self,class_infered,which='our1',N=None,plot=True):
         self.which=which
         self.plot = plot
+        self.labels_plot = []
         self.T_weights = []
         self.T = 0
         self.Gt = []
@@ -200,7 +201,9 @@ class Evaluation_metrics(object):
         spammer_score =[]
         for m in range(self.M):
             if plot:
-                plot_confusion_matrix(conf_matrixs[m], np.arange(conf_matrixs[m].shape[0]),title="Group "+str(m),text=False)
+                if len(self.labels_plot) == 0:
+                    self.labels_plot = np.arange(conf_matrixs[m].shape[0])
+                plot_confusion_matrix(conf_matrixs[m],self.labels_plot,title="Group "+str(m),text=False)
             #New Instrisic measure
             entropies.append(Entropy_confmatrix(conf_matrixs[m]))
             mean_diagional.append(calculate_diagional_mean(conf_matrixs[m]))
