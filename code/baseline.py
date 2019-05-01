@@ -4,6 +4,7 @@ from keras.models import clone_model
 from .learning_models import LogisticRegression_Sklearn,LogisticRegression_Keras,MLP_Keras
 from .learning_models import default_CNN,default_RNN,default_RNNw_emb,CNN_simple, RNN_simple #deep learning
 from .representation import *
+from .utils import generate_confusionM
 from . import dawid_skene 
 
 class LabelInference(object): #no predictive model
@@ -40,11 +41,16 @@ class LabelInference(object): #no predictive model
             print("Estimation MV in %f sec"%(time.time()-start_time))
             
         if type_return.lower() == 'probas': 
-            return self.mv_probas
+            prob_Yz = generate_confusionM(self.mv_probas, self.y_obs_repeat) #confusion matrix of all annotators
+            return self.mv_probas, prob_Yz
         elif type_return.lower() == "classes":
-            return self.mv_probas.argmax(axis=1)
+            to_return = self.mv_probas.argmax(axis=-1)
+            prob_Yz = generate_confusionM(to_return, self.y_obs_repeat) #confusion matrix of all annotators
+            return to_return, prob_Yz
         elif type_return.lower() == 'onehot' or type_return.lower() == 'one-hot': #also known as hard-MV
-            return keras.utils.to_categorical(self.mv_probas.argmax(axis=1))        
+            to_return = self.mv_probas.argmax(axis=-1)
+            prob_Yz = generate_confusionM(to_return, self.y_obs_repeat) #confusion matrix of all annotators
+            return keras.utils.to_categorical(to_return), prob_Yz        
         
     def DS_labels(self):
         # https://github.com/dallascard/dawid_skene

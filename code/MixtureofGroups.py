@@ -495,6 +495,10 @@ class GroupMixtureOpt(object): #change name to Rep
         gc.collect()
         return predictions_m, prob_Gt, prob_Yzt, prob_Yxt
     
+    def calculate_Yz(self):
+        """ Calculate global confusion matrix"""
+        return np.sum(self.betas*self.alphas[:,None,None],axis=0)
+    
     def get_annotator_reliability(self,y_o,X,t):
         """Get annotator reliability, based on his annotations:"""        
         prob_Gt = annotations_2_group(self,y_o[:,t],data=X)

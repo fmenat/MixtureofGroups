@@ -162,7 +162,7 @@ print("Done! ")
 
 if len(groups_annot.shape) ==1 or groups_annot.shape[1] ==  1: 
     groups_annot = keras.utils.to_categorical(groups_annot)  #only if it is hard clustering
-confe_matrix = np.tensordot(groups_annot,real_conf_matrix, axes=[[1],[0]])
+confe_matrix_R = np.tensordot(groups_annot,real_conf_matrix, axes=[[1],[0]])
 T_weights = np.sum(y_obs != -1,axis=0)
 
 N,T = y_obs.shape
@@ -175,8 +175,9 @@ start_time = time.time()
 label_I = LabelInference(y_obs,TOL,type_inf = 'all')  #Infer Labels
 print("Representation for Our/MV/D&S in %f mins"%((time.time()-start_time)/60.) )
 
-mv_onehot = label_I.mv_labels('onehot')
-mv_probas = label_I.mv_labels('probas')
+mv_probas, mv_conf_probas = label_I.mv_labels('probas')
+mv_onehot, mv_conf_onehot = label_I.mv_labels('onehot')
+confe_matrix_G = get_Global_confusionM(Z_train,label_I.y_obs_repeat)
 
 #Deterministic
 ds_labels, ds_conf = label_I.DS_labels()
@@ -260,8 +261,9 @@ for _ in range(30): #repetitions
     ################## MEASURE PERFORMANCE ##################################
     evaluate = Evaluation_metrics(model_mvsoft,'keras',Xstd_train.shape[0],plot=False)
     evaluate.set_T_weights(T_weights)
-    prob_Yzt = np.tile(normalize(confusion_matrix(y_true=Z_train,y_pred=Z_train_pred_mvsoft),norm='l1'), (T,1,1) )
-    results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_mvsoft,conf_pred=prob_Yzt,conf_true=confe_matrix)
+    prob_Yzt = np.tile( mv_conf_probas, (Tmax,1,1) )
+    results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_mvsoft,conf_pred=prob_Yzt,conf_true=confe_matrix_R,
+                                     conf_true_G =confe_matrix_G, conf_pred_G = mv_conf_probas)
     results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred_mvsoft)
     
     results_softmv_train += results1
@@ -269,8 +271,9 @@ for _ in range(30): #repetitions
 
     evaluate = Evaluation_metrics(model_mvhard,'keras',Xstd_train.shape[0],plot=False)
     evaluate.set_T_weights(T_weights)
-    prob_Yzt = np.tile(normalize(confusion_matrix(y_true=Z_train,y_pred=Z_train_pred_mvhard),norm='l1'), (T,1,1) )
-    results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_mvhard,conf_pred=prob_Yzt,conf_true=confe_matrix)
+    prob_Yzt = np.tile( mv_conf_onehot, (Tmax,1,1) )
+    results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_mvhard,conf_pred=prob_Yzt,conf_true=confe_matrix_R,
+                                     conf_true_G =confe_matrix_G, conf_pred_G = mv_conf_onehot)
     results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred_mvhard)
     
     results_hardmv_train += results1
@@ -278,7 +281,8 @@ for _ in range(30): #repetitions
 
     evaluate = Evaluation_metrics(model_ds,'keras',Xstd_train.shape[0],plot=False)
     evaluate.set_T_weights(T_weights)
-    results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_ds,conf_pred=ds_conf,conf_true=confe_matrix)
+    results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_ds,conf_pred=ds_conf,conf_true=confe_matrix_R,
+                                     conf_true_G =confe_matrix_G, conf_pred_G = ds_conf.mean(axis=0))
     results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred_ds)
     
     results_ds_train += results1
@@ -288,7 +292,8 @@ for _ in range(30): #repetitions
     prob_Yzt = raykarMC.get_confusionM()
     prob_Yxt = raykarMC.get_predictions_annot(Xstd_train,data=Z_train_p_Ray)
     Z_train_pred_Ray = Z_train_p_Ray.argmax(axis=-1)
-    results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_Ray,conf_pred=prob_Yzt,conf_true=confe_matrix,y_o=y_obs,yo_pred=prob_Yxt)
+    results = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_Ray,conf_pred=prob_Yzt,conf_true=confe_matrix_R,
+                                     y_o=y_obs,yo_pred=prob_Yxt,conf_true_G =confe_matrix_G, conf_pred_G = prob_Yzt.mean(axis=0))
     results1_aux = evaluate.calculate_metrics(y_o=y_obs,yo_pred=prob_Yxt)
     results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred_Ray)
     
@@ -339,8 +344,11 @@ for _ in range(30): #repetitions
     evaluate = Evaluation_metrics(gMixture_Global,'our1',plot=False) 
     aux = gMixture_Global.calculate_extra_components(Xstd_train,y_obs,T=T,calculate_pred_annotator=True,p_z=Z_train_p_OG)
     predictions_m,prob_Gt,prob_Yzt,prob_Yxt =  aux #to evaluate...
+    prob_Yz = gMixture_Global.calculate_Yz()
     Z_train_pred_OG = Z_train_p_OG.argmax(axis=-1)
-    results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_OG,conf_pred=prob_Yzt,conf_true=confe_matrix,y_o=y_obs,yo_pred=prob_Yxt)
+    results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_OG,conf_pred=prob_Yzt,conf_true=confe_matrix_R,
+                                          y_o=y_obs,yo_pred=prob_Yxt,
+                                         conf_true_G =confe_matrix_G, conf_pred_G = prob_Yz)
     results1_aux = evaluate.calculate_metrics(y_o=y_obs,yo_pred=prob_Yxt)
     c_M = gMixture_Global.get_confusionM()
     y_o_groups = gMixture_Global.get_predictions_groups(Xstd_test,data=Z_test_p_OG).argmax(axis=-1) #obtain p(y^o|x,g=m) and then argmax

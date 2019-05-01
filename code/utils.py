@@ -14,6 +14,22 @@ def get_confusionM(pred,y_ann):
     aux = np.tensordot(pred, y_ann, axes=[[0],[0]]).transpose(1,0,2)
     return aux/np.sum(aux, axis=-1)[:,:,None] #normalize
 
+
+def get_Global_confusionM(Z_data,y_ann):
+    """ This function calculate the confusion matrix amongs all the annotations for every data. """    
+    if len(Z_data.shape) == 2:
+        aux = np.tensordot(Z_data, y_ann, axes=[[0],[0]])
+    elif len(Z_data.shape) ==1:
+        aux = np.tensordot(keras.utils.to_categorical(Z_data), y_ann, axes=[[0],[0]])
+    
+    if len(aux.shape) == 3: #if y_obs_categorical is delivered
+        aux = aux.sum(axis=1)
+    return aux/aux.sum(axis=-1,keepdims=True) #normalize
+
+def generate_confusionM(pred_Z, y_ann):
+    """ Generate confusion matrix of models that do not model, MV for example """
+    return get_Global_confusionM(pred_Z, y_ann)
+
 def plot_confusion_matrix(conf, classes,title="Estimated",text=True):
     """
     This function prints and plots the confusion matrix.
@@ -22,7 +38,7 @@ def plot_confusion_matrix(conf, classes,title="Estimated",text=True):
     plt.imshow(conf, interpolation='nearest', cmap=cm.YlOrRd)
     plt.colorbar()
     tick_marks = np.arange(len(classes))
-    plt.xticks(tick_marks, classes, rotation=45)
+    plt.xticks(tick_marks, tick_marks) #classes, rotation=45)
     plt.yticks(tick_marks, classes)
     thresh = conf.max() / 2.
     if text:
@@ -31,7 +47,7 @@ def plot_confusion_matrix(conf, classes,title="Estimated",text=True):
                      horizontalalignment="center",
                      color="white" if conf[i, j] > thresh else "black")
     plt.ylabel('True label')
-    plt.xlabel('Predicted label')
+    plt.xlabel('Observed label')
     plt.title(title)
     plt.tight_layout()
     plt.show()
@@ -54,12 +70,20 @@ def softmax(Xs):
         values.append(e_x / e_x.sum())
     return np.asarray(values)
 
-def distance_2_centroid(matrixs):
+def calculate_inertiaM_JS(matrixs):
     """ Calculate inertia of all the confusion matrixs, based on Jensen-Shannon Divergence"""
     value = []
     for m1 in range(matrixs.shape[0]):
         for m2 in range(m1+1,matrixs.shape[0]):
             value.append(JS_confmatrixs(matrixs[m1],matrixs[m2]))
+    return np.mean(value)
+
+def calculate_inertiaM_NormF(matrixs):
+    """ Calculate inertia of all the confusion matrixs, based on Norm Frobenius between diference"""
+    value = []
+    for m1 in range(matrixs.shape[0]):
+        for m2 in range(m1+1,matrixs.shape[0]):
+            value.append(NormF_confmatrixs(matrixs[m1],matrixs[m2]))
     return np.mean(value)
 
 def calculate_diagional_mean(conf_matrix): #weight?
@@ -98,7 +122,7 @@ def calculateNormF_matrixs(confs_pred,confs_true):
     NormFs = np.zeros(M_t)
     if  M_p == M_t:
         for m1 in range(M_t):
-            NormFs[m1] = np.sqrt(np.sum((confs_pred[m1]-confs_true[m1])**2))/confs_pred[m1].shape[0]
+            NormFs[m1] = NormF_confmatrixs(confs_pred[m1],confs_true[m1])
             #np.linalg.norm(confs_pred[m1]-confs_true[m1], ord='fro')/confs_pred[m1].shape[0]
         return NormFs
     else:
@@ -109,7 +133,7 @@ def compare_conf_mats(pred_conf_mat,true_conf_mat=[]):
     sp = plt.subplot(1,2,2)
     plt.imshow(pred_conf_mat, interpolation='nearest', cmap=cm.YlOrRd)
     plt.title("Estimated")
-    plt.xticks(np.arange(len(classes)), classes, rotation=45)
+    plt.xticks(np.arange(len(classes)), classes)
     plt.yticks(np.arange(len(classes)), classes)
     #plt.ylabel('True label')
     #plt.xlabel('Predicted label')
@@ -119,10 +143,10 @@ def compare_conf_mats(pred_conf_mat,true_conf_mat=[]):
 	    sp1 = plt.subplot(1,2,1)
 	    plt.imshow(true_conf_mat, interpolation='nearest', cmap=cm.YlOrRd)
 	    plt.title("True")
-	    plt.xticks(np.arange(len(classes)), classes, rotation=45)
+	    plt.xticks(np.arange(len(classes)), classes)
 	    plt.yticks(np.arange(len(classes)), classes)
 	    #plt.ylabel('True label')
-	    #plt.xlabel('Predicted label')
+	    #plt.xlabel('Observed label')
 	    plt.tight_layout()
     plt.show()
 
@@ -143,6 +167,9 @@ def JS_confmatrixs(conf_pred,conf_true):
     aux = 0.5*conf_pred + 0.5*conf_true
     return (0.5*KL_confmatrixs(aux,conf_pred) + 0.5*KL_confmatrixs(aux,conf_true))/np.log(2) #value between 0 and 1
     
+def NormF_confmatrixs(conf_pred,conf_true):
+    distance = conf_pred-conf_true
+    return np.sqrt(np.sum(distance**2))/distance.shape[0]
     
 def Entropy_confmatrix(conf_ma):
     """

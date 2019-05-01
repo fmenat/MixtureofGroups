@@ -6,6 +6,13 @@ import pandas as pd
 import numpy as np
 from .utils import *
 
+def run_from_ipython():
+    try:
+        __IPYTHON__
+        return True
+    except NameError:
+        return False
+
 class Evaluation_metrics(object):
     def __init__(self,class_infered,which='our1',N=None,plot=True):
         self.which=which
@@ -19,18 +26,16 @@ class Evaluation_metrics(object):
             self.M = class_infered.M
             self.N = class_infered.N
             self.Kl = class_infered.Kl
-            #self.tested_model = class_infered.base_model
             self.probas_group = class_infered.get_alpha()
             
         elif self.which == 'keras':
             self.Kl = class_infered.output_shape[-1]
             self.N = N
-            #self.tested_model = class_infered
+            
         elif self.which == 'raykar':
             self.T = class_infered.T
             self.N = class_infered.N
             self.Kl = class_infered.Kl
-            #self.tested_model = class_infered.base_model
         #and what about raykar or anothers
     
     def set_T_weights(self,T_weights):
@@ -42,7 +47,7 @@ class Evaluation_metrics(object):
     def set_Gt(self,Gt):
         self.Gt = Gt.copy()
     
-    def calculate_metrics(self,Z=[],Z_pred=[],y_o=[],yo_pred=[],conf_pred=[],conf_true=[],y_o_groups=[]):
+    def calculate_metrics(self,Z=[],Z_pred=[],y_o=[],yo_pred=[],conf_pred=[],conf_true=[],y_o_groups=[],conf_pred_G=[],conf_true_G=[]):
         if len(y_o)!=0:
             self.T = y_o.shape[1] #es util para estimar el peso de anotadores
             if len(self.T_weights) == 0:
@@ -66,7 +71,7 @@ class Evaluation_metrics(object):
                     to_return = [] #clean
                 to_return.append(t_aux)
                 
-            t = self.report_results(Z_pred, Z, conf_pred, conf_true,self.plot)
+            t = self.report_results(Z_pred, Z, conf_pred, conf_true,self.plot,conf_pred_G,conf_true_G)
             if len(y_o) != 0 and len(yo_pred)!= 0: #if we have annotations and GT: maybe training set
                 t = self.rmse_accuracies(Z, y_o, yo_pred,dataframe=t) #calculate and append on "t" rmse
             to_return.append(t)
@@ -77,20 +82,26 @@ class Evaluation_metrics(object):
                 
         if self.plot:         
             for table in to_return:
-                print("A result\n",tabulate(table, headers='keys', tablefmt='rst'))
+                if run_from_ipython:
+                    from IPython.display import display, HTML
+                    print("A result")
+                    display(table)
+                else:
+                    print("A result\n",tabulate(table, headers='keys', tablefmt='rst'))
         return to_return
          
-    def report_results(self,y_pred,y_true,conf_pred=[],conf_true=[],plot=True):
+    def report_results(self,y_pred,y_true,conf_pred=[],conf_true=[],plot=True,conf_pred_G=[],conf_true_G=[]):
         """
             *Calculate metrics related to model and to confusion matrixs
             Needed: ground truth, for confusion matrix need annotations.
         """
         t = pd.DataFrame()#Table()
-        t[""] = ["Global"]
+        t[""] = ["All"]
         t["Accuracy"] = [accuracy_score(y_true,y_pred)]
         t["F1 (micro)"] = [f1_score(y_true=y_true, y_pred=y_pred, average='micro')]
         sampled_plot = 0
         if len(conf_true) != 0:
+            print("Calculate confusion matrix on repeat version")
             #KLs_founded = calculateKL_matrixs(conf_pred,conf_true)
             JSs_founded = calculateJS_matrixs(conf_pred,conf_true)
             NormFs_founded = calculateNormF_matrixs(conf_pred,conf_true)
@@ -108,18 +119,27 @@ class Evaluation_metrics(object):
                     sampled_plot+=1
                     #print("KL divergence: %.4f\tPearson Correlation between diagonals: %.4f"%(KLs_founded[m],pearson_corr[-1]))        
                     #print("JS divergence: %.4f\tPearson Correlation between diagonals: %.4f"%(JSs_founded[m],pearson_corr[-1])) 
-                    #agregar probabilidad de grupos..
                     print("JS divergence: %.4f\tNorm Frobenius: %.4f"%(JSs_founded[m],NormFs_founded[m]))   
                     if len(self.Gt) != 0:
                         print("Groups probabilities: ",self.Gt[m])
 
-            t["Mean NormF"] = np.mean(NormFs_founded)
-            t["Mean JS"] = np.mean(JSs_founded) 
+            t["(R) NormF mean"] = np.mean(NormFs_founded)
+            t["(R) JS mean"] = np.mean(JSs_founded) 
             #t["Mean PearsCorr"] = np.mean(pearson_corr)
             if len(self.T_weights) != 0:
-                t["Wmean NormF"] = np.sum(self.T_weights*NormFs_founded)
-                t["Wmean JS"] = np.sum(self.T_weights*JSs_founded) 
+                t["(R) NormF w"] = np.sum(self.T_weights*NormFs_founded)
+                t["(R) JS w"] = np.sum(self.T_weights*JSs_founded) 
                 #t["Wmean PearsCorr"] = np.sum(self.T_weights*pearson_corr)
+        if len(conf_true_G) != 0:
+            print("Calculate confusion matrix on global version")
+            JSs_founded = JS_confmatrixs(conf_pred_G,conf_true_G)
+            NormFs_founded = NormF_confmatrixs(conf_pred_G,conf_true_G)
+ 
+            if plot:
+                compare_conf_mats(conf_pred_G, conf_true_G)
+                print("JS divergence: %.4f\tNorm Frobenius: %.4f"%(JSs_founded,NormFs_founded))   
+            t["(G) NormF"] = NormFs_founded
+            t["(G) JS"] = JSs_founded
         return t
 
     def rmse_accuracies(self,Z_argmax,y_o,yo_pred,dataframe=None): 
@@ -142,9 +162,9 @@ class Evaluation_metrics(object):
 
             rmse_results.append(np.sqrt(np.mean(np.square(acc_annot_real- acc_annot_pred ))))
         rmse_results = np.asarray(rmse_results)
-        dataframe["Mean RMSE"] = np.mean(rmse_results)
+        dataframe["RMSE mean"] = np.mean(rmse_results)
         if len(self.T_weights) != 0:
-            dataframe["Wmean RMSE"] = np.sum(self.T_weights*rmse_results)
+            dataframe["RMSE w"] = np.sum(self.T_weights*rmse_results)
         return dataframe
     
     def report_results_wt_GT(self,y_o,yo_pred): #new
@@ -165,11 +185,11 @@ class Evaluation_metrics(object):
             else:
                 accuracy = accuracy_score(t_annotations, prob_data)
             metric_acc.append(accuracy)
-        DT["Mean ACC imiting Annot"] = [np.mean(metric_acc)]
-        DT["Mean cross-entropy"] = [np.mean(metric_CE)]
+        DT["ACC imiting Annot mean"] = [np.mean(metric_acc)]
+        DT["Cross-entropy mean"] = [np.mean(metric_CE)]
         if len(self.T_weights) != 0:
-            DT["Wmean ACC imiting Annot"] = [np.sum(self.T_weights*metric_acc)]
-            DT["wMean cross entropy"] = [np.sum(self.T_weights*metric_CE)]
+            DT["ACC imiting Annot wmean"] = [np.sum(self.T_weights*metric_acc)]
+            DT["Cross entropy wmean"] = [np.sum(self.T_weights*metric_CE)]
         return DT
             
      
@@ -209,22 +229,27 @@ class Evaluation_metrics(object):
             mean_diagional.append(calculate_diagional_mean(conf_matrixs[m]))
             spammer_score.append(calculate_spamm_score(conf_matrixs[m]))
             
-        t["Groups"] = np.arange(len(conf_matrixs))
+        t["Groups"] = np.arange(self.M)
         if len(self.probas_group) != 0:
             t["Prob"] = self.probas_group
             if self.T != 0:
                 t["T(g)"] = list(map(int,self.probas_group*self.T))
         t["Entropy"] = entropies
-        t["Diag Mean"] = mean_diagional
-        t["KL to I"] = KLs_identity
-        t["I sim %(JS)"] = 1-JSs_identity/np.log(2) #value betweeon [0,1]
+        t["Diag mean"] = mean_diagional
+        #t["KL to I"] = KLs_identity
+        t["Isim (JS)"] = 1-JSs_identity/np.log(2) #value betweeon [0,1]
         #t["Matrix-norm to identity"] = pendiente...
         t["Spammer"] = spammer_score #spammer score-- based on raykar logits (-1 malicious, 0 spammer, 1 good)
-        inertia = distance_2_centroid(conf_matrixs)
-        if plot:
-            print("Inertia:",inertia)
+        inertia_JS = calculate_inertiaM_JS(conf_matrixs)
+        inertia_NormF = calculate_inertiaM_NormF(conf_matrixs)
+        t["Iner JS"] = np.tile(inertia_JS, self.M)        
+        t["Iner NormF"] = np.tile(inertia_NormF, self.M)  
+        if plot:    
+            print("Inertia JS:",inertia_JS)
+            print("Inertia NormF:",inertia_NormF)
         else:
-            self.inertia = inertia
+            self.inertia_JS = inertia_JS
+            self.inertia_NormF = inertia_NormF
         return t
 
 
