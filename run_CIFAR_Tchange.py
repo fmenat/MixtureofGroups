@@ -158,12 +158,11 @@ for Tmax in to_check:
 
     mv_onehot = label_I.mv_labels('onehot')
     mv_probas = label_I.mv_labels('probas')
+    print("ACC MV on train:",np.mean(mv_onehot.argmax(axis=1)==Z_train))
 
     #Deterministic
     if Tmax <4000: #other wise cannot be done
         ds_labels, ds_conf = label_I.DS_labels()
-
-        print("ACC MV on train:",np.mean(mv_onehot.argmax(axis=1)==Z_train))
         print("ACC D&S on train:",np.mean(ds_labels.argmax(axis=1)==Z_train))
 
         #get representation needed for Raykar
