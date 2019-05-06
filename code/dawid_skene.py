@@ -33,7 +33,7 @@ https://github.com/ipeirotis/Get-Another-Label
 """
 
 import numpy as np
-import sys
+import sys,time
 
 """
 Function: dawid_skene()
@@ -61,12 +61,15 @@ def run(responses, tol=0.00001, max_iter=100, init='average'):
     # while not converged do:
     while not converged:     
         iter += 1
+        start_time = time.time()
         
         # M-step
         (class_marginals, error_rates) = m_step(counts, patient_classes)        
  
         # E-setp
         patient_classes = e_step(counts, class_marginals, error_rates)  
+        
+        current_exectime = time.time()-start_time
         
         # check likelihood
         log_L = calc_likelihood(counts, class_marginals, error_rates)
@@ -99,7 +102,7 @@ def run(responses, tol=0.00001, max_iter=100, init='average'):
     #for k in range(nObservers):
     #    print(class_marginals * error_rates[k,:,:])
         
-    return (patients, observers, classes, counts, class_marginals, error_rates, patient_classes) 
+    return (patients, observers, classes, counts, class_marginals, error_rates, patient_classes,current_exectime) 
  
 """
 Function: responses_to_counts()
