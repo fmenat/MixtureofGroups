@@ -224,7 +224,7 @@ for Tmax in to_check:
         ################## MEASURE PERFORMANCE ##################################
         evaluate = Evaluation_metrics(model_mvsoft,'keras',Xstd_train.shape[0],plot=False)
         evaluate.set_T_weights(T_weights)
-        prob_Yzt = np.tile( mv_conf_probas, (Tmax,1,1) )
+        prob_Yzt = np.tile( mv_conf_probas, (T,1,1) )
         results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_mvsoft,conf_pred=prob_Yzt,conf_true=confe_matrix_R,
                                      conf_true_G =confe_matrix_G, conf_pred_G = mv_conf_probas)
         results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred_mvsoft)
@@ -234,7 +234,7 @@ for Tmax in to_check:
 
         evaluate = Evaluation_metrics(model_mvhard,'keras',Xstd_train.shape[0],plot=False)
         evaluate.set_T_weights(T_weights)
-        prob_Yzt = np.tile( mv_conf_onehot, (Tmax,1,1) )
+        prob_Yzt = np.tile( mv_conf_onehot, (T,1,1) )
         results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_mvhard,conf_pred=prob_Yzt,conf_true=confe_matrix_R,
                                      conf_true_G =confe_matrix_G, conf_pred_G = mv_conf_onehot)
         results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred_mvhard)
