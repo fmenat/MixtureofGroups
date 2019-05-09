@@ -292,7 +292,7 @@ for _ in range(30): #repetitions
     prob_Yzt = raykarMC.get_confusionM()
     prob_Yxt = raykarMC.get_predictions_annot(Xstd_train,data=Z_train_p_Ray)
     Z_train_pred_Ray = Z_train_p_Ray.argmax(axis=-1)
-    results = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_Ray,conf_pred=prob_Yzt,conf_true=confe_matrix_R,
+    results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_Ray,conf_pred=prob_Yzt,conf_true=confe_matrix_R,
                                      y_o=y_obs,yo_pred=prob_Yxt,conf_true_G =confe_matrix_G, conf_pred_G = prob_Yzt.mean(axis=0))
     results1_aux = evaluate.calculate_metrics(y_o=y_obs,yo_pred=prob_Yxt)
     results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred_Ray)

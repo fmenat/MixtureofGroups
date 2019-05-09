@@ -104,7 +104,7 @@ from code.generate_data import SinteticData
 
 #ANNOTATOR DENSITY CHOOSE
 to_check = [100,500,1500,3500,6000,10000]
-T_data = 5 #this could change.. quizas haya que cambiar la semilla...
+T_data = 5 
 
 
 results_softmv_train = []
@@ -223,7 +223,7 @@ for Tmax in to_check:
         ################## MEASURE PERFORMANCE ##################################
         evaluate = Evaluation_metrics(model_mvsoft,'keras',Xstd_train.shape[0],plot=False)
         evaluate.set_T_weights(T_weights)
-        prob_Yzt = np.tile( mv_conf_probas, (Tmax,1,1) )
+        prob_Yzt = np.tile( mv_conf_probas, (T,1,1) )
         results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_mvsoft,conf_pred=prob_Yzt,conf_true=confe_matrix_R,
                                      conf_true_G =confe_matrix_G, conf_pred_G = mv_conf_probas)
         results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred_mvsoft)
@@ -233,7 +233,7 @@ for Tmax in to_check:
 
         evaluate = Evaluation_metrics(model_mvhard,'keras',Xstd_train.shape[0],plot=False)
         evaluate.set_T_weights(T_weights)
-        prob_Yzt = np.tile( mv_conf_onehot, (Tmax,1,1) )
+        prob_Yzt = np.tile( mv_conf_onehot, (T,1,1) )
         results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_mvhard,conf_pred=prob_Yzt,conf_true=confe_matrix_R,
                                      conf_true_G =confe_matrix_G, conf_pred_G = mv_conf_onehot)
         results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred_mvhard)
@@ -254,7 +254,7 @@ for Tmax in to_check:
         prob_Yzt = raykarMC.get_confusionM()
         prob_Yxt = raykarMC.get_predictions_annot(Xstd_train,data=Z_train_p_Ray)
         Z_train_pred_Ray = Z_train_p_Ray.argmax(axis=-1)
-        results = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_Ray,conf_pred=prob_Yzt,conf_true=confe_matrix_R,
+        results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_Ray,conf_pred=prob_Yzt,conf_true=confe_matrix_R,
                                      y_o=y_obs,yo_pred=prob_Yxt,conf_true_G =confe_matrix_G, conf_pred_G = prob_Yzt.mean(axis=0))
         results1_aux = evaluate.calculate_metrics(y_o=y_obs,yo_pred=prob_Yxt)
         results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred_Ray)

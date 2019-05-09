@@ -56,7 +56,8 @@ class LabelInference(object): #no predictive model
         # https://github.com/dallascard/dawid_skene
         start_time =time.time()
         aux = dawid_skene.run(self.annotations,tol=self.Tol, max_iter=50, init='average')
-        (_, _, _, _, class_marginals, error_rates, groundtruth_estimate) = aux
+        (_, _, _, _, class_marginals, error_rates, groundtruth_estimate, current_exectime) = aux
+        self.DS_current_exectime = current_exectime
         print("Estimation for DS in %f sec"%(time.time()-start_time))
         return groundtruth_estimate, error_rates
     
