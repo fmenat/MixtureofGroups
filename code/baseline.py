@@ -8,7 +8,7 @@ from .utils import generate_confusionM
 from . import dawid_skene 
 
 class LabelInference(object): #no predictive model
-    def __init__(self,labels,tolerance,type_inf): 
+    def __init__(self,labels,tolerance,type_inf, max_iter=50): 
         """
             *labels is annotations : should be (N,T) with symbol of no annotations =-1
         """
@@ -23,7 +23,7 @@ class LabelInference(object): #no predictive model
             else:
                 self.y_obs_categ = labels.copy()
             print("Representation for MV in %f sec"%(time.time()-start_time))
-        if 'd&s' in type_inf.lower() or "dawid" in type_inf.lower():
+        if 'd&s' in type_inf.lower() or "dawid" in type_inf.lower() or "ds" in type_inf.lower():
             start_time = time.time()
             self.annotations = set_representation(labels,'dawid') #for D&S
             print("Representation for DS in %f sec"%(time.time()-start_time))
@@ -32,6 +32,7 @@ class LabelInference(object): #no predictive model
         self.type = type_inf
         self.T = labels.shape[1]
         self.calc_MV = False
+        self.max_iter = max_iter
          
     def mv_labels(self, type_return):
         if not self.calc_MV:
@@ -55,7 +56,7 @@ class LabelInference(object): #no predictive model
     def DS_labels(self):
         # https://github.com/dallascard/dawid_skene
         start_time =time.time()
-        aux = dawid_skene.run(self.annotations,tol=self.Tol, max_iter=50, init='average')
+        aux = dawid_skene.run(self.annotations,tol=self.Tol, max_iter=self.max_iter, init='average')
         (_, _, _, _, class_marginals, error_rates, groundtruth_estimate, current_exectime) = aux
         self.DS_current_exectime = current_exectime
         print("Estimation for DS in %f sec"%(time.time()-start_time))
