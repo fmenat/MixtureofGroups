@@ -35,8 +35,9 @@ def plot_confusion_matrix(conf, classes,title="Estimated",text=True):
     This function prints and plots the confusion matrix.
     Normalization can be applied by setting `normalize=True`.
     """
-    plt.imshow(conf, interpolation='nearest', cmap=cm.YlOrRd)
-    plt.colorbar()
+    plt.imshow(conf, interpolation='nearest', cmap=cm.YlOrRd, vmin=0, vmax=1)
+    if text:
+        plt.colorbar()
     tick_marks = np.arange(len(classes))
     plt.xticks(tick_marks, tick_marks) #classes, rotation=45)
     plt.yticks(tick_marks, classes)
@@ -51,7 +52,6 @@ def plot_confusion_matrix(conf, classes,title="Estimated",text=True):
     plt.title(title)
     plt.tight_layout()
     plt.show()
-
 
 def plot_confusion_keras(model,x,y,classes):
     y_pred_ohe = model.predict_classes(x)
@@ -131,7 +131,7 @@ def calculateNormF_matrixs(confs_pred,confs_true):
 def compare_conf_mats(pred_conf_mat,true_conf_mat=[]):
     classes = np.arange(pred_conf_mat[0].shape[0])
     sp = plt.subplot(1,2,2)
-    plt.imshow(pred_conf_mat, interpolation='nearest', cmap=cm.YlOrRd)
+    plt.imshow(pred_conf_mat, interpolation='nearest', cmap=cm.YlOrRd, vmin=0, vmax=1)
     plt.title("Estimated")
     plt.xticks(np.arange(len(classes)), classes)
     plt.yticks(np.arange(len(classes)), classes)
@@ -141,7 +141,7 @@ def compare_conf_mats(pred_conf_mat,true_conf_mat=[]):
 
     if len(true_conf_mat) != 0:
 	    sp1 = plt.subplot(1,2,1)
-	    plt.imshow(true_conf_mat, interpolation='nearest', cmap=cm.YlOrRd)
+	    plt.imshow(true_conf_mat, interpolation='nearest', cmap=cm.YlOrRd, vmin=0, vmax=1)
 	    plt.title("True")
 	    plt.xticks(np.arange(len(classes)), classes)
 	    plt.yticks(np.arange(len(classes)), classes)
