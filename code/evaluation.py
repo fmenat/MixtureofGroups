@@ -121,7 +121,7 @@ class Evaluation_metrics(object):
                     #print("JS divergence: %.4f\tPearson Correlation between diagonals: %.4f"%(JSs_founded[m],pearson_corr[-1])) 
                     print("JS divergence: %.4f\tNorm Frobenius: %.4f"%(JSs_founded[m],NormFs_founded[m]))   
                     if len(self.Gt) != 0:
-                        print("Groups probabilities: ",self.Gt[m])
+                        print("Groups probabilities: ",np.round(self.Gt[m],4))
 
             t["(R) NormF mean"] = np.mean(NormFs_founded)
             t["(R) JS mean"] = np.mean(JSs_founded) 
