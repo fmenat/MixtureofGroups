@@ -85,7 +85,7 @@ class Evaluation_metrics(object):
                 if run_from_ipython:
                     from IPython.display import display, HTML
                     print("A result")
-                    display(table)
+                    display(table.round(4))
                 else:
                     print("A result\n",tabulate(table, headers='keys', tablefmt='rst'))
         return to_return
@@ -219,8 +219,8 @@ class Evaluation_metrics(object):
         entropies = []
         mean_diagional = []
         spammer_score =[] #raykar
-        bias_score1 = []
-        bias_score2 = []
+        bias_score = []
+        bias_class = []
         for m in range(self.M):
             if plot:
                 if len(self.labels_plot) == 0:
@@ -230,8 +230,9 @@ class Evaluation_metrics(object):
             entropies.append(Entropy_confmatrix(conf_matrixs[m]))
             mean_diagional.append(calculate_diagional_mean(conf_matrixs[m]))
             spammer_score.append(calculate_spamm_score(conf_matrixs[m]))
-            bias_score1.append(calculate_biased_score(conf_matrixs[m], mode="entropy"))
-            bias_score2.append(calculate_biased_score(conf_matrixs[m], mode="median"))
+            b, c = calculate_biased_score(conf_matrixs[m], mode="median")
+            bias_score.append(b)
+            bias_class.append(c)
             
         t["Groups"] = np.arange(self.M)
         if len(self.probas_group) != 0:
@@ -244,8 +245,9 @@ class Evaluation_metrics(object):
         t["Isim (JS)"] = 1-JSs_identity/np.log(2) #value betweeon [0,1]
         #t["Matrix-norm to identity"] = pendiente...
         t["S_raykar"] = spammer_score #spammer score-- based on raykar logits (-1 malicious, 0 spammer, 1 good)
-        t["S_bias entrop"] = bias_score1
-        t["S_bias median"] = bias_score2
+        #t["S_bias entrop"] = bias_score1
+        t["S_bias"] = bias_score
+        t["C_bias"] = bias_class
         inertia_JS = calculate_inertiaM_JS(conf_matrixs)
         inertia_NormF = calculate_inertiaM_NormF(conf_matrixs)
         t["Iner JS"] = np.tile(inertia_JS, self.M)        
