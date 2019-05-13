@@ -91,8 +91,20 @@ def calculate_diagional_mean(conf_matrix): #weight?
     return np.mean([conf_matrix[l,l] for l in range(len(conf_matrix)) ])
 
 def calculate_spamm_score(conf_matrix):
-    """Mean - off diagonal"""
+    """Mean - off diagonal: based on Raykar logits"""
     return np.mean([conf_matrix[l,l]- np.mean(np.delete(conf_matrix[:,l],l)) for l in range(len(conf_matrix))])
+
+def calculate_biased_score(conf_matrix, mode="simple"):
+    """Score to known if p(y|something) == p(y) """
+    p_y = conf_matrix.mean(axis=0) #prior anotation
+    if mode=="entropy":        
+        return entropy(p_y)
+    elif mode == "median":
+        return p_y.max() - np.median(p_y)
+    #elif mode == "mean": #not so good
+    #    return p_y.max() - p_y.mean()
+    #elif mode =="real":
+    #return np.mean([conf_matrix[l,:] - np.mean(np.delete(conf_matrix[l,:],l))  for l in range(len(conf_matrix))] )
 
 def calculateKL_matrixs(confs_pred,confs_true):
     M_p = confs_pred.shape[0] #number of matrices on pred
