@@ -13,6 +13,17 @@ def categorical_representation(obs,no_label =-1):
 	#if annotator do not annotate a data her one-hot is full of zeroes
 	return y_obs_categorical
 
+def categorical_masked_representation(obs, no_label=-1):
+    ## desirable represnetation
+    if len(obs.shape)!=3:
+        y_obs_catmasked = categorical_representation(obs,no_label)
+    else:
+        y_obs_catmasked = obs
+    mask =  np.sum(y_obs_catmasked,axis=-1)  == 0
+    #if annotator do not annotate a data her one-hot is full of -1
+    y_obs_catmasked[mask] = -1
+    return y_obs_catmasked.transpose(0,2,1)
+
 ##transformar a repeat
 def annotations2repeat(annotations):
     """
@@ -40,7 +51,7 @@ def annotations2repeat_efficient(obs,no_label=-1):
 		repeats_obs = np.sum(obs,axis=1,dtype='int32')
 	return repeats_obs
 
-def Dawid_representation(obs):
+def DS_representation(obs):
 	#representation for D&S
 	N,T = obs.shape
 	annotations = {i+1:{} for i in range(N)}
@@ -73,7 +84,10 @@ def set_representation(obs,needed="onehot"):
 	elif needed.lower()=="repeat":
 		return annotations2repeat_efficient(obs)
 	elif needed.lower()=="dawid":
-		return Dawid_representation(obs)
+		return DS_representation(obs)
+	elif needed.lower()=='onehotmasked' or needed.lower()=='rodriguesmasked':
+		return categorical_masked_representation(obs)
+    
 
 
 #perform majority voting

@@ -293,3 +293,44 @@ class RaykarMC(object):
         """Get annotator reliability, based on his identifier: t"""
         conf_M = self.betas[t,:,:]
         return conf_M #do something with it
+    
+    
+    
+
+class RodriguesCrowdLayer(object):
+    def __init__(self, input_dim, Kl, T, optimizer='adam',DTYPE_OP='float32'): #default stable parameteres
+        if type(input_dim) != tuple:
+            input_dim = (input_dim,)
+        self.input_dim = input_dim
+        self.Kl = Kl #number of classes of the problem
+        self.T = T #number of annotators
+        #params:
+        self.epochs = epochs
+        self.optimizer = optimizer
+        self.DTYPE_OP = DTYPE_OP
+
+        self.compile=False
+        self.Keps = keras.backend.epsilon()
+        self.priors=False #boolean of priors
+
+   #build model and train and get confusion matrices..
+
+class KajinoClustering(object):
+    def __init__(self, input_dim, Kl, T, optimizer='adam',DTYPE_OP='float32'): #default stable parameteres
+        if type(input_dim) != tuple:
+            input_dim = (input_dim,)
+        self.input_dim = input_dim
+        self.Kl = Kl #number of classes of the problem
+        self.T = T #number of annotators
+        #params:
+        self.epochs = epochs
+        self.optimizer = optimizer
+        self.DTYPE_OP = DTYPE_OP
+
+        self.compile=False
+        self.Keps = keras.backend.epsilon()
+        self.priors=False #boolean of priors
+
+   #build model and train and get confusion matrices..
+
+   #get base model or predictions average (as guan)

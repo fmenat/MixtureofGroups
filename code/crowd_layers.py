@@ -139,7 +139,7 @@ class CrowdsRegression(Layer): #not used in our
 class MaskedMultiCrossEntropy(object):
 	def loss(self, y_true, y_pred):
 		vec = tf.nn.softmax_cross_entropy_with_logits(logits=y_pred, labels=y_true, dim=1)
-		mask = tf.equal(y_true[:,0,:], -1)
+		mask = tf.equal(y_true[:,0,:], -1) 
 		zer = tf.zeros_like(vec)
 		loss = tf.where(mask, x=zer, y=vec)
 		return loss
