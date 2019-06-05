@@ -141,7 +141,7 @@ for Tmax in to_check:
     real_conf_matrix = GenerateData.conf_matrix.copy()
 
     print("New Synthetic data is being generated...",flush=True,end='')
-    y_obs, groups_annot = GenerateData.sintetic_annotate_data(Z_train,Tmax,T_data,deterministic=False,hard=False)
+    y_obs, groups_annot = GenerateData.sintetic_annotate_data(Z_train,Tmax,T_data,deterministic=False,hard=True)
     print("Done! ")
     if len(groups_annot.shape) ==1 or groups_annot.shape[1] ==  1: 
         groups_annot = keras.utils.to_categorical(groups_annot)  #only if it is hard clustering
