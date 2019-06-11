@@ -232,7 +232,7 @@ class GroupMixtureOpt(object): #change name to Rep
         print(" Done!")
         
         #-------> Initialize p(z=gamma|xi,y=j,g): Combination of mv and belive observable
-        lambda_group = np.ones((self.M),dtype=self.DTYPE_OP) 
+        lambda_group = np.zeros((self.M),dtype=self.DTYPE_OP) 
         if self.lambda_random:
             for m in range(self.M):
                 lambda_group[m] = np.random.beta(1,1)
@@ -297,6 +297,8 @@ class GroupMixtureOpt(object): #change name to Rep
         r_estimate = np.zeros((self.N,self.Kl),dtype=self.DTYPE_OP) #create the repeat "estimate"/"ground truth"
         for i in range(self.N):
             r_estimate[i] = np.tensordot(Qij_gamma[i],r[i],axes=[[0],[0]])
+        #print(r_estimate)
+        #print(r_estimate/r_estimate.sum(axis=1,keepdims=True))
         if "sklearn" in self.type:#train to learn p(z|x)
             self.base_model.fit(X, np.argmax(r_estimate,axis=1) ) 
         else:
