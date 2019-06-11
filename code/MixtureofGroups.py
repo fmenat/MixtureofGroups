@@ -232,7 +232,7 @@ class GroupMixtureOpt(object): #change name to Rep
         print(" Done!")
         
         #-------> Initialize p(z=gamma|xi,y=j,g): Combination of mv and belive observable
-        lambda_group = np.zeros((self.M),dtype=self.DTYPE_OP) 
+        lambda_group = np.ones((self.M),dtype=self.DTYPE_OP)  #or zeros
         if self.lambda_random:
             for m in range(self.M):
                 lambda_group[m] = np.random.beta(1,1)
