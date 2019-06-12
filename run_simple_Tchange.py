@@ -213,7 +213,7 @@ for Tmax in to_check:
 
         gMixture_Global = GroupMixtureOpt(Xstd_train.shape[1:],Kl=r_obs.shape[1],M=M_seted,epochs=1,pre_init=0,optimizer=OPT,dtype_op=DTYPE_OP) 
         gMixture_Global.define_model("mlp",16,1,BatchN=False,drop=0.2)
-        gMixture_Global.lambda_random = True #with lambda random --necessary
+        gMixture_Global.lambda_random = False #with lambda random --necessary
         logL_hists,i = gMixture_Global.multiples_run(20,Xstd_train,r_obs,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL
                                        ,cluster=True)
         Z_train_p_OG = gMixture_Global.base_model.predict(Xstd_train)

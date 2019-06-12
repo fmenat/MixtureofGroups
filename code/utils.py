@@ -162,22 +162,25 @@ def compare_conf_mats(pred_conf_mat,true_conf_mat=[]):
 	    plt.tight_layout()
     plt.show()
 
-def KL_confmatrixs(conf_pred,conf_true):
+def KL_confmatrixs(conf_pred,conf_true, raw=False):
     """
         * mean of KL between rows of confusion matrix: 1/K sum_z KL_y(p(y|z)|q(y|z))
     """ #mmean or sum??
     conf_pred = np.clip(conf_pred,1e-7,1.)
     conf_true = np.clip(conf_true,1e-7,1.)
-    return np.mean([entropy(conf_true[j_z,:], conf_pred[j_z,:]) for j_z in range(conf_pred.shape[0])])
+    to_return = np.asarray([entropy(conf_true[j_z,:], conf_pred[j_z,:]) for j_z in range(conf_pred.shape[0])])
+    if not raw:
+        return np.mean(to_return)
+    return to_return
 
-def JS_confmatrixs(conf_pred,conf_true):
+def JS_confmatrixs(conf_pred,conf_true, raw=False):
     """
         * Jensen-Shannon Divergence between rows of confusion matrix (arithmetic average)
     """
     conf_pred = np.clip(conf_pred,1e-7,1.)
     conf_true = np.clip(conf_true,1e-7,1.)
     aux = 0.5*conf_pred + 0.5*conf_true
-    return (0.5*KL_confmatrixs(aux,conf_pred) + 0.5*KL_confmatrixs(aux,conf_true))/np.log(2) #value between 0 and 1
+    return (0.5*KL_confmatrixs(aux,conf_pred,raw) + 0.5*KL_confmatrixs(aux,conf_true,raw))/np.log(2) #value between 0 and 1
     
 def NormF_confmatrixs(conf_pred,conf_true):
     distance = conf_pred-conf_true
