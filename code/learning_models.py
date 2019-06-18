@@ -11,9 +11,9 @@ def LogisticRegression_Sklearn(epochs):
 
 from keras.models import Sequential,Model
 from keras.layers import *
-def LogisticRegression_Keras(input_dim,output_dim):
+def LogisticRegression_Keras(input_dim,output_dim, bias=True):
     model = Sequential() 
-    model.add(Dense(output_dim, input_shape=input_dim, activation='softmax')) 
+    model.add(Dense(output_dim, input_shape=input_dim, activation='softmax',use_bias=bias)) 
     return model
 
 #MLP Simple

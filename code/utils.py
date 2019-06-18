@@ -376,3 +376,31 @@ def plot_Mchange(logL_Mchange,
     add_plot(plt) #add ticks, x label and legend
     plt.ylim(0,1)
     plt.show()
+    
+from itertools import chain
+from functools import reduce
+import operator as op
+def estimate_batch_size(model: keras.Model,
+                        scale_by: float = 5.0,
+                        precision: int = 2) -> int:
+    """
+    :param model: keras Model
+    :param available_mem: available memory in bytes
+    :param scale_by: scaling factor
+    :param precision: float precision: 2 bytes for fp16, 4 - for fp32, etc.
+    :return: closest 2^n to the estimated batch size
+    """
+    import keras.backend as K
+    from tensorflow.python.client import device_lib
+    aux = device_lib.list_local_devices()
+    values = [value  for value in aux  if value.device_type == 'GPU']
+    if len(values) == 0:
+        values = [value  for value in aux if value.device_type == 'CPU']
+    available_mem = values[0].memory_limit 
+    num_params = sum(chain.from_iterable((
+        (reduce(op.mul, l.output_shape[1:]) for l in model.layers),
+        (K.count_params(x) for x in model.trainable_weights),
+        (K.count_params(x) for x in model.non_trainable_weights)
+    )))
+    max_size = int(available_mem / (precision * num_params * scale_by))
+    return int(2 ** math.floor(math.log(max_size, 2)))

@@ -14,20 +14,26 @@ def run_from_ipython():
         return False
 
 class Evaluation_metrics(object):
-    def __init__(self,class_infered,which='our1',N=None,plot=True):
-        self.which=which
+    def __init__(self,class_infered,which='our',N=None,plot=True):
+        self.which=which.lower()
         self.plot = plot
         self.labels_plot = []
         self.T_weights = []
         self.T = 0
+
         self.Gt = []
+        self.seted_probas_group = False
         
-        if self.which == 'our1':
+        if 'our' in self.which:
             self.M = class_infered.M
             self.N = class_infered.N
             self.Kl = class_infered.Kl
-            self.probas_group = class_infered.get_alpha()
-            
+            try:
+                self.probas_group = class_infered.get_alpha()
+                self.seted_probas_group = True
+            except:
+                pass
+                
         elif self.which == 'keras':
             self.Kl = class_infered.output_shape[-1]
             self.N = N
@@ -46,6 +52,8 @@ class Evaluation_metrics(object):
             
     def set_Gt(self,Gt):
         self.Gt = Gt.copy()
+        if not self.seted_probas_group:
+            self.probas_group = np.mean(Gt,axis=0)
     
     def calculate_metrics(self,Z=[],Z_pred=[],y_o=[],yo_pred=[],conf_pred=[],conf_true=[],y_o_groups=[],conf_pred_G=[],conf_true_G=[]):
         if len(y_o)!=0:
@@ -235,14 +243,14 @@ class Evaluation_metrics(object):
             bias_class.append(c)
             
         t["Groups"] = np.arange(self.M)
-        if len(self.probas_group) != 0:
-            t["Prob"] = self.probas_group
-            if self.T != 0:
-                t["T(g)"] = list(map(int,self.probas_group*self.T))
+        #if len(self.probas_group) != 0:
+        t["Prob"] = self.probas_group
+        if self.T != 0:
+            t["T(g)"] = list(map(int,self.probas_group*self.T))
         t["Entropy"] = entropies
         t["Diag mean"] = mean_diagional
         #t["KL to I"] = KLs_identity
-        t["Isim (JS)"] = 1-JSs_identity/np.log(2) #value betweeon [0,1]
+        t["Isim (JS)"] = 1-JSs_identity #value betweeon [0,1]
         #t["Matrix-norm to identity"] = pendiente...
         t["S_raykar"] = spammer_score #spammer score-- based on raykar logits (-1 malicious, 0 spammer, 1 good)
         #t["S_bias entrop"] = bias_score1

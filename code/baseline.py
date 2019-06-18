@@ -126,7 +126,14 @@ class RaykarMC(object):
             self.base_model = RNN_simple(self.input_dim,self.Kl,start_units,deep,drop=drop,embed=embed,len=0,out=start_units*2)
 
         self.base_model.compile(optimizer=self.optimizer,loss='categorical_crossentropy') 
+        self.max_Bsize_base = estimate_batch_size(self.base_model)
         self.compile = True
+
+    def get_predictions(self,X):
+        if "sklearn" in self.type:
+            return self.base_model.predict_proba(X) #or predict
+        else:
+            return self.base_model.predict(X,batch_size=self.max_Bsize_base)
         
     def define_priors(self,priors):
         """
@@ -148,6 +155,7 @@ class RaykarMC(object):
         self.priors = True
         
     def init_E(self,X,y_ann):
+        start_time = time.time()
         self.N = X.shape[0]
         #init p(z|x)
         mv_probs = majority_voting(y_ann,repeats=False,probas=True) #Majority voting start
@@ -157,6 +165,7 @@ class RaykarMC(object):
         self.Qi_gamma = mv_probs
         print("Betas shape: ",self.betas.shape)
         print("Q estimate shape: ",self.Qi_gamma.shape)
+        self.init_exectime = time.time()-start_time
                 
     def E_step(self,X,y_ann,predictions=[]):
         if len(predictions)==0:
@@ -194,9 +203,7 @@ class RaykarMC(object):
             print("You need to create the model first, set .define_model")
             return
         print("Initializing new EM...")
-        start_time = time.time()
         self.init_E(X_train,yo_train)
-        self.init_exectime = time.time()-start_time
         self.batch_size = batch_size
 
         logL = []
@@ -231,12 +238,6 @@ class RaykarMC(object):
         print("Finished training")
         return logL
             
-    def get_predictions(self,X,batch_size=None):
-        if "sklearn" in self.type:
-            return self.base_model.predict_proba(X) #or predict
-        else:
-            return self.base_model.predict(X,batch_size=batch_size)
-        
     def stable_train(self,X,y_ann,batch_size=64,max_iter=50,tolerance=1e-2):
         self.define_priors('laplace') #cada anotadora dijo al menos una clase
         logL_hist = self.train(X,y_ann,batch_size=batch_size,max_iter=max_iter,relative=True,val=False,tolerance=tolerance)
@@ -293,7 +294,6 @@ class RaykarMC(object):
         """Get annotator reliability, based on his identifier: t"""
         conf_M = self.betas[t,:,:]
         return conf_M #do something with it
-    
     
     
 
