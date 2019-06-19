@@ -4,7 +4,7 @@ from keras.models import clone_model
 from .learning_models import LogisticRegression_Sklearn,LogisticRegression_Keras,MLP_Keras
 from .learning_models import default_CNN,default_RNN,default_RNNw_emb,CNN_simple, RNN_simple #deep learning
 from .representation import *
-from .utils import generate_confusionM
+from .utils import generate_confusionM, estimate_batch_size
 from . import dawid_skene 
 
 class LabelInference(object): #no predictive model
