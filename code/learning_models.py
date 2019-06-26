@@ -11,15 +11,33 @@ def LogisticRegression_Sklearn(epochs):
 
 from keras.models import Sequential,Model
 from keras.layers import *
-def LogisticRegression_Keras(input_dim,output_dim, bias=True):
+def LogisticRegression_Keras(input_dim,output_dim, bias=True,embed=False,embed_M=[]):
     model = Sequential() 
-    model.add(Dense(output_dim, input_shape=input_dim, activation='softmax',use_bias=bias)) 
+    if embed:
+        T, R_t = embed_M.shape
+        model.add(Embedding(T, R_t,trainable=False,weights=[embed_M],input_length=1))
+        model.add(Reshape([R_t]))
+    else:
+        model.add(InputLayer(input_shape=input_dim))
+    model.add(Dense(output_dim, activation='softmax',use_bias=bias)) 
     return model
 
 #MLP Simple
-def MLP_Keras(input_dim,output_dim,units,hidden_deep,BN=False,drop=0.0):
+def MLP_Keras(input_dim,output_dim,units,hidden_deep,BN=False,drop=0.0,embed=False,embed_M=[]):
     model = Sequential() 
-    model.add(InputLayer(input_shape=input_dim))
+    if embed:
+        if len(embed_M) != 0:
+            T, R_t = embed_M.shape
+            emd_layer = Embedding(T, R_t,trainable=False,weights=[embed_M],input_length=1)
+        else:
+            R_t = units
+            hidden_deep = hidden_deep-1
+            emd_layer = Embedding(input_dim[0], R_t,trainable=True,input_length=1)
+        model.add(emd_layer)
+        model.add(Reshape([R_t]))
+    else:
+        model.add(InputLayer(input_shape=input_dim))
+
     if len(input_dim) > 1:
         model.add(Flatten())
     for i in range(hidden_deep): #all the deep layers
