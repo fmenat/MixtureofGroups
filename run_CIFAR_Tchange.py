@@ -250,19 +250,17 @@ for Tmax in to_check:
             keras.backend.clear_session()
 
         if "oursglobal" in executed_models:
-            gMixture_Global = GroupMixtureGlo(Xstd_train.shape[1:],Kl=r_obs.shape[1],M=M_seted,epochs=1,pre_init=0,optimizer=OPT,dtype_op=DTYPE_OP) 
+            gMixture_Global = GroupMixtureGlo(Xstd_train.shape[1:],Kl=r_obs.shape[1],M=M_seted,epochs=1,optimizer=OPT,dtype_op=DTYPE_OP) 
             gMixture_Global.define_model("default cnn")
-            gMixture_Global.lambda_random = False #with lambda random --necessary
             logL_hists,i = gMixture_Global.multiples_run(15,Xstd_train,r_obs,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL)
             Z_train_p_OG = gMixture_Global.get_predictions(Xstd_train)
             Z_test_p_OG = gMixture_Global.get_predictions(Xstd_test)
             keras.backend.clear_session()
 
         if "oursindividual" in executed_models:
-            gMixture_Ind = GroupMixtureInd(Xstd_train.shape[1:],Kl=K,M=M_seted,epochs=1,optimizer=OPT,pre_init=0,dtype_op=DTYPE_OP) 
-            gMixture_Ind.define_model("mlp",16,1,BatchN=False,drop=0.2)
-            #gMixture_Ind.define_model_group("mlp", T, M_seted, 1, BatchN=True, embed=True, embed_M=A) #con o sin BN
-            gMixture_Ind.define_model_group("keras_shallow", T, M_seted,embed=True, embed_M=A) 
+            #el modelo cambio...
+            gMixture_Ind = GroupMixtureInd(Xstd_train.shape[1:],Kl=K,M=M_seted,epochs=1,optimizer=OPT,dtype_op=DTYPE_OP) 
+            #...
             logL_hists,i = gMixture_Ind.multiples_run(20,Xstd_train,Y_ann_train, T_idx, A=[], batch_size=BATCH_SIZE,
                                                   max_iter=EPOCHS_BASE,tolerance=TOL)
             Z_train_p_OI = gMixture_Ind.get_predictions_z(Xstd_train)

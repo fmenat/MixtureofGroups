@@ -402,5 +402,5 @@ def estimate_batch_size(model: keras.Model,
         (K.count_params(x) for x in model.trainable_weights),
         (K.count_params(x) for x in model.non_trainable_weights)
     )))
-    max_size = int(available_mem / (precision * num_params * scale_by))
-    return int(2 ** math.floor(math.log(max_size, 2)))
+    max_size = max(32,np.int(available_mem / (precision * num_params * scale_by)))
+    return np.int(2 ** math.floor(np.log(max_size)/np.log(2)))

@@ -198,7 +198,7 @@ class RaykarMC(object):
     def compute_logL(self):#,yo,predictions):
         return np.sum( np.log( self.sum_unnormalized_q +self.Keps))
         
-    def train(self,X_train,yo_train,batch_size=32,max_iter=500,relative=True,val=False,tolerance=1e-2):   
+    def train(self,X_train,yo_train,batch_size=64,max_iter=500,relative=True,val=False,tolerance=1e-2):   
         if not self.compile:
             print("You need to create the model first, set .define_model")
             return
@@ -219,8 +219,7 @@ class RaykarMC(object):
             self.E_step(X_train,yo_train,predictions)
             self.current_exectime = time.time()-start_time
             print(" done //  (in %.2f sec)\t"%(self.current_exectime),end='',flush=True)
-            #compute lowerbound
-            logL.append(self.compute_logL())
+            logL.append(self.compute_logL())  #compute lowerbound
             print("logL: %.3f\t"%(logL[-1]),end='',flush=True)
             if self.current_iter>=2:
                 tol = np.abs(logL[-1] - logL[-2]) #absolute

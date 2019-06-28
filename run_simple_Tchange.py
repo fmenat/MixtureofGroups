@@ -273,7 +273,7 @@ for Tmax in to_check:
             keras.backend.clear_session()
 
         if "oursglobal" in executed_models:
-            gMixture_Global = GroupMixtureGlo(Xstd_train.shape[1:],Kl=r_obs.shape[1],M=M_seted,epochs=1,pre_init=0,optimizer=OPT,dtype_op=DTYPE_OP) 
+            gMixture_Global = GroupMixtureGlo(Xstd_train.shape[1:],Kl=K,M=M_seted,epochs=1,optimizer=OPT,dtype_op=DTYPE_OP) 
             gMixture_Global.define_model("mlp",16,1,BatchN=False,drop=0.2)
             gMixture_Global.lambda_random = False #with lambda random --necessary
             logL_hists,i = gMixture_Global.multiples_run(20,Xstd_train,r_obs,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL)
@@ -282,37 +282,34 @@ for Tmax in to_check:
             keras.backend.clear_session()
 
         if "oursindividual" in executed_models:
-            gMixture_Ind = GroupMixtureInd(Xstd_train.shape[1:],Kl=K,M=M_seted,epochs=1,optimizer=OPT,pre_init=15,dtype_op=DTYPE_OP) 
+            gMixture_Ind = GroupMixtureInd(Xstd_train.shape[1:],Kl=K,M=M_seted,epochs=1,optimizer=OPT,dtype_op=DTYPE_OP) 
             gMixture_Ind.define_model("mlp",16,1,BatchN=False,drop=0.2)
             #gMixture_Ind.define_model_group("keras_shallow", T, M_seted,embed=True, embed_M=A) 
             gMixture_Ind.define_model_group("mlp", T, M_seted, 1, BatchN=False, embed=True, embed_M=A)
-            gMixture_Ind.pre_init_z = 3
             logL_hists,i = gMixture_Ind.multiples_run(20,Xstd_train,Y_ann_train, T_idx, A=[], batch_size=BATCH_SIZE,
-                                                  max_iter=EPOCHS_BASE,tolerance=TOL)
+                                                 pre_init_g=15,pre_init_z=3, max_iter=EPOCHS_BASE,tolerance=TOL)
             Z_train_p_OI = gMixture_Ind.get_predictions_z(Xstd_train)
             Z_test_p_OI = gMixture_Ind.get_predictions_z(Xstd_test)
             prob_Gt_OI = gMixture_Ind.get_predictions_g(T_idx_unique) 
             keras.backend.clear_session()
 
-            gMixture_Ind2 = GroupMixtureInd(Xstd_train.shape[1:],Kl=K,M=M_seted,epochs=1,optimizer=OPT,pre_init=1,dtype_op=DTYPE_OP) 
+            gMixture_Ind2 = GroupMixtureInd(Xstd_train.shape[1:],Kl=K,M=M_seted,epochs=1,optimizer=OPT,dtype_op=DTYPE_OP) 
             gMixture_Ind2.define_model("mlp",16,1,BatchN=False,drop=0.2) 
-            gMixture_Ind2.pre_init_z = 3 
             logL_hists,i_r = gMixture_Ind2.multiples_run(20,Xstd_train,Y_ann_train, T_idx, A=[], batch_size=BATCH_SIZE,
-                                                  max_iter=EPOCHS_BASE,tolerance=TOL)
+                                                  pre_init_z=0, max_iter=EPOCHS_BASE,tolerance=TOL)
             Z_train_p_OI2 = gMixture_Ind2.get_predictions_z(Xstd_train)
             Z_test_p_OI2 = gMixture_Ind2.get_predictions_z(Xstd_test)
             prob_Gt_OI2 = gMixture_Ind2.get_predictions_g(T_idx_unique) 
             keras.backend.clear_session()
 
-            gMixture_Ind3 = GroupMixtureInd(Xstd_train.shape[1:],Kl=K,M=M_seted,epochs=1,optimizer=OPT,pre_init=15,dtype_op=DTYPE_OP) 
+            gMixture_Ind3 = GroupMixtureInd(Xstd_train.shape[1:],Kl=K,M=M_seted,epochs=1,optimizer=OPT,dtype_op=DTYPE_OP) 
             gMixture_Ind3.define_model("mlp",16,1,BatchN=False,drop=0.2) 
-            gMixture_Ind3.define_model_group("mlp", T, K*M_seted, 1, BatchN=False, embed=True, embed_M=A_rep)
-            gMixture_Ind3.pre_init_z = 3 
-            logL_hists,i_r = gMixture_Ind3.multiples_run(20,Xstd_train,Y_ann_train, T_idx, A=[], batch_size=BATCH_SIZE,
-                                                  max_iter=EPOCHS_BASE,tolerance=TOL)
+            gMixture_Ind3.define_model_group("mlp", A_rep.shape[1], K*M_seted, 1, BatchN=False, embed=False)
+            logL_hists,i_r = gMixture_Ind3.multiples_run(20,Xstd_train,Y_ann_train, T_idx, A=A_rep, batch_size=BATCH_SIZE,
+                                                  pre_init_g=15,pre_init_z=3, max_iter=EPOCHS_BASE,tolerance=TOL)
             Z_train_p_OI3 = gMixture_Ind3.get_predictions_z(Xstd_train)
             Z_test_p_OI3  = gMixture_Ind3.get_predictions_z(Xstd_test)
-            prob_Gt_OI3   = gMixture_Ind3.get_predictions_g(T_idx_unique) 
+            prob_Gt_OI3   = gMixture_Ind3.get_predictions_g(A_rep) 
             keras.backend.clear_session()
 
 
@@ -453,7 +450,7 @@ for Tmax in to_check:
         if "oursglobal" in executed_models:
             del gMixture_Global
         if "oursindividual" in executed_models:
-            del gMixture_Ind, del gMixture_Ind2, del gMixture_Ind3
+            del gMixture_Ind, gMixture_Ind2, gMixture_Ind3
         del evaluate
         gc.collect()
 

@@ -148,7 +148,7 @@ def project_and_cluster(y_o,M_to_try=20,anothers_visions=True,DTYPE_OP='float32'
 """
 
 class GroupMixtureGlo(object): 
-    def __init__(self,input_dim,Kl,M=2,epochs=1,optimizer='adam',pre_init=0,dtype_op='float32'): 
+    def __init__(self,input_dim,Kl,M=2,epochs=1,optimizer='adam',dtype_op='float32'): 
         if type(input_dim) != tuple:
             input_dim = (input_dim,)
         self.input_dim = input_dim
@@ -157,7 +157,6 @@ class GroupMixtureGlo(object):
         self.M = M #groups of annotators
         self.epochs = epochs
         self.optimizer = optimizer
-        self.pre_init = pre_init
         self.DTYPE_OP = dtype_op
         
         self.Keps = keras.backend.epsilon() 
@@ -243,33 +242,34 @@ class GroupMixtureGlo(object):
         #-------> init Majority voting        
         mv_probs_j = majority_voting(r,repeats=True,probas=True) # soft -- p(y=j|xi)
 
-        #-------> Initialize p(z=gamma|xi,y=j,g): Combination of mv and belive observable
-        lambda_group = np.ones((self.M),dtype=self.DTYPE_OP)  #or zeros
-        if self.lambda_random:
-            for m in range(self.M):
-                lambda_group[m] = np.random.beta(1,1)
-        print("Lambda by group: ",lambda_group)
-        Zijm = np.zeros((self.N,self.Kl,self.M,self.Kl),dtype=self.DTYPE_OP)
-        for j_ob in range(self.Kl):
-            onehot = np.tile(self.Keps, self.Kl)
-            onehot[j_ob] = 1. #all belive in the observable
-            Zijm[:,j_ob,:,:] = (lambda_group*mv_probs_j[:,:,None] + (1-lambda_group)*onehot[None,:,None]).transpose(0,2,1)
-
         #-------> init alpha
         self.alpha_init = clusterize_annotators(mv_probs_j,M=self.M,bulk=False,cluster_type='mv_close',DTYPE_OP=self.DTYPE_OP) #clusteriza en base mv
         #self.alpha_init = clusterize_annotators(mv_probs_j,M=self.M,bulk=False,cluster_type='loss',data=X,model=self.base_model,DTYPE_OP=self.DTYPE_OP,BATCH_SIZE=batch_size) #clusteriza en base aloss
-        #-------> init q_ij      
-        self.Qij_mgamma = self.alpha_init[:,:,:,None]*Zijm
         
+         #-------> Initialize p(z=gamma|xi,y=j,g): Combination of mv and belive observable
+        lambda_group = np.ones((self.M),dtype=self.DTYPE_OP)  #or zeros
+        #if self.lambda_random:
+        #    for m in range(self.M):
+        #        lambda_group[m] = np.random.beta(1,1)
+        print("Lambda by group: ",lambda_group)
+        #Zijm = np.zeros((self.N,self.Kl,self.M,self.Kl),dtype=self.DTYPE_OP)
+        #for j_ob in range(self.Kl):
+        #    onehot = np.tile(self.Keps, self.Kl)
+        #    onehot[j_ob] = 1. #all belive in the observable
+        #    Zijm[:,j_ob,:,:] = (lambda_group*mv_probs_j[:,:,None] + (1-lambda_group)*onehot[None,:,None]).transpose(0,2,1)
+        #-------> init q_ij      
+        #self.Qij_mgamma = self.alpha_init[:,:,:,None]*Zijm
+        self.Qij_mgamma = self.alpha_init[:,:,:,None]*mv_probs_j[:,None,None,:]
+
         #-------> init betas
         self.betas = np.zeros((self.M,self.Kl,self.Kl),dtype=self.DTYPE_OP) 
 
         #-------> init alphas
         self.alphas = np.zeros((self.M),dtype=self.DTYPE_OP)
         
-        if self.pre_init != 0:
-            print("Pre-train network on %d epochs..."%(self.pre_init),end='',flush=True)
-            self.base_model.fit(X,self.mv_probs_j,batch_size=self.batch_size,epochs=self.pre_init,verbose=0)
+        if self.pre_init_z != 0:
+            print("Pre-train network on %d epochs..."%(self.pre_init_z),end='',flush=True)
+            self.base_model.fit(X,mv_probs_j,batch_size=self.batch_size,epochs=self.pre_init_z,verbose=0)
             #reset optimizer but hold weights--necessary for stability 
             self.base_model.compile(loss='categorical_crossentropy',optimizer=self.optimizer)
             print(" Done!")
@@ -342,11 +342,12 @@ class GroupMixtureGlo(object):
         """ Compute the log-likelihood of the optimization schedule"""
         return np.tensordot(r , np.log(self.aux_for_like+self.Keps))+0. #safe logarithm
                                                   
-    def train(self,X_train,r_train,batch_size=64,max_iter=500,relative=True,tolerance=3e-2):
+    def train(self,X_train,r_train, pre_init_z=0,batch_size=64,max_iter=500,relative=True,tolerance=3e-2):
         if not self.compile:
             print("You need to create the model first, set .define_model")
             return
         print("Initializing new EM...")
+        self.pre_init_z = pre_init_z
         self.batch_size = batch_size
         self.N = X_train.shape[0]
         self.init_E(X_train,r_train) #maybe init outside..
@@ -382,23 +383,23 @@ class GroupMixtureGlo(object):
         print("Finished training!")
         return np.asarray(logL)
     
-    def stable_train(self,X,r,batch_size=64,max_iter=50,tolerance=3e-2):
+    def stable_train(self,X,r,pre_init_z=0,batch_size=64,max_iter=50,tolerance=3e-2):
         """
             A stable schedule to train a model on this formulation
         """
         #self.lambda_random = False #lambda=1
         if not self.priors:
             self.define_priors('laplace') #needed..
-        logL_hist = self.train(X,r,batch_size=batch_size,max_iter=max_iter,tolerance=tolerance,relative=True)
+        logL_hist = self.train(X,r,pre_init_z=pre_init_z,batch_size=batch_size,max_iter=max_iter,tolerance=tolerance,relative=True)
         return logL_hist
     
     #and multiples runs with lambda random false?
-    def multiples_run(self,Runs,X,r,batch_size=64,max_iter=50,tolerance=3e-2): 
+    def multiples_run(self,Runs,X,r,pre_init_z=0,batch_size=64,max_iter=50,tolerance=3e-2): 
         """
             Run multiples max_iter of EM algorithm, with random stars
         """
         if Runs==1:
-            return self.stable_train(X,r,batch_size=batch_size,max_iter=max_iter,tolerance=tolerance), 0
+            return self.stable_train(X,r,pre_init_z=pre_init_z,batch_size=batch_size,max_iter=max_iter,tolerance=tolerance), 0
         #maybe lamda random here
         if not self.priors:
             self.define_priors('laplace') #needed!
@@ -413,7 +414,7 @@ class GroupMixtureGlo(object):
             self.base_model = keras.models.clone_model(aux_clonable_model) #reset-weigths
             self.base_model.compile(loss='categorical_crossentropy',optimizer=self.optimizer)
 
-            logL_hist = self.train(X,r,batch_size=batch_size,max_iter=max_iter,tolerance=tolerance,relative=True) #here the models get resets
+            logL_hist = self.train(X,r,pre_init_z=pre_init_z,batch_size=batch_size,max_iter=max_iter,tolerance=tolerance,relative=True) #here the models get resets
             
             found_betas.append(self.betas.copy())
             found_alphas.append(self.alphas.copy())
@@ -512,7 +513,7 @@ class GroupMixtureGlo(object):
 """
 
 class GroupMixtureInd(object):
-    def __init__(self,input_dim,Kl,M=2,epochs=1,optimizer='adam',pre_init=0,dtype_op='float32'): 
+    def __init__(self,input_dim,Kl,M=2,epochs=1,optimizer='adam',dtype_op='float32'): 
         if type(input_dim) != tuple:
             input_dim = (input_dim,)
         self.input_dim = input_dim
@@ -521,7 +522,6 @@ class GroupMixtureInd(object):
         self.M = M #groups of annotators
         self.epochs = epochs
         self.optimizer = optimizer
-        self.pre_init = pre_init
         self.DTYPE_OP = dtype_op
         
         self.Keps = keras.backend.epsilon() 
@@ -593,8 +593,6 @@ class GroupMixtureInd(object):
         else:
             return self.base_model.predict(X, batch_size=self.max_Bsize_base) #self.batch_size
 
-        
-
     def get_predictions_g(self,A, same_shape=True):
         """Return the predictions of the model p(g|a) if is from parameter or model"""
         if len(A.shape) != 1:
@@ -648,42 +646,45 @@ class GroupMixtureInd(object):
     def init_E(self,X,Y_ann, T_idx, A=[]):
         """Realize the initialziation of the E step on the EM algorithm"""
         start_time = time.time()
-        #-------> init Majority voting --- in another way-- check how..
+        #-------> init Majority voting ---
         mv_probs_j = majority_voting(Y_ann,repeats=False,probas=True) # soft -- p(y=j|xi)
         
-        #-------> Initialize p(z=gamma|xi,y=j,g): Combination of mv and belive observable
-        lambda_group = np.ones((self.M),dtype=self.DTYPE_OP)  #or zeros
-        if self.lambda_random:
-            for m in range(self.M):
-                lambda_group[m] = np.random.beta(1,1)
-        print("Lambda by group: ",lambda_group)
-        Zilm =  [] #np.zeros((self.N,self.Kl,self.M,self.Kl),dtype=self.DTYPE_OP)
-        for i in range(self.N): 
-            Zilm.append( (mv_probs_j[i][None,:,None]*lambda_group + Y_ann[i][:,:,None]*(1-lambda_group) ).transpose(0,2,1) )
-        Zilm = np.asarray(Zilm)
-
         #------->init p(g|a)
         info_A = True
         if len(A) == 0:
             info_A = False
         else:
-            aux = 1
-            for value in A:
-                aux = aux*value
-            if np.sum(aux) <= self.Keps: #si son ortonormales
+            #aux = 1
+            #for value in A:
+            #    aux = aux*value   
+            if np.cumprod(A,axis=0, dtype=self.DTYPE_OP).sum() <= self.Keps: #if vectors are orthonormals
                 info_A = False
         if not info_A:
             print("A = Son ortonormales / No fueron entregados!")
             probas_t =  clusterize_annotators(Y_ann,M=self.M,bulk=True,cluster_type='flatten',data=[T_idx,mv_probs_j],DTYPE_OP=self.DTYPE_OP)
         else:
             probas_t =  clusterize_annotators(A,M=self.M,bulk=True,cluster_type='previous',DTYPE_OP=self.DTYPE_OP)
-        self.alpha_init, _ = get_A_il(T_idx, A=probas_t, index=True) #groups init.
+        #self.alpha_init, _ = get_A_il(T_idx, A=probas_t, index=True) #groups init.
         
         #-------> init q_il
+        #-------> Initialize p(z=gamma|xi,y=j,g): Combination of mv and belive observable
+        lambda_group = np.ones((self.M),dtype=self.DTYPE_OP)  #or zeros
+        #if self.lambda_random:
+        #    for m in range(self.M):
+        #        lambda_group[m] = np.random.beta(1,1)
+        print("Lambda by group: ",lambda_group)
+        #Zilm =  [] #np.zeros((self.N,self.Kl,self.M,self.Kl),dtype=self.DTYPE_OP)
+        #for i in range(self.N): 
+        #    Zilm.append( (mv_probs_j[i][None,:,None]*lambda_group + Y_ann[i][:,:,None]*(1-lambda_group) ).transpose(0,2,1) )
+        #Zilm = np.asarray(Zilm)
+        
         self.Qil_mgamma = []
+        self.alpha_init = []
         for i in range(self.N):
-            #alpha init puede ir aca desde probas_t...
-            self.Qil_mgamma.append( self.alpha_init[i][:,:,None] * Zilm[i] )
+            #self.Qil_mgamma.append( self.alpha_init[i][:,:,None] * Zilm[i] )
+            t_idxs = T_idx[i]
+            self.alpha_init.append( probas_t[t_idxs] )#preinit over alphas
+            self.Qil_mgamma.append( probas_t[t_idxs][:,:,None] * mv_probs_j[i][None,None,:] )      
         self.Qil_mgamma = self.flatten_il(self.Qil_mgamma)
 
         #-------> init betas
@@ -691,19 +692,20 @@ class GroupMixtureInd(object):
 
         if not self.compile_g:
             self.alphas_t = np.zeros((self.T,self.M), dtype=self.DTYPE_OP)
-
-        if self.pre_init != 0:
-            print("Pre-train networks over *z* and over *g* on %d epochs..."%(self.pre_init),end='',flush=True)
-            self.base_model.fit(X,mv_probs_j,batch_size=self.batch_size,epochs=self.pre_init_z,verbose=0)
-            if self.compile_g:
+        else:
+            if self.pre_init_g != 0:
+                print("Pre-train networks over *g* on %d epochs..."%(self.pre_init_g),end='',flush=True)
                 if len(A) == 0: #use T instead
-                    self.group_model.fit(self.flatten_il(T_idx), self.flatten_il(self.alpha_init),batch_size=math.ceil(self.batch_size*self.T_i),epochs=self.pre_init,verbose=0)         
+                    A_aux = T_idx
                 else:
                     A_aux, _ = get_A_il(T_idx, A=A, index=True) 
-                    self.group_model.fit(self.flatten_il(A_aux), self.flatten_il(self.alpha_init),batch_size=math.ceil(self.batch_size*self.T_i),epochs=self.pre_init,verbose=0)         
-                #reset optimizer but hold weights--necessary for stability 
-                self.group_model.compile(loss='categorical_crossentropy',optimizer=self.optimizer)     
-            self.base_model.compile(loss='categorical_crossentropy',optimizer=self.optimizer)       
+                self.group_model.fit(self.flatten_il(A_aux), self.flatten_il(self.alpha_init),batch_size=math.ceil(self.batch_size*self.T_i),epochs=self.pre_init_g,verbose=0)         
+                self.group_model.compile(loss='categorical_crossentropy',optimizer=self.optimizer) #reset optimizer but hold weights--necessary for stability  
+                print(" Done!")
+        if self.pre_init_z != 0:
+            print("Pre-train networks over *z* on %d epochs..."%(self.pre_init_z),end='',flush=True)
+            self.base_model.fit(X,mv_probs_j,batch_size=self.batch_size,epochs=self.pre_init_z,verbose=0)
+            self.base_model.compile(loss='categorical_crossentropy',optimizer=self.optimizer) #reset optimizer but hold weights--necessary for stability   
             print(" Done!")
         print("MV init: ",mv_probs_j.shape)
         print("Betas: ",self.betas.shape)
@@ -715,8 +717,6 @@ class GroupMixtureInd(object):
         """ Realize the E step in matrix version"""   
         if len(Y_ann.shape) ==1:
             Y_ann = self.flatten_il(Y_ann)
-        if T_idx.shape[0] != Y_ann.shape[0]:
-            T_idx = self.flatten_il(T_idx)
         g_pred = np.log( np.clip(g_pred, self.Keps, 1.) )#[:,:,None]  #safe logarithmn
         z_pred = np.log( np.clip(z_pred, self.Keps, 1.) )#[:,None,None,:] #safe logarithmn
         b_aux = np.tensordot(Y_ann, np.log(self.betas + self.Keps),axes=[[1],[2]]) #safe logarithmn
@@ -727,14 +727,14 @@ class GroupMixtureInd(object):
             lim_sup  += T_i
             lim_inf  = lim_sup - T_i
             b_new    = b_aux [ lim_inf       : lim_sup]
-            g_aux    = g_pred[ T_idx[lim_inf : lim_sup] ] #get groups of annotators at indexs
+            g_aux    = g_pred[ T_idx[i] ] #get groups of annotators at indexs
 
             self.Qil_mgamma[lim_inf: lim_sup] = np.exp( z_pred[i][None,None,:] + g_aux[:,:,None] + b_new)  
         self.aux_for_like = self.Qil_mgamma.sum(axis=(1,2)) #p(y|x,a) --marginalized
         self.Qil_mgamma   = self.Qil_mgamma/self.aux_for_like[:,None,None] #normalize
         
-    def M_step(self,X, Y_ann, T_idx, A=[]): 
-        """ Realize the M step"""
+    def M_step(self,X, Y_ann, A): 
+        """ Realize the M step, A could be index or representation for every annotator T"""
         if len(Y_ann.shape) ==1:
             Y_ann = self.flatten_il(Y_ann)
 
@@ -744,20 +744,22 @@ class GroupMixtureInd(object):
         for i, T_i in enumerate(self.T_i_all):#range(self.N): 
             lim_sup  += T_i
             r_estimate[i] = self.Qil_mgamma[lim_sup-T_i : lim_sup].sum(axis=(0,1)) #create the "estimate"/"ground truth"
-
         if "sklearn" in self.type:#train to learn p(z|x)
             self.base_model.fit(X, np.argmax(r_estimate,axis=1) ) 
         else:
-            self.base_model.fit(X, r_estimate, batch_size=self.batch_size,epochs=1,verbose=0) 
+            self.base_model.fit(X, r_estimate, batch_size=self.batch_size,epochs=self.epochs,verbose=0) 
 
         #-------> alpha 
         Qil_m_flat = self.Qil_mgamma.sum(axis=-1)  #qil(m)
         if not self.compile_g:        
             for t in range(self.T):
-                self.alphas_t[t] = np.tensordot( Qil_m_flat, T_idx==t, axes=[[0],[0]] )
+                self.alphas_t[t] = np.tensordot( Qil_m_flat, A==t, axes=[[0],[0]] )
             self.alphas_t = self.alphas_t/self.alphas_t.sum(axis=-1,keepdims=True)
         else:
-            self.group_model.fit(T_idx, Qil_m_flat, batch_size=math.ceil(self.batch_size*self.T_i),epochs=self.epochs,verbose=0) #batch should be prop to T_i
+            if len(A) == 0:
+                self.group_model.fit(A, Qil_m_flat, batch_size=math.ceil(self.batch_size*self.T_i),epochs=self.epochs,verbose=0) #batch should be prop to T_i
+            else:
+                self.group_model.fit(A, Qil_m_flat, batch_size=math.ceil(self.batch_size*self.T_i),epochs=self.epochs,verbose=0) #batch should be prop to T_i
 
         #-------> beta
         self.betas =  np.tensordot(self.Qil_mgamma, Y_ann , axes=[[0],[0]]) # ~p(yo=j|g,z) 
@@ -769,13 +771,15 @@ class GroupMixtureInd(object):
         """ Compute the log-likelihood of the optimization schedule"""
         return np.sum( np.log(self.aux_for_like+self.Keps) )  #safe logarithm
                                                   
-    def train(self,X_train,Y_ann_train, T_idx, A_train=[], batch_size=64,max_iter=500,relative=True,tolerance=3e-2):
+    def train(self,X_train,Y_ann_train, T_idx, A_train=[], pre_init_z=0, pre_init_g=0, batch_size=64,max_iter=500,relative=True,tolerance=3e-2):
         if not self.compile_z:
             print("You need to create the model first, set .define_model")
             return
         if len(Y_ann_train.shape) != 1 or len(T_idx.shape) != 1:
             print("ERROR! Needed Y and T_idx in variable length array")
             return
+        self.pre_init_z = pre_init_z
+        self.pre_init_g = pre_init_g
         self.batch_size = batch_size
         self.N = X_train.shape[0]
         self.T_i_all = [y_ann.shape[0] for y_ann in Y_ann_train] 
@@ -783,12 +787,17 @@ class GroupMixtureInd(object):
         self.T = max(list(map(max,T_idx)))+1 #not important...--> is important for clustering
         print("Initializing new EM...")
         self.init_E(X_train,Y_ann_train,T_idx, A=A_train)
-
-        Y_ann_train = self.flatten_il(Y_ann_train) #flatten for E and M step
-        T_idx = self.flatten_il(T_idx)
-        A_2_pred = A_train
-        if len(A_2_pred) == 0: #use T instead
-            A_2_pred = np.arange(self.T).reshape(-1,1) #self.flatten_il(T_idx).reshape(-1,1)            
+       
+        if len(A_train) == 0: #use T instead
+            A_2_pred = np.arange(self.T).reshape(-1,1) #self.flatten_il(T_idx).reshape(-1,1)  
+            A_train = T_idx.copy()
+        else:
+            A_2_pred = A_train
+            A_train, _ = get_A_il(T_idx, A=A_train, index=True)  #repeat p(g|a) on index of A   
+        #flatten for E and M step
+        Y_ann_train = self.flatten_il(Y_ann_train) 
+        #T_idx = self.flatten_il(T_idx)
+        A_train = self.flatten_il(A_train)
 
         logL = []
         stop_c = False
@@ -797,18 +806,11 @@ class GroupMixtureInd(object):
         while(not stop_c):
             start_time = time.time()
             print("Iter %d/%d\nM step:"%(self.current_iter,max_iter),end='',flush=True)
-            start_time2 = time.time()
-            self.M_step(X_train, Y_ann_train, T_idx, A=A_train)
-            print("M step en %f sec"%(time.time()-start_time2))
-
+            self.M_step(X_train, Y_ann_train, A_train)
             print(" done,  E step:",end='',flush=True)
-
-            start_time2 = time.time()
             predictions_z = self.get_predictions_z(X_train) #p(z|x)
             predictions_g = self.get_predictions_g(A_2_pred) #p(g|a)
             self.E_step(Y_ann_train, predictions_z, predictions_g, T_idx)
-            print("E step en %f sec"%(time.time()-start_time2))
-
             self.current_exectime = time.time()-start_time
             print(" done //  (in %.2f sec)\t"%(self.current_exectime),end='',flush=True)
             logL.append(self.compute_logL())
@@ -827,21 +829,21 @@ class GroupMixtureInd(object):
         print("Finished training!")
         return np.asarray(logL)
     
-    def stable_train(self,X,Y_ann,T_idx, A=[], batch_size=64,max_iter=50,tolerance=3e-2):
+    def stable_train(self,X,Y_ann,T_idx, A=[], pre_init_z=0, pre_init_g=0, batch_size=64,max_iter=50,tolerance=3e-2):
         """
             A stable schedule to train a model on this formulation
         """
         if not self.priors:
             self.define_priors('laplace') #needed..
-        logL_hist = self.train(X,Y_ann,T_idx, A_train=A, batch_size=batch_size,max_iter=max_iter,tolerance=tolerance,relative=True)
+        logL_hist = self.train(X,Y_ann,T_idx, A_train=A, pre_init_z=pre_init_z,pre_init_g=pre_init_g,batch_size=batch_size,max_iter=max_iter,tolerance=tolerance,relative=True)
         return logL_hist
     
-    def multiples_run(self,Runs,X,Y_ann,T_idx, A=[], batch_size=64,max_iter=50,tolerance=3e-2): 
+    def multiples_run(self,Runs,X,Y_ann,T_idx, A=[],pre_init_z=0,pre_init_g=0, batch_size=64,max_iter=50,tolerance=3e-2): 
         """
             Run multiples max_iter of EM algorithm, same start
         """
         if Runs==1:
-            return self.stable_train(X,Y_ann,T_idx, A=A, batch_size=batch_size,max_iter=max_iter,tolerance=tolerance), 0
+            return self.stable_train(X,Y_ann,T_idx, A=A,pre_init_z=pre_init_z,pre_init_g=pre_init_g,batch_size=batch_size,max_iter=max_iter,tolerance=tolerance), 0
 
         if not self.priors:
             self.define_priors('laplace') #needed!
@@ -862,7 +864,7 @@ class GroupMixtureInd(object):
                 self.group_model = keras.models.clone_model(clonable_model_g) #reset-weigths
                 self.group_model.compile(loss='categorical_crossentropy',optimizer=self.optimizer)
 
-            logL_hist = self.train(X,Y_ann,T_idx, A_train=A, batch_size=batch_size,max_iter=max_iter,tolerance=tolerance,relative=True) #here the models get resets
+            logL_hist = self.train(X,Y_ann,T_idx, A_train=A, pre_init_z=pre_init_z,pre_init_g=pre_init_g, batch_size=batch_size,max_iter=max_iter,tolerance=tolerance,relative=True) #here the models get resets
             
             found_betas.append(self.betas.copy())
             if self.compile_g: 
