@@ -796,7 +796,6 @@ class GroupMixtureInd(object):
             A_train, _ = get_A_il(T_idx, A=A_train, index=True)  #repeat p(g|a) on index of A   
         #flatten for E and M step
         Y_ann_train = self.flatten_il(Y_ann_train) 
-        #T_idx = self.flatten_il(T_idx)
         A_train = self.flatten_il(A_train)
 
         logL = []
