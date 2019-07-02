@@ -374,7 +374,7 @@ for _ in range(30): #repetitions
         results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred_OI,conf_pred=c_M, y_o_groups=y_o_groups)
 
         results_ours_indiv_train +=  results1
-        results_ours_indiv_trainA += results1_raux
+        results_ours_indiv_trainA += results1_aux
         results_ours_indiv_testA.append(results2[0])
         results_ours_indiv_test.append(results2[1])
 

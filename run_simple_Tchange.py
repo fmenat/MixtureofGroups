@@ -282,6 +282,7 @@ for Tmax in to_check:
             keras.backend.clear_session()
 
         if "oursindividual" in executed_models:
+            """
             gMixture_Ind = GroupMixtureInd(Xstd_train.shape[1:],Kl=K,M=M_seted,epochs=1,optimizer=OPT,dtype_op=DTYPE_OP) 
             gMixture_Ind.define_model("mlp",16,1,BatchN=False,drop=0.2)
             #gMixture_Ind.define_model_group("keras_shallow", T, M_seted,embed=True, embed_M=A) 
@@ -292,7 +293,7 @@ for Tmax in to_check:
             Z_test_p_OI = gMixture_Ind.get_predictions_z(Xstd_test)
             prob_Gt_OI = gMixture_Ind.get_predictions_g(T_idx_unique) 
             keras.backend.clear_session()
-
+            """
             gMixture_Ind2 = GroupMixtureInd(Xstd_train.shape[1:],Kl=K,M=M_seted,epochs=1,optimizer=OPT,dtype_op=DTYPE_OP) 
             gMixture_Ind2.define_model("mlp",16,1,BatchN=False,drop=0.2) 
             logL_hists,i_r = gMixture_Ind2.multiples_run(20,Xstd_train,Y_ann_train, T_idx, A=[], batch_size=BATCH_SIZE,
@@ -301,7 +302,7 @@ for Tmax in to_check:
             Z_test_p_OI2 = gMixture_Ind2.get_predictions_z(Xstd_test)
             prob_Gt_OI2 = gMixture_Ind2.get_predictions_g(T_idx_unique) 
             keras.backend.clear_session()
-
+            """
             gMixture_Ind3 = GroupMixtureInd(Xstd_train.shape[1:],Kl=K,M=M_seted,epochs=1,optimizer=OPT,dtype_op=DTYPE_OP) 
             gMixture_Ind3.define_model("mlp",16,1,BatchN=False,drop=0.2) 
             gMixture_Ind3.define_model_group("mlp", A_rep.shape[1], K*M_seted, 1, BatchN=False, embed=False)
@@ -311,7 +312,7 @@ for Tmax in to_check:
             Z_test_p_OI3  = gMixture_Ind3.get_predictions_z(Xstd_test)
             prob_Gt_OI3   = gMixture_Ind3.get_predictions_g(A_rep) 
             keras.backend.clear_session()
-
+            """
 
         ################## MEASURE PERFORMANCE ##################################
         if "mv" in executed_models:
@@ -380,6 +381,7 @@ for Tmax in to_check:
             aux_ours_global_test.append(results2[1])
 
         if "oursindividual" in executed_models:
+            """
             evaluate = Evaluation_metrics(gMixture_Ind,'our1',plot=False) 
             evaluate.set_Gt(prob_Gt_OI)
             aux = gMixture_Ind.calculate_extra_components(Xstd_train, A,calculate_pred_annotator=True,p_z=Z_train_p_OI,p_g=prob_Gt_OI)
@@ -394,12 +396,12 @@ for Tmax in to_check:
             y_o_groups = gMixture_Ind.get_predictions_groups(Xstd_test,data=Z_test_p_OI).argmax(axis=-1) #obtain p(y^o|x,g=m) and then argmax
             Z_test_pred_OI = Z_test_p_OI.argmax(axis=-1)
             results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred_OI,conf_pred=c_M, y_o_groups=y_o_groups)
-
+ 
             aux_ours_indiv_train +=  results1
             aux_ours_indiv_trainA += results1_aux
             aux_ours_indiv_testA.append(results2[0])
             aux_ours_indiv_test.append(results2[1])
-
+            """
             evaluate = Evaluation_metrics(gMixture_Ind2,'our1',plot=False) 
             evaluate.set_Gt(prob_Gt_OI2)
             aux = gMixture_Ind2.calculate_extra_components(Xstd_train, A,calculate_pred_annotator=True,p_z=Z_train_p_OI2,p_g=prob_Gt_OI2)
@@ -419,7 +421,7 @@ for Tmax in to_check:
             aux_ours_indiv2_trainA += results1_aux
             aux_ours_indiv2_testA.append(results2[0])
             aux_ours_indiv2_test.append(results2[1])
-
+            """
             evaluate = Evaluation_metrics(gMixture_Ind3,'our1',plot=False) 
             evaluate.set_Gt(prob_Gt_OI3)
             aux = gMixture_Ind3.calculate_extra_components(Xstd_train, A,calculate_pred_annotator=True,p_z=Z_train_p_OI3,p_g=prob_Gt_OI3)
@@ -439,7 +441,7 @@ for Tmax in to_check:
             aux_ours_indiv3_trainA += results1_aux
             aux_ours_indiv3_testA.append(results2[0])
             aux_ours_indiv3_test.append(results2[1])
-
+            """
         print("All Performance Measured")
         if "mv" in executed_models:
             del model_mvsoft,model_mvhard
@@ -450,7 +452,8 @@ for Tmax in to_check:
         if "oursglobal" in executed_models:
             del gMixture_Global
         if "oursindividual" in executed_models:
-            del gMixture_Ind, gMixture_Ind2, gMixture_Ind3
+            #del gMixture_Ind, gMixture_Ind2, gMixture_Ind3
+            del gMixture_Ind2
         del evaluate
         gc.collect()
 
@@ -473,18 +476,18 @@ for Tmax in to_check:
         results_ours_global_test.append(get_mean_dataframes(aux_ours_global_test))
         results_ours_global_testA.append(get_mean_dataframes(aux_ours_global_testA))
     if "oursindividual" in executed_models:
-        results_ours_indiv_train.append(get_mean_dataframes(aux_ours_indiv_train))
-        results_ours_indiv_trainA.append(get_mean_dataframes(aux_ours_indiv_trainA))
-        results_ours_indiv_test.append(get_mean_dataframes(aux_ours_indiv_test))
-        results_ours_indiv_testA.append(get_mean_dataframes(aux_ours_indiv_testA))
+        #results_ours_indiv_train.append(get_mean_dataframes(aux_ours_indiv_train))
+        #results_ours_indiv_trainA.append(get_mean_dataframes(aux_ours_indiv_trainA))
+        #results_ours_indiv_test.append(get_mean_dataframes(aux_ours_indiv_test))
+        #results_ours_indiv_testA.append(get_mean_dataframes(aux_ours_indiv_testA))
         results_ours_indiv2_train.append(get_mean_dataframes(aux_ours_indiv2_train))
         results_ours_indiv2_trainA.append(get_mean_dataframes(aux_ours_indiv2_trainA))
         results_ours_indiv2_test.append(get_mean_dataframes(aux_ours_indiv2_test))
         results_ours_indiv2_testA.append(get_mean_dataframes(aux_ours_indiv2_testA))
-        results_ours_indiv3_train.append(get_mean_dataframes(aux_ours_indiv3_train))
-        results_ours_indiv3_trainA.append(get_mean_dataframes(aux_ours_indiv3_trainA))
-        results_ours_indiv3_test.append(get_mean_dataframes(aux_ours_indiv3_test))
-        results_ours_indiv3_testA.append(get_mean_dataframes(aux_ours_indiv3_testA))
+        #results_ours_indiv3_train.append(get_mean_dataframes(aux_ours_indiv3_train))
+        #results_ours_indiv3_trainA.append(get_mean_dataframes(aux_ours_indiv3_trainA))
+        #results_ours_indiv3_test.append(get_mean_dataframes(aux_ours_indiv3_test))
+        #results_ours_indiv3_testA.append(get_mean_dataframes(aux_ours_indiv3_testA))
     gc.collect()
 
 import pickle
@@ -523,6 +526,7 @@ if "oursglobal" in executed_models:
         pickle.dump(results_ours_global_testA, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 if "oursindividual" in executed_models: 
+    """
     with open('synthetic_OursIndividual_train.pickle', 'wb') as handle:
         pickle.dump(results_ours_indiv_train, handle, protocol=pickle.HIGHEST_PROTOCOL)
     with open('synthetic_OursIndividual_trainAnn.pickle', 'wb') as handle:
@@ -531,7 +535,7 @@ if "oursindividual" in executed_models:
         pickle.dump(results_ours_indiv_test, handle, protocol=pickle.HIGHEST_PROTOCOL)
     with open('synthetic_OursIndividual_testAux.pickle', 'wb') as handle:
         pickle.dump(results_ours_indiv_testA, handle, protocol=pickle.HIGHEST_PROTOCOL)
-
+    """
     with open('synthetic_OursIndividual2_train.pickle', 'wb') as handle:
         pickle.dump(results_ours_indiv2_train, handle, protocol=pickle.HIGHEST_PROTOCOL)
     with open('synthetic_OursIndividual2_trainAnn.pickle', 'wb') as handle:
@@ -540,7 +544,7 @@ if "oursindividual" in executed_models:
         pickle.dump(results_ours_indiv2_test, handle, protocol=pickle.HIGHEST_PROTOCOL)
     with open('synthetic_OursIndividual2_testAux.pickle', 'wb') as handle:
         pickle.dump(results_ours_indiv2_testA, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    
+    """
     with open('synthetic_OursIndividual3_train.pickle', 'wb') as handle:
         pickle.dump(results_ours_indiv3_train, handle, protocol=pickle.HIGHEST_PROTOCOL)
     with open('synthetic_OursIndividual3_trainAnn.pickle', 'wb') as handle:
@@ -549,6 +553,6 @@ if "oursindividual" in executed_models:
         pickle.dump(results_ours_indiv3_test, handle, protocol=pickle.HIGHEST_PROTOCOL)
     with open('synthetic_OursIndividual3_testAux.pickle', 'wb') as handle:
         pickle.dump(results_ours_indiv3_testA, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    
+    """
 print("Execution done in %f mins"%((time.time()-start_time_exec)/60.))
 
