@@ -124,6 +124,12 @@ results_ours_indiv_train = []
 #results_ours_indiv_trainA = []
 results_ours_indiv_test = []
 results_ours_indiv_testA = []
+results_ours_indiv2_train = []
+results_ours_indiv2_test = []
+results_ours_indiv2_testA = []
+results_ours_indiv3_train = []
+results_ours_indiv3_test = []
+results_ours_indiv3_testA = []
 
 for Tmax in to_check:
     aux_softmv_train = []
@@ -143,6 +149,12 @@ for Tmax in to_check:
     #aux_ours_indiv_trainA = []
     aux_ours_indiv_test = []
     aux_ours_indiv_testA = []
+    aux_ours_indiv2_train = []
+    aux_ours_indiv2_test = []
+    aux_ours_indiv2_testA = []
+    aux_ours_indiv3_train = []
+    aux_ours_indiv3_test = []
+    aux_ours_indiv3_testA = []
 
     GenerateData = SinteticData(state=state_sce) #por la semilla quedan similares..
     #CONFUSION MATRIX CHOOSE
@@ -213,6 +225,12 @@ for Tmax in to_check:
         A = keras.utils.to_categorical(np.arange(T), num_classes=T) #fast way
         print("Annotator representation (T, R_t)=", A.shape)
 
+        A_rep = np.zeros((T, K))
+        for i in range(N):
+            for l, t_idx in enumerate(T_idx[i]):
+                obs_t = Y_ann_train[i][l].argmax(axis=-1)
+                A_rep[t_idx, obs_t] += 1
+
     for _ in range(5): #repetitions
         ############# EXECUTE ALGORITHMS #############################
         if "mv" in executed_models:
@@ -258,14 +276,23 @@ for Tmax in to_check:
             keras.backend.clear_session()
 
         if "oursindividual" in executed_models:
-            #el modelo cambio...
-            gMixture_Ind = GroupMixtureInd(Xstd_train.shape[1:],Kl=K,M=M_seted,epochs=1,optimizer=OPT,dtype_op=DTYPE_OP) 
-            #...
-            logL_hists,i = gMixture_Ind.multiples_run(20,Xstd_train,Y_ann_train, T_idx, A=[], batch_size=BATCH_SIZE,
-                                                  max_iter=EPOCHS_BASE,tolerance=TOL)
-            Z_train_p_OI = gMixture_Ind.get_predictions_z(Xstd_train)
-            Z_test_p_OI = gMixture_Ind.get_predictions_z(Xstd_test)
-            prob_Gt_OI = gMixture_Ind.get_predictions_g(T_idx_unique) 
+            gMixture_Ind2 = GroupMixtureInd(Xstd_train.shape[1:],Kl=K,M=M_seted,epochs=1,optimizer=OPT,dtype_op=DTYPE_OP) 
+            gMixture_Ind2.define_model("default cnn")
+            logL_hists,i_r = gMixture_Ind2.multiples_run(20,Xstd_train,Y_ann_train, T_idx, A=[], batch_size=BATCH_SIZE,
+                                                  pre_init_z=3, max_iter=EPOCHS_BASE,tolerance=TOL)
+            Z_train_p_OI2 = gMixture_Ind2.get_predictions_z(Xstd_train)
+            Z_test_p_OI2 = gMixture_Ind2.get_predictions_z(Xstd_test)
+            prob_Gt_OI2 = gMixture_Ind2.get_predictions_g(T_idx_unique) 
+            keras.backend.clear_session()
+            
+            gMixture_Ind3 = GroupMixtureInd(Xstd_train.shape[1:],Kl=K,M=M_seted,epochs=1,optimizer=OPT,dtype_op=DTYPE_OP) 
+            gMixture_Ind3.define_model("default cnn")
+            gMixture_Ind3.define_model_group("mlp", A_rep.shape[1], K*M_seted, 1, BatchN=False, embed=False)
+            logL_hists,i_r = gMixture_Ind3.multiples_run(20,Xstd_train,Y_ann_train, T_idx, A=A_rep, batch_size=BATCH_SIZE,
+                                                  pre_init_g=15,pre_init_z=3, max_iter=EPOCHS_BASE,tolerance=TOL)
+            Z_train_p_OI3 = gMixture_Ind3.get_predictions_z(Xstd_train)
+            Z_test_p_OI3  = gMixture_Ind3.get_predictions_z(Xstd_test)
+            prob_Gt_OI3   = gMixture_Ind3.get_predictions_g(A_rep) 
             keras.backend.clear_session()
 
         ################## MEASURE PERFORMANCE ##################################
@@ -341,29 +368,54 @@ for Tmax in to_check:
             aux_ours_global_test.append(results2[1])
 
         if "oursindividual" in executed_models:
-            evaluate = Evaluation_metrics(gMixture_Ind,'our1',plot=False)
-            evaluate.set_Gt(prob_Gt_OI)
-            Z_train_pred_OI = Z_train_p_OI.argmax(axis=-1)
-            prob_Yz = gMixture_Ind.calculate_Yz(prob_Gt_OI)
+            evaluate = Evaluation_metrics(gMixture_Ind2,'our1',plot=False) 
+            evaluate.set_Gt(prob_Gt_OI2)
+            Z_train_pred_OI = Z_train_p_OI2.argmax(axis=-1)
+            prob_Yz = gMixture_Ind2.calculate_Yz(prob_Gt_OI2)
             if Tmax < 3000:
-                aux = gMixture_Ind.calculate_extra_components(Xstd_train,A,calculate_pred_annotator=True,p_z=Z_train_p_OI,p_g=prob_Gt_OI)
+                aux = gMixture_Ind2.calculate_extra_components(Xstd_train, A,calculate_pred_annotator=True,p_z=Z_train_p_OI2,p_g=prob_Gt_OI2)
                 predictions_m,prob_Gt,prob_Yzt,prob_Yxt =  aux #to evaluate...
                 results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_OI,conf_pred=prob_Yzt,conf_true=confe_matrix_R,
-                                                  y_o=y_obs,yo_pred=prob_Yxt,
-                                                 conf_true_G =confe_matrix_G, conf_pred_G = prob_Yz)        
-            else: #pred annotator memory error
-                aux = gMixture_Ind.calculate_extra_components(Xstd_train,A,calculate_pred_annotator=False,p_z=Z_train_p_OI,p_g=prob_Gt_OI)
+                                                     y_o=y_obs,yo_pred=prob_Yxt,
+                                                    conf_true_G =confe_matrix_G, conf_pred_G = prob_Yz)
+            else:
+                aux = gMixture_Ind2.calculate_extra_components(Xstd_train,A,calculate_pred_annotator=False,p_z=Z_train_p_OI2,p_g=prob_Gt_OI2)
                 predictions_m,prob_Gt,prob_Yzt,_ =  aux #to evaluate...
                 results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_OI,conf_pred=prob_Yzt,conf_true=confe_matrix_R,
-                                                 conf_true_G =confe_matrix_G, conf_pred_G = prob_Yz)   
-            c_M = gMixture_Ind.get_confusionM()
-            y_o_groups = gMixture_Ind.get_predictions_groups(Xstd_test,data=Z_test_p_OI).argmax(axis=-1) #obtain p(y^o|x,g=m) and then argmax
-            Z_test_pred_OI = Z_test_p_OI.argmax(axis=-1)
+                                                 conf_true_G =confe_matrix_G, conf_pred_G = prob_Yz)
+            c_M = gMixture_Ind2.get_confusionM()
+            y_o_groups = gMixture_Ind2.get_predictions_groups(Xstd_test,data=Z_test_p_OI2).argmax(axis=-1) #obtain p(y^o|x,g=m) and then argmax
+            Z_test_pred_OI = Z_test_p_OI2.argmax(axis=-1)
             results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred_OI,conf_pred=c_M, y_o_groups=y_o_groups)
 
-            aux_ours_indiv_train +=  results1
-            aux_ours_indiv_testA.append(results2[0])
-            aux_ours_indiv_test.append(results2[1])
+            aux_ours_indiv2_train +=  results1
+            aux_ours_indiv2_testA.append(results2[0])
+            aux_ours_indiv2_test.append(results2[1])
+
+            evaluate = Evaluation_metrics(gMixture_Ind3,'our1',plot=False) 
+            evaluate.set_Gt(prob_Gt_OI3)
+            Z_train_pred_OI = Z_train_p_OI3.argmax(axis=-1)
+            prob_Yz = gMixture_Ind3.calculate_Yz(prob_Gt_OI3)
+            if Tmax < 3000:
+                aux = gMixture_Ind3.calculate_extra_components(Xstd_train, A,calculate_pred_annotator=True,p_z=Z_train_p_OI3,p_g=prob_Gt_OI3)
+                predictions_m,prob_Gt,prob_Yzt,prob_Yxt =  aux #to evaluate...
+                results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_OI,conf_pred=prob_Yzt,conf_true=confe_matrix_R,
+                                                     y_o=y_obs,yo_pred=prob_Yxt,
+                                                    conf_true_G =confe_matrix_G, conf_pred_G = prob_Yz)
+            else:
+                aux = gMixture_Ind3.calculate_extra_components(Xstd_train,A,calculate_pred_annotator=False,p_z=Z_train_p_OI3,p_g=prob_Gt_OI3)
+                predictions_m,prob_Gt,prob_Yzt,_ =  aux #to evaluate...
+                results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_OI,conf_pred=prob_Yzt,conf_true=confe_matrix_R,
+                                                 conf_true_G =confe_matrix_G, conf_pred_G = prob_Yz)
+            c_M = gMixture_Ind3.get_confusionM()
+            y_o_groups = gMixture_Ind3.get_predictions_groups(Xstd_test,data=Z_test_p_OI3).argmax(axis=-1) #obtain p(y^o|x,g=m) and then argmax
+            Z_test_pred_OI = Z_test_p_OI3.argmax(axis=-1)
+            results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred_OI,conf_pred=c_M, y_o_groups=y_o_groups)
+
+            aux_ours_indiv3_train +=  results1
+            aux_ours_indiv3_testA.append(results2[0])
+            aux_ours_indiv3_test.append(results2[1])
+
 
         print("All Performance Measured")
         if "mv" in executed_models:
@@ -374,6 +426,8 @@ for Tmax in to_check:
             del raykarMC
         if "oursglobal" in executed_models:
             del gMixture_Global
+        if "oursindividual" in executed_models:
+            del gMixture_Ind2, gMixture_Ind3
         del evaluate
         gc.collect()
 
@@ -402,9 +456,15 @@ for Tmax in to_check:
         results_ours_global_test.append(get_mean_dataframes(aux_ours_global_test))
         results_ours_global_testA.append(get_mean_dataframes(aux_ours_global_testA))
     if "oursindividual" in executed_models:
-        results_ours_indiv_train.append(get_mean_dataframes(aux_ours_indiv_train))
-        results_ours_indiv_test.append(get_mean_dataframes(aux_ours_indiv_test))
-        results_ours_indiv_testA.append(get_mean_dataframes(aux_ours_indiv_testA))
+        #results_ours_indiv_train.append(get_mean_dataframes(aux_ours_indiv_train))
+        #results_ours_indiv_test.append(get_mean_dataframes(aux_ours_indiv_test))
+        #results_ours_indiv_testA.append(get_mean_dataframes(aux_ours_indiv_testA))
+        results_ours_indiv2_train.append(get_mean_dataframes(aux_ours_indiv2_train))
+        results_ours_indiv2_test.append(get_mean_dataframes(aux_ours_indiv2_test))
+        results_ours_indiv2_testA.append(get_mean_dataframes(aux_ours_indiv2_testA))
+        results_ours_indiv3_train.append(get_mean_dataframes(aux_ours_indiv3_train))
+        results_ours_indiv3_test.append(get_mean_dataframes(aux_ours_indiv3_test))
+        results_ours_indiv3_testA.append(get_mean_dataframes(aux_ours_indiv3_testA))
     gc.collect()
 
 import pickle
@@ -439,12 +499,26 @@ if "oursglobal" in executed_models:
         pickle.dump(results_ours_global_testA, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 if "oursindividual" in executed_models:
+    """
     with open('synthetic_OursIndividual_train.pickle', 'wb') as handle:
         pickle.dump(results_ours_indiv_train, handle, protocol=pickle.HIGHEST_PROTOCOL)
     with open('synthetic_OursIndividual_test.pickle', 'wb') as handle:
         pickle.dump(results_ours_indiv_test, handle, protocol=pickle.HIGHEST_PROTOCOL)
     with open('synthetic_OursIndividual_testAux.pickle', 'wb') as handle:
         pickle.dump(results_ours_indiv_testA, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    """
+    with open('synthetic_OursIndividual2_train.pickle', 'wb') as handle:
+        pickle.dump(results_ours_indiv2_train, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    with open('synthetic_OursIndividual2_test.pickle', 'wb') as handle:
+        pickle.dump(results_ours_indiv2_test, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    with open('synthetic_OursIndividual2_testAux.pickle', 'wb') as handle:
+        pickle.dump(results_ours_indiv2_testA, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    with open('synthetic_OursIndividual3_train.pickle', 'wb') as handle:
+        pickle.dump(results_ours_indiv3_train, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    with open('synthetic_OursIndividual3_test.pickle', 'wb') as handle:
+        pickle.dump(results_ours_indiv3_test, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    with open('synthetic_OursIndividual3_testAux.pickle', 'wb') as handle:
+        pickle.dump(results_ours_indiv3_testA, handle, protocol=pickle.HIGHEST_PROTOCOL)
     
 print("Execution done in %f mins"%((time.time()-start_time_exec)/60.))
 

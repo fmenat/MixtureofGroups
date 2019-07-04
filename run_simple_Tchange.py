@@ -302,7 +302,7 @@ for Tmax in to_check:
             Z_test_p_OI2 = gMixture_Ind2.get_predictions_z(Xstd_test)
             prob_Gt_OI2 = gMixture_Ind2.get_predictions_g(T_idx_unique) 
             keras.backend.clear_session()
-            """
+            
             gMixture_Ind3 = GroupMixtureInd(Xstd_train.shape[1:],Kl=K,M=M_seted,epochs=1,optimizer=OPT,dtype_op=DTYPE_OP) 
             gMixture_Ind3.define_model("mlp",16,1,BatchN=False,drop=0.2) 
             gMixture_Ind3.define_model_group("mlp", A_rep.shape[1], K*M_seted, 1, BatchN=False, embed=False)
@@ -312,8 +312,7 @@ for Tmax in to_check:
             Z_test_p_OI3  = gMixture_Ind3.get_predictions_z(Xstd_test)
             prob_Gt_OI3   = gMixture_Ind3.get_predictions_g(A_rep) 
             keras.backend.clear_session()
-            """
-
+            
         ################## MEASURE PERFORMANCE ##################################
         if "mv" in executed_models:
             evaluate = Evaluation_metrics(model_mvsoft,'keras',Xstd_train.shape[0],plot=False)
@@ -421,7 +420,7 @@ for Tmax in to_check:
             aux_ours_indiv2_trainA += results1_aux
             aux_ours_indiv2_testA.append(results2[0])
             aux_ours_indiv2_test.append(results2[1])
-            """
+
             evaluate = Evaluation_metrics(gMixture_Ind3,'our1',plot=False) 
             evaluate.set_Gt(prob_Gt_OI3)
             aux = gMixture_Ind3.calculate_extra_components(Xstd_train, A,calculate_pred_annotator=True,p_z=Z_train_p_OI3,p_g=prob_Gt_OI3)
@@ -441,7 +440,7 @@ for Tmax in to_check:
             aux_ours_indiv3_trainA += results1_aux
             aux_ours_indiv3_testA.append(results2[0])
             aux_ours_indiv3_test.append(results2[1])
-            """
+
         print("All Performance Measured")
         if "mv" in executed_models:
             del model_mvsoft,model_mvhard
@@ -453,7 +452,7 @@ for Tmax in to_check:
             del gMixture_Global
         if "oursindividual" in executed_models:
             #del gMixture_Ind, gMixture_Ind2, gMixture_Ind3
-            del gMixture_Ind2
+            del gMixture_Ind2, gMixture_Ind3
         del evaluate
         gc.collect()
 
@@ -484,10 +483,10 @@ for Tmax in to_check:
         results_ours_indiv2_trainA.append(get_mean_dataframes(aux_ours_indiv2_trainA))
         results_ours_indiv2_test.append(get_mean_dataframes(aux_ours_indiv2_test))
         results_ours_indiv2_testA.append(get_mean_dataframes(aux_ours_indiv2_testA))
-        #results_ours_indiv3_train.append(get_mean_dataframes(aux_ours_indiv3_train))
-        #results_ours_indiv3_trainA.append(get_mean_dataframes(aux_ours_indiv3_trainA))
-        #results_ours_indiv3_test.append(get_mean_dataframes(aux_ours_indiv3_test))
-        #results_ours_indiv3_testA.append(get_mean_dataframes(aux_ours_indiv3_testA))
+        results_ours_indiv3_train.append(get_mean_dataframes(aux_ours_indiv3_train))
+        results_ours_indiv3_trainA.append(get_mean_dataframes(aux_ours_indiv3_trainA))
+        results_ours_indiv3_test.append(get_mean_dataframes(aux_ours_indiv3_test))
+        results_ours_indiv3_testA.append(get_mean_dataframes(aux_ours_indiv3_testA))
     gc.collect()
 
 import pickle
@@ -544,7 +543,6 @@ if "oursindividual" in executed_models:
         pickle.dump(results_ours_indiv2_test, handle, protocol=pickle.HIGHEST_PROTOCOL)
     with open('synthetic_OursIndividual2_testAux.pickle', 'wb') as handle:
         pickle.dump(results_ours_indiv2_testA, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    """
     with open('synthetic_OursIndividual3_train.pickle', 'wb') as handle:
         pickle.dump(results_ours_indiv3_train, handle, protocol=pickle.HIGHEST_PROTOCOL)
     with open('synthetic_OursIndividual3_trainAnn.pickle', 'wb') as handle:
@@ -553,6 +551,5 @@ if "oursindividual" in executed_models:
         pickle.dump(results_ours_indiv3_test, handle, protocol=pickle.HIGHEST_PROTOCOL)
     with open('synthetic_OursIndividual3_testAux.pickle', 'wb') as handle:
         pickle.dump(results_ours_indiv3_testA, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    """
 print("Execution done in %f mins"%((time.time()-start_time_exec)/60.))
 

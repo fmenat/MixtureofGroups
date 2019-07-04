@@ -92,7 +92,7 @@ def clusterize_annotators(y_o,M,no_label=-1,bulk=True,cluster_type='mv_close',da
                 data_to_cluster.append(f_l)  
         data_to_cluster = np.asarray(data_to_cluster)
         #if manny classes or low entropy?
-        model = PCA(n_components=min(3,mv_soft.shape[0]) ) # 2-3
+        model = PCA(n_components=min(3,mv_soft.shape[1]) ) # 2-3
         data_to_cluster = model.fit_transform(data_to_cluster) #re ejecutar todo con esto
         probas_t = aux_clusterize(data_to_cluster,M,DTYPE_OP,option,l)
         alphas_init = probas_t.reshape(mv_soft.shape[0],mv_soft.shape[1],M)
@@ -654,9 +654,6 @@ class GroupMixtureInd(object):
         if len(A) == 0:
             info_A = False
         else:
-            #aux = 1
-            #for value in A:
-            #    aux = aux*value   
             if np.cumprod(A,axis=0, dtype=self.DTYPE_OP).sum() <= self.Keps: #if vectors are orthonormals
                 info_A = False
         if not info_A:
@@ -664,7 +661,6 @@ class GroupMixtureInd(object):
             probas_t =  clusterize_annotators(Y_ann,M=self.M,bulk=True,cluster_type='flatten',data=[T_idx,mv_probs_j],DTYPE_OP=self.DTYPE_OP)
         else:
             probas_t =  clusterize_annotators(A,M=self.M,bulk=True,cluster_type='previous',DTYPE_OP=self.DTYPE_OP)
-        #self.alpha_init, _ = get_A_il(T_idx, A=probas_t, index=True) #groups init.
         
         #-------> init q_il
         #-------> Initialize p(z=gamma|xi,y=j,g): Combination of mv and belive observable
@@ -681,10 +677,9 @@ class GroupMixtureInd(object):
         self.Qil_mgamma = []
         self.alpha_init = []
         for i in range(self.N):
-            #self.Qil_mgamma.append( self.alpha_init[i][:,:,None] * Zilm[i] )
             t_idxs = T_idx[i]
             self.alpha_init.append( probas_t[t_idxs] )#preinit over alphas
-            self.Qil_mgamma.append( probas_t[t_idxs][:,:,None] * mv_probs_j[i][None,None,:] )      
+            self.Qil_mgamma.append( probas_t[t_idxs][:,:,None] * mv_probs_j[i][None,None,:] )  #y si hago sum con log?    
         self.Qil_mgamma = self.flatten_il(self.Qil_mgamma)
 
         #-------> init betas
@@ -717,16 +712,16 @@ class GroupMixtureInd(object):
         """ Realize the E step in matrix version"""   
         if len(Y_ann.shape) ==1:
             Y_ann = self.flatten_il(Y_ann)
-        g_pred = np.log( np.clip(g_pred, self.Keps, 1.) )#[:,:,None]  #safe logarithmn
-        z_pred = np.log( np.clip(z_pred, self.Keps, 1.) )#[:,None,None,:] #safe logarithmn
+        g_pred = np.log( np.clip(g_pred, self.Keps, 1.) ) #safe logarithmn
+        z_pred = np.log( np.clip(z_pred, self.Keps, 1.) ) #safe logarithmn
         b_aux = np.tensordot(Y_ann, np.log(self.betas + self.Keps),axes=[[1],[2]]) #safe logarithmn
 
         #g_aux2, _ = get_A_il(T_idx, A=g_pred, index=True)  #repeat p(g|a) on index of A
         lim_sup = 0
-        for i, T_i in enumerate(self.T_i_all):#range(self.N): 
+        for i, T_i in enumerate(self.T_i_all):
             lim_sup  += T_i
             lim_inf  = lim_sup - T_i
-            b_new    = b_aux [ lim_inf       : lim_sup]
+            b_new    = b_aux [ lim_inf:lim_sup ]
             g_aux    = g_pred[ T_idx[i] ] #get groups of annotators at indexs
 
             self.Qil_mgamma[lim_inf: lim_sup] = np.exp( z_pred[i][None,None,:] + g_aux[:,:,None] + b_new)  
@@ -795,8 +790,7 @@ class GroupMixtureInd(object):
             A_2_pred = A_train
             A_train, _ = get_A_il(T_idx, A=A_train, index=True)  #repeat p(g|a) on index of A   
         #flatten for E and M step
-        Y_ann_train = self.flatten_il(Y_ann_train) 
-        A_train = self.flatten_il(A_train)
+        Y_ann_train, A_train = self.flatten_il(Y_ann_train), self.flatten_il(A_train)
 
         logL = []
         stop_c = False
