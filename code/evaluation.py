@@ -107,6 +107,7 @@ class Evaluation_metrics(object):
         t[""] = ["All"]
         t["Accuracy"] = [accuracy_score(y_true,y_pred)]
         t["F1 (micro)"] = [f1_score(y_true=y_true, y_pred=y_pred, average='micro')]
+        t["F1 (macro)"] = [f1_score(y_true=y_true, y_pred=y_pred, average='macro')]
         sampled_plot = 0
         if len(conf_true) != 0:
             print("Calculate confusion matrix on repeat version")

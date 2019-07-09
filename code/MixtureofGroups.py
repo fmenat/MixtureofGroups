@@ -8,7 +8,7 @@ from sklearn import metrics
 import gc, keras, time, sys, math
 
 from .learning_models import LogisticRegression_Sklearn,LogisticRegression_Keras,MLP_Keras
-from .learning_models import default_CNN,default_RNN,default_RNNw_emb,CNN_simple, RNN_simple #deep learning
+from .learning_models import default_CNN,default_RNN,CNN_simple, RNN_simple, default_CNN_text #deep learning
 from .representation import *
 from .utils import softmax,estimate_batch_size
 
@@ -176,7 +176,7 @@ class GroupMixtureGlo(object):
         """Get Q estimation param, this is Q_ij(g,z) = p(g,z|xi,y=j)"""
         return self.Qij_mgamma.copy()
         
-    def define_model(self,tipo,start_units=1,deep=1,double=False,drop=0.0,embed=True,BatchN=True,h_units=128):
+    def define_model(self,tipo,start_units=1,deep=1,double=False,drop=0.0,embed=[],BatchN=True,h_units=128):
         """Define the base model and other structures"""
         self.type = tipo.lower()     
         if self.type =="sklearn_shallow" or self.type =="sklearn_logistic":
@@ -192,8 +192,11 @@ class GroupMixtureGlo(object):
             self.base_model = default_CNN(self.input_dim,self.Kl)
         elif self.type=='defaultrnn' or self.type=='default rnn':
             self.base_model = default_RNN(self.input_dim,self.Kl)
-        elif self.type=='defaultrnnE' or self.type=='default rnn E': #with embedding
-            self.base_mode = default_RNNw_emb(self.input_dim,self.Kl,len) #len is the length of the vocabulary
+        elif self.type=='defaultrnntext' or self.type=='default rnn text': #with embedding
+            self.base_model = default_RNNw_emb(self.input_dim,self.Kl,embed) #len is the length of the vocabulary
+        elif self.type=='defaultcnntext' or self.type=='default cnn text': #with embedding
+            self.base_model = default_CNN_text(self.input_dim[0],self.Kl,embed) #len is the length of the vocabulary
+
         elif self.type == "ff" or self.type == "mlp" or self.type=='dense': #classic feed forward
             print("Needed params (units,deep,drop,BatchN?)") #default activation is relu
             self.base_model = MLP_Keras(self.input_dim,self.Kl,start_units,deep,BN=BatchN,drop=drop)
@@ -539,7 +542,7 @@ class GroupMixtureInd(object):
         """Get Q estimation param, this is Q_il(g,z) = p(g,z|x_i,a_il, r_il)"""
         return self.reshape_il(self.Qil_mgamma.copy())
         
-    def define_model(self,tipo,start_units=1,deep=1,double=False,drop=0.0,embed=True,BatchN=True,h_units=128):
+    def define_model(self,tipo,start_units=1,deep=1,double=False,drop=0.0,embed=[],BatchN=True,h_units=128):
         """Define the base model p(z|x) and other structures"""
         self.type = tipo.lower()     
         if self.type =="sklearn_shallow" or self.type =="sklearn_logistic":
@@ -555,8 +558,8 @@ class GroupMixtureInd(object):
             self.base_model = default_CNN(self.input_dim,self.Kl)
         elif self.type=='defaultrnn' or self.type=='default rnn':
             self.base_model = default_RNN(self.input_dim,self.Kl)
-        elif self.type=='defaultrnnE' or self.type=='default rnn E': #with embedding
-            self.base_mode = default_RNNw_emb(self.input_dim,self.Kl,len) #len is the length of the vocabulary
+        elif self.type=='defaultcnntext' or self.type=='default cnn text': #with embedding
+            self.base_model = default_CNN_text(self.input_dim[0],self.Kl,embed) #len is the length of the vocabulary
         elif self.type == "ff" or self.type == "mlp" or self.type=='dense': #classic feed forward
             print("Needed params (units,deep,drop,BatchN?)") #default activation is relu
             self.base_model = MLP_Keras(self.input_dim,self.Kl,start_units,deep,BN=BatchN,drop=drop)

@@ -91,17 +91,39 @@ def default_RNN(input_dim,output_dim):
     model.add(Dense(output_dim, activation='softmax'))     
     return model
 
-def default_RNNw_emb(input_dim,output_dim,len): #len is the length of the vocabulary
+def default_RNN_text(input_dim,output_dim,embed_M=[]): 
     model = Sequential() 
-    model.add(InputLayer(input_shape=input_dim))
-    model.add(Embedding(input_dim=len,output_dim=128,input_length=input_dim[0])) #si son muy pocos datos en texto inicializar embedding con Glove
-    model.add(CuDNNGRU(64,return_sequences=True))
-    model.add(CuDNNGRU(32,return_sequences=False))
+    if len(embed_M) != 0:
+        T, R_t = embed_M.shape
+        emd_layer = Embedding(T, R_t,trainable=False,weights=[embed_M],input_length=input_dim)
+        model.add(emd_layer)
+    else:
+        model.add(InputLayer(input_shape=input_dim))
+    model.add(CuDNNGRU(128,return_sequences=True))
+    model.add(CuDNNGRU(128,return_sequences=False))
     model.add(Dense(output_dim, activation='softmax'))     
     return model
 
+def default_CNN_text(input_dim,output_dim,embed_M=[]):
+    model = Sequential() 
+    if len(embed_M) != 0:
+        T, R_t = embed_M.shape
+        emd_layer = Embedding(T, R_t,trainable=False,weights=[embed_M],input_length=input_dim)
+        model.add(emd_layer)
+    else:
+        model.add(InputLayer(input_shape=input_dim))
+    model.add(Conv1D(128, 5, activation='relu')) 
+    model.add(BatchNormalization())
+    model.add(MaxPooling1D(5))
+    model.add(Dropout(0.25)) #0 0.5
+    model.add(Conv1D(128, 5, activation='relu'))
+    model.add(BatchNormalization())
+    model.add(MaxPooling1D(5))
+    model.add(Dropout(0.25)) # o 0.2
+    model.add(GlobalAveragePooling1D())
+    model.add(Dense(output_dim, activation='softmax')) 
+    return model
 
-#### idea: tener representaciones de modelos neuronales bases para tipos de problemas
 def CNN_simple(input_dim,output_dim,units,hidden_deep,double=False,BN=False,drop=0.0,dense_units=128): #CP
     model = Sequential() 
     model.add(InputLayer(input_shape=input_dim))
