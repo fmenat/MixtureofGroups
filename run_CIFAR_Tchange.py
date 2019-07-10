@@ -48,7 +48,7 @@ Z_train = Z_train[:,0]
 Z_test = Z_test[:,0]
 
 from code.learning_models import LogisticRegression_Sklearn,LogisticRegression_Keras,MLP_Keras
-from code.learning_models import default_CNN,default_RNN,default_RNNw_emb,CNN_simple, RNN_simple #deep learning
+from code.learning_models import default_CNN,default_RNN,CNN_simple, RNN_simple #deep learning
 
 from code.evaluation import Evaluation_metrics
 from code.representation import *
@@ -81,7 +81,7 @@ del evaluate,Z_train_pred,Z_test_pred,results1,results2
 gc.collect()
 keras.backend.clear_session()
 
-def get_mean_dataframes(df_values):
+def get_mean_dataframes(df_values, mean_std = True):
     if df_values[0].iloc[:,0].dtype == object:
         RT = pd.DataFrame(data=None,columns = df_values[0].columns[1:], index= df_values[0].index)
     else:
@@ -93,7 +93,10 @@ def get_mean_dataframes(df_values):
             data.append( df_value.iloc[:,1:].values )
         else:
             data.append(df_value.values)
-    RT[:] = np.mean(data,axis=0)
+    if mean_std:
+        RT[:] = np.mean(data,axis=0)
+    else:
+        RT[:] = np.std(data,axis=0)
     
     if df_values[0].iloc[:,0].dtype == object:
         RT.insert(0, "", df_values[0].iloc[:,0].values )
@@ -145,10 +148,6 @@ for Tmax in to_check:
     #aux_ours_global_trainA = []
     aux_ours_global_test = []
     aux_ours_global_testA = []
-    aux_ours_indiv_train = []
-    #aux_ours_indiv_trainA = []
-    aux_ours_indiv_test = []
-    aux_ours_indiv_testA = []
     aux_ours_indiv2_train = []
     aux_ours_indiv2_test = []
     aux_ours_indiv2_testA = []
@@ -201,7 +200,7 @@ for Tmax in to_check:
         print("shape:",y_obs_categorical.shape)
         print("Representation for Raykar in %f mins"%((time.time()-start_time)/60.) )
 
-    if "oursglobal" in executed_models
+    if "oursglobal" in executed_models:
         #get our global representation 
         if "mv" in executed_models:
             r_obs = label_I.y_obs_repeat.copy() #
@@ -433,38 +432,35 @@ for Tmax in to_check:
 
     #plot measures    
     if "mv" in executed_models:
-        results_softmv_train.append(get_mean_dataframes(aux_softmv_train))
-        results_softmv_test.append(get_mean_dataframes(aux_softmv_test))
-        results_hardmv_train.append(get_mean_dataframes(aux_hardmv_train))
-        results_hardmv_test.append(get_mean_dataframes(aux_hardmv_test))
+        results_softmv_train.append([get_mean_dataframes(aux_softmv_train), get_mean_dataframes(aux_softmv_train,mean_std=False)])
+        results_softmv_test.append([get_mean_dataframes(aux_softmv_test), get_mean_dataframes(aux_softmv_test,mean_std=False)])
+        results_hardmv_train.append([get_mean_dataframes(aux_hardmv_train), get_mean_dataframes(aux_hardmv_train,mean_std=False)])
+        results_hardmv_test.append([get_mean_dataframes(aux_hardmv_test), get_mean_dataframes(aux_hardmv_test,mean_std=False)])
     if "ds" in executed_models:
         if Tmax <4000: #other wise cannot be done 
-            results_ds_train.append(get_mean_dataframes(aux_ds_train))
-            results_ds_test.append(get_mean_dataframes(aux_ds_test))
+            results_ds_train.append([get_mean_dataframes(aux_ds_train), get_mean_dataframes(aux_ds_train,mean_std=False)])
+            results_ds_test.append([get_mean_dataframes(aux_ds_test), get_mean_dataframes(aux_ds_test,mean_std=False)])
         else:
-            results_ds_train.append(np.nan)
-            results_ds_test.append(np.nan)
+            results_ds_train.append([np.nan, np.nan])
+            results_ds_test.append([np.nan,np.nan])
     if "raykar" in executed_models:
         if Tmax <4000: #other wise cannot be done 
-            results_raykar_train.append(get_mean_dataframes(aux_raykar_train))
-            results_raykar_test.append(get_mean_dataframes(aux_raykar_test))
+            results_raykar_train.append([get_mean_dataframes(aux_raykar_train), get_mean_dataframes(aux_raykar_train,mean_std=False)])
+            results_raykar_test.append([get_mean_dataframes(aux_raykar_test), get_mean_dataframes(aux_raykar_test,mean_std=False)])
         else:
-            results_raykar_train.append(np.nan)
-            results_raykar_test.append(np.nan)
+            results_raykar_train.append([np.nan, np.nan])
+            results_raykar_test.append([np.nan, np.nan])
     if "oursglobal" in executed_models:
-        results_ours_global_train.append(get_mean_dataframes(aux_ours_global_train))
-        results_ours_global_test.append(get_mean_dataframes(aux_ours_global_test))
-        results_ours_global_testA.append(get_mean_dataframes(aux_ours_global_testA))
+        results_ours_global_train.append([get_mean_dataframes(aux_ours_global_train), get_mean_dataframes(aux_ours_global_train,mean_std=False)])
+        results_ours_global_test.append([get_mean_dataframes(aux_ours_global_test), get_mean_dataframes(aux_ours_global_test,mean_std=False)])
+        results_ours_global_testA.append([get_mean_dataframes(aux_ours_global_testA), get_mean_dataframes(aux_ours_global_testA,mean_std=False)])
     if "oursindividual" in executed_models:
-        #results_ours_indiv_train.append(get_mean_dataframes(aux_ours_indiv_train))
-        #results_ours_indiv_test.append(get_mean_dataframes(aux_ours_indiv_test))
-        #results_ours_indiv_testA.append(get_mean_dataframes(aux_ours_indiv_testA))
-        results_ours_indiv2_train.append(get_mean_dataframes(aux_ours_indiv2_train))
-        results_ours_indiv2_test.append(get_mean_dataframes(aux_ours_indiv2_test))
-        results_ours_indiv2_testA.append(get_mean_dataframes(aux_ours_indiv2_testA))
-        results_ours_indiv3_train.append(get_mean_dataframes(aux_ours_indiv3_train))
-        results_ours_indiv3_test.append(get_mean_dataframes(aux_ours_indiv3_test))
-        results_ours_indiv3_testA.append(get_mean_dataframes(aux_ours_indiv3_testA))
+        results_ours_indiv2_train.append([get_mean_dataframes(aux_ours_indiv2_train), get_mean_dataframes(aux_ours_indiv2_train,mean_std=False)])
+        results_ours_indiv2_test.append([get_mean_dataframes(aux_ours_indiv2_test), get_mean_dataframes(aux_ours_indiv2_test,mean_std=False)])
+        results_ours_indiv2_testA.append([get_mean_dataframes(aux_ours_indiv2_testA), get_mean_dataframes(aux_ours_indiv2_testA,mean_std=False)])
+        results_ours_indiv3_train.append([get_mean_dataframes(aux_ours_indiv3_train), get_mean_dataframes(aux_ours_indiv3_train,mean_std=False)])
+        results_ours_indiv3_test.append([get_mean_dataframes(aux_ours_indiv3_test), get_mean_dataframes(aux_ours_indiv3_test,mean_std=False)])
+        results_ours_indiv3_testA.append([get_mean_dataframes(aux_ours_indiv3_testA), get_mean_dataframes(aux_ours_indiv3_testA,mean_std=False)])
     gc.collect()
 
 import pickle
@@ -499,14 +495,6 @@ if "oursglobal" in executed_models:
         pickle.dump(results_ours_global_testA, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 if "oursindividual" in executed_models:
-    """
-    with open('synthetic_OursIndividual_train.pickle', 'wb') as handle:
-        pickle.dump(results_ours_indiv_train, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    with open('synthetic_OursIndividual_test.pickle', 'wb') as handle:
-        pickle.dump(results_ours_indiv_test, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    with open('synthetic_OursIndividual_testAux.pickle', 'wb') as handle:
-        pickle.dump(results_ours_indiv_testA, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    """
     with open('synthetic_OursIndividual2_train.pickle', 'wb') as handle:
         pickle.dump(results_ours_indiv2_train, handle, protocol=pickle.HIGHEST_PROTOCOL)
     with open('synthetic_OursIndividual2_test.pickle', 'wb') as handle:
