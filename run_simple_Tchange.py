@@ -284,7 +284,7 @@ for Tmax in to_check:
             gMixture_Ind2 = GroupMixtureInd(Xstd_train.shape[1:],Kl=K,M=M_seted,epochs=1,optimizer=OPT,dtype_op=DTYPE_OP) 
             gMixture_Ind2.define_model("mlp",16,1,BatchN=False,drop=0.2) 
             logL_hists,i_r = gMixture_Ind2.multiples_run(20,Xstd_train,Y_ann_train, T_idx, A=[], batch_size=BATCH_SIZE,
-                                                  pre_init_z=0, max_iter=EPOCHS_BASE,tolerance=TOL)
+                                                  pre_init_z=3, max_iter=EPOCHS_BASE,tolerance=TOL)
             Z_train_p_OI2 = gMixture_Ind2.get_predictions_z(Xstd_train)
             Z_test_p_OI2 = gMixture_Ind2.get_predictions_z(Xstd_test)
             prob_Gt_OI2 = gMixture_Ind2.get_predictions_g(T_idx_unique) 
@@ -294,7 +294,7 @@ for Tmax in to_check:
             gMixture_Ind3.define_model("mlp",16,1,BatchN=False,drop=0.2) 
             gMixture_Ind3.define_model_group("mlp", A_rep.shape[1], K*M_seted, 1, BatchN=False, embed=False)
             logL_hists,i_r = gMixture_Ind3.multiples_run(20,Xstd_train,Y_ann_train, T_idx, A=A_rep, batch_size=BATCH_SIZE,
-                                                  pre_init_g=5,pre_init_z=0, max_iter=EPOCHS_BASE,tolerance=TOL)
+                                                  pre_init_g=5,pre_init_z=3, max_iter=EPOCHS_BASE,tolerance=TOL)
             Z_train_p_OI3 = gMixture_Ind3.get_predictions_z(Xstd_train)
             Z_test_p_OI3  = gMixture_Ind3.get_predictions_z(Xstd_test)
             prob_Gt_OI3   = gMixture_Ind3.get_predictions_g(A_rep) 
