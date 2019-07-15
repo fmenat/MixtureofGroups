@@ -9,8 +9,9 @@ def LogisticRegression_Sklearn(epochs):
                        ,solver='newton-cg',multi_class='multinomial',warm_start=True,n_jobs=-1)
     #for sgd solver used "sag"
 
-from keras.models import Sequential,Model
+from keras.models import Sequential,Model, clone_model
 from keras.layers import *
+from keras import backend as K
 def LogisticRegression_Keras(input_dim,output_dim, bias=True,embed=False,embed_M=[]):
     model = Sequential() 
     if embed:
@@ -86,8 +87,12 @@ def default_RNN(input_dim,output_dim):
     #revisar la red de Rodrigues
     model = Sequential() 
     model.add(InputLayer(input_shape=input_dim))
-    model.add(CuDNNGRU(64,return_sequences=True))
-    model.add(CuDNNGRU(32,return_sequences=False))
+    if 'GPU' in str(K.tensorflow_backend.device_lib.list_local_devices()):
+        model.add(CuDNNGRU(64,return_sequences=True))
+        model.add(CuDNNGRU(32,return_sequences=False))
+    else:
+        model.add(GRU(64,return_sequences=True))
+        model.add(GRU(32,return_sequences=False))
     model.add(Dense(output_dim, activation='softmax'))     
     return model
 
@@ -98,9 +103,18 @@ def default_RNN_text(input_dim,output_dim,embed_M=[]):
         emd_layer = Embedding(T, R_t,trainable=False,weights=[embed_M],input_length=input_dim)
         model.add(emd_layer)
     else:
+
         model.add(InputLayer(input_shape=input_dim))
-    model.add(CuDNNGRU(128,return_sequences=True))
-    model.add(CuDNNGRU(128,return_sequences=False))
+    if 'GPU' in str(K.tensorflow_backend.device_lib.list_local_devices()):
+        model.add(CuDNNGRU(64,return_sequences=True))
+        model.add(Dropout(0.5))
+        model.add(CuDNNGRU(32,return_sequences=False)) #o solo una de 64..
+    else:
+        model.add(GRU(64,return_sequences=True))
+        model.add(Dropout(0.5))
+        model.add(GRU(32,return_sequences=False)) #o solo una de 64..
+    model.add(Dropout(0.5))
+
     model.add(Dense(output_dim, activation='softmax'))     
     return model
 
@@ -157,10 +171,10 @@ def RNN_simple(input_dim,output_dim,units,hidden_deep,drop=0.0,embed=False,len=0
         model.add(Embedding(input_dim=len,output_dim=out,input_length=input_dim[0]))
     start_unit = units
     for i in range(hidden_deep): #all the deep layers
-        if i == hidden_deep-1:
-            model.add(CuDNNGRU(start_unit,return_sequences=False)) #a.k.a flatten
+        if 'GPU' in str(K.tensorflow_backend.device_lib.list_local_devices()):
+            model.add(CuDNNGRU(start_unit,return_sequences= (i<hidden_deep-1) ))
         else:
-            model.add(CuDNNGRU(start_unit,return_sequences=True))
+            model.add(GRU(start_unit,return_sequences= (i<hidden_deep-1) ))
         if drop!= 0 and drop != None and drop != False:
             model.add(Dropout(drop))
         start_unit = start_unit/2 #o mantener
@@ -191,3 +205,20 @@ def through_InceptionV3(X):
     input_tensor=Input(shape=X_incept.shape[1:])
     modelInception = InceptionV3(weights='imagenet', include_top=False,input_tensor=input_tensor,pooling=None ) # LOAD PRETRAINED MODEL 
     return modelInception.predict(X_incept)
+
+
+class Clonable_Model(object):
+    def __init__(self,model,input_tensors=None):
+        self.non_train_W = {}
+        for n, layer in enumerate(model.layers):
+            if not layer.trainable:
+                self.non_train_W[layer.name] =  model.layers[n].get_weights()
+        self.inp_T = input_tensors
+        self.aux_model = clone_model(model, input_tensors= self.inp_T)
+        
+    def get_model(self):
+        return_model = clone_model(self.aux_model)#, input_tensors= self.inp_T)
+        for n, layer in enumerate(return_model.layers):
+            if layer.name in self.non_train_W:
+                return_model.layers[n].set_weights( self.non_train_W[layer.name] )
+        return return_model #return a copy of the model

@@ -27,7 +27,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import keras, time, sys, os, gc
 from sklearn.metrics import confusion_matrix
-from keras.models import clone_model
 
 DTYPE_OP = 'float32'
 keras.backend.set_floatx(DTYPE_OP)
@@ -47,7 +46,7 @@ Xstd_test = X_test.astype(DTYPE_OP)/255
 Z_train = Z_train[:,0]
 Z_test = Z_test[:,0]
 
-from code.learning_models import LogisticRegression_Sklearn,LogisticRegression_Keras,MLP_Keras
+from code.learning_models import LogisticRegression_Sklearn,LogisticRegression_Keras,MLP_Keras, Clonable_Model
 from code.learning_models import default_CNN,default_RNN,CNN_simple, RNN_simple #deep learning
 
 from code.evaluation import Evaluation_metrics
@@ -68,6 +67,7 @@ model_UB = default_CNN(Xstd_train.shape[1:],Z_train_onehot.shape[1])
 model_UB.compile(loss='categorical_crossentropy',optimizer=OPT)
 hist = model_UB.fit(Xstd_train,Z_train_onehot,epochs=EPOCHS_BASE,batch_size=BATCH_SIZE,verbose=0,callbacks=[ourCallback])
 print("Trained Ideal Model, Epochs to converge =",len(hist.epoch))
+clone_UB = Clonable_Model(model_UB)
 
 evaluate = Evaluation_metrics(model_UB,'keras',Xstd_train.shape[0],plot=False)
 Z_train_pred = model_UB.predict_classes(Xstd_train,verbose=0)
@@ -233,7 +233,7 @@ for Tmax in to_check:
     for _ in range(5): #repetitions
         ############# EXECUTE ALGORITHMS #############################
         if "mv" in executed_models:
-            model_mvsoft = clone_model(model_UB) 
+            model_mvsoft = clone_UB.get_model() 
             model_mvsoft.compile(loss='categorical_crossentropy',optimizer=OPT)
             hist = model_mvsoft.fit(Xstd_train, mv_probas, epochs=EPOCHS_BASE,batch_size=BATCH_SIZE,verbose=0,callbacks=[ourCallback])
             print("Trained model over soft-MV, Epochs to converge =",len(hist.epoch))
@@ -241,7 +241,7 @@ for Tmax in to_check:
             Z_test_pred_mvsoft = model_mvsoft.predict_classes(Xstd_test)
             keras.backend.clear_session()
 
-            model_mvhard = clone_model(model_UB) 
+            model_mvhard = clone_UB.get_model() 
             model_mvhard.compile(loss='categorical_crossentropy',optimizer=OPT)
             hist=model_mvhard.fit(Xstd_train, mv_onehot, epochs=EPOCHS_BASE,batch_size=BATCH_SIZE,verbose=0,callbacks=[ourCallback])
             print("Trained model over hard-MV, Epochs to converge =",len(hist.epoch))
@@ -250,7 +250,7 @@ for Tmax in to_check:
             keras.backend.clear_session()
     
         if Tmax <4000 and "ds" in executed_models: #other wise cannot be done
-            model_ds = clone_model(model_UB) 
+            model_ds = clone_UB.get_model() 
             model_ds.compile(loss='categorical_crossentropy',optimizer=OPT)
             hist=model_ds.fit(Xstd_train, ds_labels, epochs=EPOCHS_BASE,batch_size=BATCH_SIZE,verbose=0,callbacks=[ourCallback])
             print("Trained model over D&S, Epochs to converge =",len(hist.epoch))
@@ -278,7 +278,7 @@ for Tmax in to_check:
             gMixture_Ind2 = GroupMixtureInd(Xstd_train.shape[1:],Kl=K,M=M_seted,epochs=1,optimizer=OPT,dtype_op=DTYPE_OP) 
             gMixture_Ind2.define_model("default cnn")
             logL_hists,i_r = gMixture_Ind2.multiples_run(20,Xstd_train,Y_ann_train, T_idx, A=[], batch_size=BATCH_SIZE,
-                                                  pre_init_z=3, max_iter=EPOCHS_BASE,tolerance=TOL)
+                                                  pre_init_z=0, max_iter=EPOCHS_BASE,tolerance=TOL)
             Z_train_p_OI2 = gMixture_Ind2.get_predictions_z(Xstd_train)
             Z_test_p_OI2 = gMixture_Ind2.get_predictions_z(Xstd_test)
             prob_Gt_OI2 = gMixture_Ind2.get_predictions_g(T_idx_unique) 
@@ -288,7 +288,7 @@ for Tmax in to_check:
             gMixture_Ind3.define_model("default cnn")
             gMixture_Ind3.define_model_group("mlp", A_rep.shape[1], K*M_seted, 1, BatchN=False, embed=False)
             logL_hists,i_r = gMixture_Ind3.multiples_run(20,Xstd_train,Y_ann_train, T_idx, A=A_rep, batch_size=BATCH_SIZE,
-                                                  pre_init_g=15,pre_init_z=3, max_iter=EPOCHS_BASE,tolerance=TOL)
+                                                  pre_init_g=5,pre_init_z=0, max_iter=EPOCHS_BASE,tolerance=TOL)
             Z_train_p_OI3 = gMixture_Ind3.get_predictions_z(Xstd_train)
             Z_test_p_OI3  = gMixture_Ind3.get_predictions_z(Xstd_test)
             prob_Gt_OI3   = gMixture_Ind3.get_predictions_g(A_rep) 

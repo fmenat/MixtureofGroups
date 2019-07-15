@@ -8,7 +8,7 @@ from sklearn import metrics
 import gc, keras, time, sys, math
 
 from .learning_models import LogisticRegression_Sklearn,LogisticRegression_Keras,MLP_Keras
-from .learning_models import default_CNN,default_RNN,CNN_simple, RNN_simple, default_CNN_text #deep learning
+from .learning_models import default_CNN,default_RNN,CNN_simple, RNN_simple, default_CNN_text, default_RNN_text, Clonable_Model #deep learning
 from .representation import *
 from .utils import softmax,estimate_batch_size
 
@@ -75,7 +75,8 @@ def clusterize_annotators(y_o,M,no_label=-1,bulk=True,cluster_type='mv_close',da
     else: #Global scenario: y_o: is soft-MV
         mv_soft = y_o.copy()
         if cluster_type=='loss': #cluster respecto to loss function
-            aux_model = keras.models.clone_model(model)
+            obj_clone = Clonable_Model(model)
+            aux_model = obj_clone.get_model()
             aux_model.compile(loss='categorical_crossentropy',optimizer=model.optimizer)
             aux_model.fit(data, mv_soft, batch_size=BATCH_SIZE,epochs=30,verbose=0)
             predicted = aux_model.predict(data,verbose=0)
@@ -192,10 +193,10 @@ class GroupMixtureGlo(object):
             self.base_model = default_CNN(self.input_dim,self.Kl)
         elif self.type=='defaultrnn' or self.type=='default rnn':
             self.base_model = default_RNN(self.input_dim,self.Kl)
-        elif self.type=='defaultrnntext' or self.type=='default rnn text': #with embedding
-            self.base_model = default_RNNw_emb(self.input_dim,self.Kl,embed) #len is the length of the vocabulary
         elif self.type=='defaultcnntext' or self.type=='default cnn text': #with embedding
             self.base_model = default_CNN_text(self.input_dim[0],self.Kl,embed) #len is the length of the vocabulary
+        elif self.type=='defaultrnntext' or self.type=='default rnn text': #with embedding
+            self.base_model = default_RNN_text(self.input_dim[0],self.Kl,embed) #len is the length of the vocabulary
 
         elif self.type == "ff" or self.type == "mlp" or self.type=='dense': #classic feed forward
             print("Needed params (units,deep,drop,BatchN?)") #default activation is relu
@@ -412,9 +413,15 @@ class GroupMixtureGlo(object):
         found_model = [] #quizas guardar pesos del modelo
         found_logL = []
         iter_conv = []
-        aux_clonable_model = keras.models.clone_model(self.base_model) #architecture to clone
+
+        if type(self.base_model.layers[0]) == keras.layers.InputLayer:
+            obj_clone = Clonable_Model(self.base_model) #architecture to clone
+        else:
+            it = keras.layers.Input(shape=self.base_model.input_shape[1:])
+            obj_clone = Clonable_Model(self.base_model, input_tensors=it) #architecture to clon
+
         for run in range(Runs):
-            self.base_model = keras.models.clone_model(aux_clonable_model) #reset-weigths
+            self.base_model = obj_clone.get_model() #reset-weigths
             self.base_model.compile(loss='categorical_crossentropy',optimizer=self.optimizer)
 
             logL_hist = self.train(X,r,pre_init_z=pre_init_z,batch_size=batch_size,max_iter=max_iter,tolerance=tolerance,relative=True) #here the models get resets
@@ -434,11 +441,7 @@ class GroupMixtureGlo(object):
         
         self.betas = found_betas[indexs_sort[0]].copy()
         self.alphas = found_alphas[indexs_sort[0]].copy()
-        if type(aux_clonable_model.layers[0]) == keras.layers.InputLayer:
-            self.base_model = keras.models.clone_model(aux_clonable_model) #change
-        else:
-            it = keras.layers.Input(shape=X.shape[1:])
-            self.base_model = keras.models.clone_model(aux_clonable_model, input_tensors=it) #change
+        self.base_model = obj_clone.get_model() #change
         self.base_model.set_weights(found_model[indexs_sort[0]])
         self.E_step(self.get_predictions(X)) #to set up Q
         print("Multiples runs over Ours Global, Epochs to converge= ",np.mean(iter_conv))
@@ -560,6 +563,8 @@ class GroupMixtureInd(object):
             self.base_model = default_RNN(self.input_dim,self.Kl)
         elif self.type=='defaultcnntext' or self.type=='default cnn text': #with embedding
             self.base_model = default_CNN_text(self.input_dim[0],self.Kl,embed) #len is the length of the vocabulary
+        elif self.type=='defaultrnntext' or self.type=='default rnn text': #with embedding
+            self.base_model = default_RNN_text(self.input_dim[0],self.Kl,embed) #len is the length of the vocabulary
         elif self.type == "ff" or self.type == "mlp" or self.type=='dense': #classic feed forward
             print("Needed params (units,deep,drop,BatchN?)") #default activation is relu
             self.base_model = MLP_Keras(self.input_dim,self.Kl,start_units,deep,BN=BatchN,drop=drop)
@@ -831,7 +836,7 @@ class GroupMixtureInd(object):
         """
         if not self.priors:
             self.define_priors('laplace') #needed..
-        logL_hist = self.train(X,Y_ann,T_idx, A_train=A, pre_init_z=pre_init_z,pre_init_g=pre_init_g,batch_size=batch_size,max_iter=max_iter,tolerance=tolerance,relative=True)
+        logL_hist = self.train(X,Y_ann,T_idx, A_train=A, pre_init_z=pre_init_z,pre_init_g=pre_init_g,batch_size=batch_size,max_iter=max_iter,tolerance=tolerance)
         return logL_hist
     
     def multiples_run(self,Runs,X,Y_ann,T_idx, A=[],pre_init_z=0,pre_init_g=0, batch_size=64,max_iter=50,tolerance=3e-2): 
@@ -849,18 +854,28 @@ class GroupMixtureInd(object):
         found_model_z = []
         found_logL = []
         iter_conv = []
-        clonable_model_z = keras.models.clone_model(self.base_model) #architecture to clone
+        if type(self.base_model.layers[0]) == keras.layers.InputLayer:
+            obj_clone_z = Clonable_Model(self.base_model) #architecture to clone
+        else:
+            it = keras.layers.Input(shape=self.base_model.input_shape[1:])
+            obj_clone_z = Clonable_Model(self.base_model, input_tensors=it) #architecture to clon
+
         if self.compile_g: 
-            clonable_model_g = keras.models.clone_model(self.group_model) #architecture to clone
+            if type(self.group_model.layers[0]) == keras.layers.InputLayer:
+                obj_clone_g = Clonable_Model(self.group_model) #architecture to clone
+            else:
+                it = keras.layers.Input(shape=self.group_model.input_shape[1:])
+                obj_clone_g = Clonable_Model(self.group_model, input_tensors=it) #architecture to clon
+
         for run in range(Runs):
-            self.base_model = keras.models.clone_model(clonable_model_z) #reset-weigths
+            self.base_model = obj_clone_z.get_model() #reset-weigths
             self.base_model.compile(loss='categorical_crossentropy',optimizer=self.optimizer)
             
             if self.compile_g: 
-                self.group_model = keras.models.clone_model(clonable_model_g) #reset-weigths
+                self.group_model = obj_clone_g.get_model() #reset-weigths
                 self.group_model.compile(loss='categorical_crossentropy',optimizer=self.optimizer)
 
-            logL_hist = self.train(X,Y_ann,T_idx, A_train=A, pre_init_z=pre_init_z,pre_init_g=pre_init_g, batch_size=batch_size,max_iter=max_iter,tolerance=tolerance,relative=True) #here the models get resets
+            logL_hist = self.train(X,Y_ann,T_idx, A_train=A, pre_init_z=pre_init_z,pre_init_g=pre_init_g, batch_size=batch_size,max_iter=max_iter,tolerance=tolerance) #here the models get resets
             
             found_betas.append(self.betas.copy())
             if self.compile_g: 
@@ -881,19 +896,11 @@ class GroupMixtureInd(object):
         indexs_sort = np.argsort(logL_iter)[::-1] 
         
         self.betas = found_betas[indexs_sort[0]].copy()
-        if type(clonable_model_z.layers[0]) == keras.layers.InputLayer:
-            self.base_model = keras.models.clone_model(clonable_model_z) 
-            if self.compile_g:
-                self.group_model = keras.models.clone_model(clonable_model_g)
-        else:
-            it = keras.layers.Input(shape=X.shape[1:])
-            self.base_model = keras.models.clone_model(clonable_model_z, input_tensors=it) 
-            if self.compile_g:
-                it = keras.layers.Input(shape=A.shape[1:])
-                self.group_model = keras.models.clone_model(clonable_model_g, input_tensors=it) 
+        self.base_model = obj_clone_z.get_model()
         self.base_model.set_weights(found_model_z[indexs_sort[0]])
         if self.compile_g:
-            self.group_model.set_weights(found_model_g[indexs_sort[0]])
+            self.group_model = obj_clone_g.get_model()
+            self.group_model.set_weights(found_model_g[indexs_sort[0]]) 
         else:
             self.alphas_t = found_model_g[indexs_sort[0]].copy()
         A_2_pred = A
