@@ -380,9 +380,10 @@ def plot_Mchange(logL_Mchange,
 from itertools import chain
 from functools import reduce
 import operator as op
-def estimate_batch_size(model: keras.Model,
-                        scale_by: float = 5.0,
-                        precision: int = 2) -> int:
+#def estimate_batch_size(model: keras.Model,
+#                        scale_by: float = 5.0,
+#                        precision: int = 2) -> int:
+def estimate_batch_size(model, scale_by=5.0,precision = 2):
     """
     :param model: keras Model
     :param available_mem: available memory in bytes
