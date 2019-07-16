@@ -106,14 +106,14 @@ def default_RNN_text(input_dim,output_dim,embed_M=[]):
 
         model.add(InputLayer(input_shape=input_dim))
     if 'GPU' in str(K.tensorflow_backend.device_lib.list_local_devices()):
-        model.add(CuDNNGRU(64,return_sequences=True))
-        model.add(Dropout(0.5))
-        model.add(CuDNNGRU(32,return_sequences=False)) #o solo una de 64..
+        model.add(CuDNNGRU(128,return_sequences=True))
+        model.add(Dropout(0.25))
+        model.add(CuDNNGRU(64,return_sequences=False)) #o solo una de 64..
     else:
-        model.add(GRU(64,return_sequences=True))
-        model.add(Dropout(0.5))
-        model.add(GRU(32,return_sequences=False)) #o solo una de 64..
-    model.add(Dropout(0.5))
+        model.add(GRU(128,return_sequences=True))
+        model.add(Dropout(0.25))
+        model.add(GRU(64,return_sequences=False)) #o solo una de 64..
+    model.add(Dropout(0.25))
 
     model.add(Dense(output_dim, activation='softmax'))     
     return model
