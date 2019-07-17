@@ -129,18 +129,14 @@ results_ours_global_train = []
 results_ours_global_trainA = []
 results_ours_global_test = []
 results_ours_global_testA = []
-results_ours_indiv_train = []
-results_ours_indiv_trainA = []
-results_ours_indiv_test = []
-results_ours_indiv_testA = []
-results_ours_indiv2_train = []
-results_ours_indiv2_trainA = []
-results_ours_indiv2_test = []
-results_ours_indiv2_testA = []
-results_ours_indiv3_train = []
-results_ours_indiv3_trainA = []
-results_ours_indiv3_test = []
-results_ours_indiv3_testA = []
+results_ours_indiv_T_train = []
+results_ours_indiv_T_trainA = []
+results_ours_indiv_T_test = []
+results_ours_indiv_T_testA = []
+results_ours_indiv_K_train = []
+results_ours_indiv_K_trainA = []
+results_ours_indiv_K_test = []
+results_ours_indiv_K_testA = []
 for Tmax in to_check:
     aux_softmv_train = []
     aux_softmv_test = []
@@ -155,14 +151,14 @@ for Tmax in to_check:
     aux_ours_global_trainA = []
     aux_ours_global_test = []
     aux_ours_global_testA = []
-    aux_ours_indiv2_train = []
-    aux_ours_indiv2_trainA = []
-    aux_ours_indiv2_test = []
-    aux_ours_indiv2_testA = []
-    aux_ours_indiv3_train = []
-    aux_ours_indiv3_trainA = []
-    aux_ours_indiv3_test = []
-    aux_ours_indiv3_testA = []
+    aux_ours_indiv_T_train = []
+    aux_ours_indiv_T_trainA = []
+    aux_ours_indiv_T_test = []
+    aux_ours_indiv_T_testA = []
+    aux_ours_indiv_K_train = []
+    aux_ours_indiv_K_trainA = []
+    aux_ours_indiv_K_test = []
+    aux_ours_indiv_K_testA = []
 
     GenerateData = SinteticData(state=state_sce) #por la semilla quedan similares..
     #CONFUSION MATRIX CHOOSE
@@ -281,23 +277,24 @@ for Tmax in to_check:
             keras.backend.clear_session()
 
         if "oursindividual" in executed_models:
-            gMixture_Ind2 = GroupMixtureInd(Xstd_train.shape[1:],Kl=K,M=M_seted,epochs=1,optimizer=OPT,dtype_op=DTYPE_OP) 
-            gMixture_Ind2.define_model("mlp",16,1,BatchN=False,drop=0.2) 
-            logL_hists,i_r = gMixture_Ind2.multiples_run(20,Xstd_train,Y_ann_train, T_idx, A=[], batch_size=BATCH_SIZE,
-                                                  pre_init_z=3, max_iter=EPOCHS_BASE,tolerance=TOL)
-            Z_train_p_OI2 = gMixture_Ind2.get_predictions_z(Xstd_train)
-            Z_test_p_OI2 = gMixture_Ind2.get_predictions_z(Xstd_test)
-            prob_Gt_OI2 = gMixture_Ind2.get_predictions_g(T_idx_unique) 
+            gMixture_Ind_T = GroupMixtureInd(Xstd_train.shape[1:],Kl=K,M=M_seted,epochs=1,optimizer=OPT,dtype_op=DTYPE_OP) 
+            gMixture_Ind_T.define_model("mlp",16,1,BatchN=False,drop=0.2) 
+            gMixture_Ind_T.define_model_group("perceptron",T, M_seted, embed=True, embed_M=A, BatchN=True,bias=False)
+            logL_hists,i_r = gMixture_Ind_T.multiples_run(20,Xstd_train,Y_ann_train, T_idx, A=[], batch_size=BATCH_SIZE,
+                                                  pre_init_g=5, pre_init_z=3, max_iter=EPOCHS_BASE,tolerance=TOL)
+            Z_train_p_OI_T = gMixture_Ind_T.get_predictions_z(Xstd_train)
+            Z_test_p_OI_T = gMixture_Ind_T.get_predictions_z(Xstd_test)
+            prob_Gt_OI_T = gMixture_Ind_T.get_predictions_g(T_idx_unique) 
             keras.backend.clear_session()
             
-            gMixture_Ind3 = GroupMixtureInd(Xstd_train.shape[1:],Kl=K,M=M_seted,epochs=1,optimizer=OPT,dtype_op=DTYPE_OP) 
-            gMixture_Ind3.define_model("mlp",16,1,BatchN=False,drop=0.2) 
-            gMixture_Ind3.define_model_group("mlp", A_rep.shape[1], K*M_seted, 1, BatchN=False, embed=False)
-            logL_hists,i_r = gMixture_Ind3.multiples_run(20,Xstd_train,Y_ann_train, T_idx, A=A_rep, batch_size=BATCH_SIZE,
+            gMixture_Ind_K = GroupMixtureInd(Xstd_train.shape[1:],Kl=K,M=M_seted,epochs=1,optimizer=OPT,dtype_op=DTYPE_OP) 
+            gMixture_Ind_K.define_model("mlp",16,1,BatchN=False,drop=0.2) 
+            gMixture_Ind_K.define_model_group("mlp", A_rep.shape[1], K*M_seted, 1, BatchN=False, embed=False)
+            logL_hists,i_r = gMixture_Ind_K.multiples_run(20,Xstd_train,Y_ann_train, T_idx, A=A_rep, batch_size=BATCH_SIZE,
                                                   pre_init_g=5,pre_init_z=3, max_iter=EPOCHS_BASE,tolerance=TOL)
-            Z_train_p_OI3 = gMixture_Ind3.get_predictions_z(Xstd_train)
-            Z_test_p_OI3  = gMixture_Ind3.get_predictions_z(Xstd_test)
-            prob_Gt_OI3   = gMixture_Ind3.get_predictions_g(A_rep) 
+            Z_train_p_OI_K = gMixture_Ind_K.get_predictions_z(Xstd_train)
+            Z_test_p_OI_K  = gMixture_Ind_K.get_predictions_z(Xstd_test)
+            prob_Gt_OI_K   = gMixture_Ind_K.get_predictions_g(A_rep) 
             keras.backend.clear_session()
             
         ################## MEASURE PERFORMANCE ##################################
@@ -367,45 +364,45 @@ for Tmax in to_check:
             aux_ours_global_test.append(results2[1])
 
         if "oursindividual" in executed_models:
-            evaluate = Evaluation_metrics(gMixture_Ind2,'our1',plot=False) 
-            evaluate.set_Gt(prob_Gt_OI2)
-            aux = gMixture_Ind2.calculate_extra_components(Xstd_train, A,calculate_pred_annotator=True,p_z=Z_train_p_OI2,p_g=prob_Gt_OI2)
+            evaluate = Evaluation_metrics(gMixture_Ind_T,'our1',plot=False) 
+            evaluate.set_Gt(prob_Gt_OI_T)
+            aux = gMixture_Ind_T.calculate_extra_components(Xstd_train, A,calculate_pred_annotator=True,p_z=Z_train_p_OI_T,p_g=prob_Gt_OI_T)
             predictions_m,prob_Gt,prob_Yzt,prob_Yxt =  aux #to evaluate...
-            prob_Yz = gMixture_Ind2.calculate_Yz(prob_Gt)
-            Z_train_pred_OI = Z_train_p_OI2.argmax(axis=-1)
+            prob_Yz = gMixture_Ind_T.calculate_Yz(prob_Gt)
+            Z_train_pred_OI = Z_train_p_OI_T.argmax(axis=-1)
             results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_OI,conf_pred=prob_Yzt,conf_true=confe_matrix_R,
                                                  y_o=y_obs,yo_pred=prob_Yxt,
                                                 conf_true_G =confe_matrix_G, conf_pred_G = prob_Yz)
             results1_aux = evaluate.calculate_metrics(y_o=y_obs,yo_pred=prob_Yxt)
-            c_M = gMixture_Ind2.get_confusionM()
-            y_o_groups = gMixture_Ind2.get_predictions_groups(Xstd_test,data=Z_test_p_OI2).argmax(axis=-1) #obtain p(y^o|x,g=m) and then argmax
-            Z_test_pred_OI = Z_test_p_OI2.argmax(axis=-1)
+            c_M = gMixture_Ind_T.get_confusionM()
+            y_o_groups = gMixture_Ind_T.get_predictions_groups(Xstd_test,data=Z_test_p_OI_T).argmax(axis=-1) #obtain p(y^o|x,g=m) and then argmax
+            Z_test_pred_OI = Z_test_p_OI_T.argmax(axis=-1)
             results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred_OI,conf_pred=c_M, y_o_groups=y_o_groups)
 
-            aux_ours_indiv2_train +=  results1
-            aux_ours_indiv2_trainA += results1_aux
-            aux_ours_indiv2_testA.append(results2[0])
-            aux_ours_indiv2_test.append(results2[1])
+            aux_ours_indiv_T_train +=  results1
+            aux_ours_indiv_T_trainA += results1_aux
+            aux_ours_indiv_T_testA.append(results2[0])
+            aux_ours_indiv_T_test.append(results2[1])
 
-            evaluate = Evaluation_metrics(gMixture_Ind3,'our1',plot=False) 
-            evaluate.set_Gt(prob_Gt_OI3)
-            aux = gMixture_Ind3.calculate_extra_components(Xstd_train, A,calculate_pred_annotator=True,p_z=Z_train_p_OI3,p_g=prob_Gt_OI3)
+            evaluate = Evaluation_metrics(gMixture_Ind_K,'our1',plot=False) 
+            evaluate.set_Gt(prob_Gt_OI_K)
+            aux = gMixture_Ind_K.calculate_extra_components(Xstd_train, A,calculate_pred_annotator=True,p_z=Z_train_p_OI_K,p_g=prob_Gt_OI_K)
             predictions_m,prob_Gt,prob_Yzt,prob_Yxt =  aux #to evaluate...
-            prob_Yz = gMixture_Ind3.calculate_Yz(prob_Gt)
-            Z_train_pred_OI = Z_train_p_OI3.argmax(axis=-1)
+            prob_Yz = gMixture_Ind_K.calculate_Yz(prob_Gt)
+            Z_train_pred_OI = Z_train_p_OI_K.argmax(axis=-1)
             results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_OI,conf_pred=prob_Yzt,conf_true=confe_matrix_R,
                                                  y_o=y_obs,yo_pred=prob_Yxt,
                                                 conf_true_G =confe_matrix_G, conf_pred_G = prob_Yz)
             results1_aux = evaluate.calculate_metrics(y_o=y_obs,yo_pred=prob_Yxt)
-            c_M = gMixture_Ind3.get_confusionM()
-            y_o_groups = gMixture_Ind3.get_predictions_groups(Xstd_test,data=Z_test_p_OI3).argmax(axis=-1) #obtain p(y^o|x,g=m) and then argmax
-            Z_test_pred_OI = Z_test_p_OI3.argmax(axis=-1)
+            c_M = gMixture_Ind_K.get_confusionM()
+            y_o_groups = gMixture_Ind_K.get_predictions_groups(Xstd_test,data=Z_test_p_OI_K).argmax(axis=-1) #obtain p(y^o|x,g=m) and then argmax
+            Z_test_pred_OI = Z_test_p_OI_K.argmax(axis=-1)
             results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred_OI,conf_pred=c_M, y_o_groups=y_o_groups)
 
-            aux_ours_indiv3_train +=  results1
-            aux_ours_indiv3_trainA += results1_aux
-            aux_ours_indiv3_testA.append(results2[0])
-            aux_ours_indiv3_test.append(results2[1])
+            aux_ours_indiv_K_train +=  results1
+            aux_ours_indiv_K_trainA += results1_aux
+            aux_ours_indiv_K_testA.append(results2[0])
+            aux_ours_indiv_K_test.append(results2[1])
 
         print("All Performance Measured")
         if "mv" in executed_models:
@@ -417,7 +414,7 @@ for Tmax in to_check:
         if "oursglobal" in executed_models:
             del gMixture_Global
         if "oursindividual" in executed_models:
-            del gMixture_Ind2, gMixture_Ind3
+            del gMixture_Ind_T, gMixture_Ind_K
         del evaluate
         gc.collect()
 
@@ -440,14 +437,14 @@ for Tmax in to_check:
         results_ours_global_test.append([get_mean_dataframes(aux_ours_global_test), get_mean_dataframes(aux_ours_global_test,mean_std=False)])
         results_ours_global_testA.append([get_mean_dataframes(aux_ours_global_testA), get_mean_dataframes(aux_ours_global_testA,mean_std=False)])
     if "oursindividual" in executed_models:
-        results_ours_indiv2_train.append([get_mean_dataframes(aux_ours_indiv2_train), get_mean_dataframes(aux_ours_indiv2_train,mean_std=False)])
-        results_ours_indiv2_trainA.append([get_mean_dataframes(aux_ours_indiv2_trainA), get_mean_dataframes(aux_ours_indiv2_trainA,mean_std=False)])
-        results_ours_indiv2_test.append([get_mean_dataframes(aux_ours_indiv2_test), get_mean_dataframes(aux_ours_indiv2_test,mean_std=False)])
-        results_ours_indiv2_testA.append([get_mean_dataframes(aux_ours_indiv2_testA), get_mean_dataframes(aux_ours_indiv2_testA,mean_std=False)])
-        results_ours_indiv3_train.append([get_mean_dataframes(aux_ours_indiv3_train), get_mean_dataframes(aux_ours_indiv3_train,mean_std=False)])
-        results_ours_indiv3_trainA.append([get_mean_dataframes(aux_ours_indiv3_trainA), get_mean_dataframes(aux_ours_indiv3_trainA,mean_std=False)])
-        results_ours_indiv3_test.append([get_mean_dataframes(aux_ours_indiv3_test), get_mean_dataframes(aux_ours_indiv3_test,mean_std=False)])
-        results_ours_indiv3_testA.append([get_mean_dataframes(aux_ours_indiv3_testA), get_mean_dataframes(aux_ours_indiv3_testA,mean_std=False)])
+        results_ours_indiv_T_train.append([get_mean_dataframes(aux_ours_indiv_T_train), get_mean_dataframes(aux_ours_indiv_T_train,mean_std=False)])
+        results_ours_indiv_T_trainA.append([get_mean_dataframes(aux_ours_indiv_T_trainA), get_mean_dataframes(aux_ours_indiv_T_trainA,mean_std=False)])
+        results_ours_indiv_T_test.append([get_mean_dataframes(aux_ours_indiv_T_test), get_mean_dataframes(aux_ours_indiv_T_test,mean_std=False)])
+        results_ours_indiv_T_testA.append([get_mean_dataframes(aux_ours_indiv_T_testA), get_mean_dataframes(aux_ours_indiv_T_testA,mean_std=False)])
+        results_ours_indiv_K_train.append([get_mean_dataframes(aux_ours_indiv_K_train), get_mean_dataframes(aux_ours_indiv_K_train,mean_std=False)])
+        results_ours_indiv_K_trainA.append([get_mean_dataframes(aux_ours_indiv_K_trainA), get_mean_dataframes(aux_ours_indiv_K_trainA,mean_std=False)])
+        results_ours_indiv_K_test.append([get_mean_dataframes(aux_ours_indiv_K_test), get_mean_dataframes(aux_ours_indiv_K_test,mean_std=False)])
+        results_ours_indiv_K_testA.append([get_mean_dataframes(aux_ours_indiv_K_testA), get_mean_dataframes(aux_ours_indiv_K_testA,mean_std=False)])
     gc.collect()
 
 import pickle
@@ -486,21 +483,21 @@ if "oursglobal" in executed_models:
         pickle.dump(results_ours_global_testA, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 if "oursindividual" in executed_models: 
-    with open('synthetic_OursIndividual2_train.pickle', 'wb') as handle:
-        pickle.dump(results_ours_indiv2_train, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    with open('synthetic_OursIndividual2_trainAnn.pickle', 'wb') as handle:
-        pickle.dump(results_ours_indiv2_trainA, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    with open('synthetic_OursIndividual2_test.pickle', 'wb') as handle:
-        pickle.dump(results_ours_indiv2_test, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    with open('synthetic_OursIndividual2_testAux.pickle', 'wb') as handle:
-        pickle.dump(results_ours_indiv2_testA, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    with open('synthetic_OursIndividual3_train.pickle', 'wb') as handle:
-        pickle.dump(results_ours_indiv3_train, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    with open('synthetic_OursIndividual3_trainAnn.pickle', 'wb') as handle:
-        pickle.dump(results_ours_indiv3_trainA, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    with open('synthetic_OursIndividual3_test.pickle', 'wb') as handle:
-        pickle.dump(results_ours_indiv3_test, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    with open('synthetic_OursIndividual3_testAux.pickle', 'wb') as handle:
-        pickle.dump(results_ours_indiv3_testA, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    with open('synthetic_OursIndividual_T_train.pickle', 'wb') as handle:
+        pickle.dump(results_ours_indiv_T_train, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    with open('synthetic_OursIndividual_T_trainAnn.pickle', 'wb') as handle:
+        pickle.dump(results_ours_indiv_T_trainA, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    with open('synthetic_OursIndividual_T_test.pickle', 'wb') as handle:
+        pickle.dump(results_ours_indiv_T_test, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    with open('synthetic_OursIndividual_T_testAux.pickle', 'wb') as handle:
+        pickle.dump(results_ours_indiv_T_testA, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    with open('synthetic_OursIndividual_K_train.pickle', 'wb') as handle:
+        pickle.dump(results_ours_indiv_K_train, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    with open('synthetic_OursIndividual_K_trainAnn.pickle', 'wb') as handle:
+        pickle.dump(results_ours_indiv_K_trainA, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    with open('synthetic_OursIndividual_K_test.pickle', 'wb') as handle:
+        pickle.dump(results_ours_indiv_K_test, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    with open('synthetic_OursIndividual_K_testAux.pickle', 'wb') as handle:
+        pickle.dump(results_ours_indiv_K_testA, handle, protocol=pickle.HIGHEST_PROTOCOL)
 print("Execution done in %f mins"%((time.time()-start_time_exec)/60.))
 
