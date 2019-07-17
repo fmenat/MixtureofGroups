@@ -177,7 +177,7 @@ class GroupMixtureGlo(object):
         """Get Q estimation param, this is Q_ij(g,z) = p(g,z|xi,y=j)"""
         return self.Qij_mgamma.copy()
         
-    def define_model(self,tipo,start_units=1,deep=1,double=False,drop=0.0,embed=[],BatchN=True,h_units=128):
+    def define_model(self,tipo,start_units=1,deep=1,double=False,drop=0.0,embed=[],BatchN=False,h_units=128):
         """Define the base model and other structures"""
         self.type = tipo.lower()     
         if self.type =="sklearn_shallow" or self.type =="sklearn_logistic":
@@ -579,14 +579,14 @@ class GroupMixtureInd(object):
         self.max_Bsize_base = estimate_batch_size(self.base_model)
         self.compile_z = True
         
-    def define_model_group(self, tipo, input_dim, start_units=64, deep=1, drop=0.0, BatchN=True, bias=False, embed=False, embed_M=[]):
+    def define_model_group(self, tipo, input_dim, start_units=64, deep=1, drop=0.0, BatchN=False, bias=False, embed=False, embed_M=[]):
         #define model over annotators -- > p(g|a)
         if type(input_dim) != tuple:
             input_dim = (input_dim,)
         type_g = tipo.lower()  
 
         if type_g == "keras_shallow" or 'perceptron' in type_g: 
-            self.group_model = LogisticRegression_Keras(input_dim, self.M, bias, embed=embed, embed_M=embed_M)
+            self.group_model = LogisticRegression_Keras(input_dim, self.M, bias, embed=embed, embed_M=embed_M, BN=BatchN)
         elif type_g == "ff" or type_g == "mlp" or type_g=='dense': #classic feed forward
             print("Needed params (units,deep,drop,BatchN?)") #default activation is relu
             self.group_model = MLP_Keras(input_dim, self.M, start_units, deep, BN=BatchN,drop=drop, embed=embed, embed_M=embed_M)
@@ -759,10 +759,7 @@ class GroupMixtureInd(object):
                 self.alphas_t[t] = np.tensordot( Qil_m_flat, A==t, axes=[[0],[0]] )
             self.alphas_t = self.alphas_t/self.alphas_t.sum(axis=-1,keepdims=True)
         else:
-            if len(A) == 0:
-                self.group_model.fit(A, Qil_m_flat, batch_size=math.ceil(self.batch_size*self.T_i),epochs=self.epochs,verbose=0) #batch should be prop to T_i
-            else:
-                self.group_model.fit(A, Qil_m_flat, batch_size=math.ceil(self.batch_size*self.T_i),epochs=self.epochs,verbose=0) #batch should be prop to T_i
+            self.group_model.fit(A, Qil_m_flat, batch_size=math.ceil(self.batch_size*self.T_i),epochs=self.epochs,verbose=0) #batch should be prop to T_i
 
         #-------> beta
         self.betas =  np.tensordot(self.Qil_mgamma, Y_ann , axes=[[0],[0]]) # ~p(yo=j|g,z) 

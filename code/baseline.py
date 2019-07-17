@@ -94,7 +94,7 @@ class RaykarMC(object):
     def get_qestimation(self):
         return self.Qi_gamma
 
-    def define_model(self,tipo,start_units=1,deep=1,double=False,drop=0.0,embed=[],BatchN=True):
+    def define_model(self,tipo,start_units=1,deep=1,double=False,drop=0.0,embed=[],BatchN=False):
         """Define the network of the base model"""
         self.type = tipo.lower()     
         if self.type == "keras_shallow" or 'perceptron' in self.type: 

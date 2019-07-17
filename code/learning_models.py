@@ -12,7 +12,7 @@ def LogisticRegression_Sklearn(epochs):
 from keras.models import Sequential,Model, clone_model
 from keras.layers import *
 from keras import backend as K
-def LogisticRegression_Keras(input_dim,output_dim, bias=True,embed=False,embed_M=[]):
+def LogisticRegression_Keras(input_dim,output_dim, bias=True,embed=False,embed_M=[], BN=False):
     model = Sequential() 
     if embed:
         T, R_t = embed_M.shape
@@ -20,7 +20,10 @@ def LogisticRegression_Keras(input_dim,output_dim, bias=True,embed=False,embed_M
         model.add(Reshape([R_t]))
     else:
         model.add(InputLayer(input_shape=input_dim))
-    model.add(Dense(output_dim, activation='softmax',use_bias=bias)) 
+    model.add(Dense(output_dim, use_bias=bias)) 
+    if BN:
+        model.add(BatchNormalization())
+    model.add(Activation('softmax'))
     return model
 
 #MLP Simple
@@ -47,7 +50,8 @@ def MLP_Keras(input_dim,output_dim,units,hidden_deep,BN=False,drop=0.0,embed=Fal
             model.add(BatchNormalization())
         if drop!= 0 and drop != None and drop != False:
             model.add(Dropout(drop))
-    model.add(Dense(output_dim, activation='softmax'))     
+    model.add(Dense(output_dim))  
+    model.add(Activation('softmax'))
     return model
 
 def default_CNN(input_dim,output_dim): #quizas cambiara  CP,CP,CP 
