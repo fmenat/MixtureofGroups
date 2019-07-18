@@ -279,7 +279,7 @@ for Tmax in to_check:
             gMixture_Ind_T.define_model("default cnn")
             gMixture_Ind_T.define_model_group("perceptron",T, M_seted, embed=True, embed_M=A, BatchN=True,bias=False)
             logL_hists,i_r = gMixture_Ind_T.multiples_run(20,Xstd_train,Y_ann_train, T_idx, A=[], batch_size=BATCH_SIZE,
-                                                  pre_init_g=5,pre_init_z=3, max_iter=EPOCHS_BASE,tolerance=TOL)
+                                                  pre_init_g=0,pre_init_z=3, max_iter=EPOCHS_BASE,tolerance=TOL)
             Z_train_p_OI_T = gMixture_Ind_T.get_predictions_z(Xstd_train)
             Z_test_p_OI_T = gMixture_Ind_T.get_predictions_z(Xstd_test)
             prob_Gt_OI_T = gMixture_Ind_T.get_predictions_g(T_idx_unique) 
@@ -289,7 +289,7 @@ for Tmax in to_check:
             gMixture_Ind_K.define_model("default cnn")
             gMixture_Ind_K.define_model_group("mlp", A_rep.shape[1], K*M_seted, 1, BatchN=False, embed=False)
             logL_hists,i_r = gMixture_Ind_K.multiples_run(20,Xstd_train,Y_ann_train, T_idx, A=A_rep, batch_size=BATCH_SIZE,
-                                                  pre_init_g=5,pre_init_z=3, max_iter=EPOCHS_BASE,tolerance=TOL)
+                                                  pre_init_g=0,pre_init_z=3, max_iter=EPOCHS_BASE,tolerance=TOL)
             Z_train_p_OI_K = gMixture_Ind_K.get_predictions_z(Xstd_train)
             Z_test_p_OI_K  = gMixture_Ind_K.get_predictions_z(Xstd_test)
             prob_Gt_OI_K   = gMixture_Ind_K.get_predictions_g(A_rep) 
@@ -496,17 +496,17 @@ if "oursglobal" in executed_models:
         pickle.dump(results_ours_global_testA, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 if "oursindividual" in executed_models:
-    with open('synthetic_OursIndividual_T_train.pickle', 'wb') as handle:
+    with open('synthetic_OursIndividualT_train.pickle', 'wb') as handle:
         pickle.dump(results_ours_indiv_T_train, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    with open('synthetic_OursIndividual_T_test.pickle', 'wb') as handle:
+    with open('synthetic_OursIndividualT_test.pickle', 'wb') as handle:
         pickle.dump(results_ours_indiv_T_test, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    with open('synthetic_OursIndividual_T_testAux.pickle', 'wb') as handle:
+    with open('synthetic_OursIndividualT_testAux.pickle', 'wb') as handle:
         pickle.dump(results_ours_indiv_T_testA, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    with open('synthetic_OursIndividual_K_train.pickle', 'wb') as handle:
+    with open('synthetic_OursIndividualK_train.pickle', 'wb') as handle:
         pickle.dump(results_ours_indiv_K_train, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    with open('synthetic_OursIndividual_K_test.pickle', 'wb') as handle:
+    with open('synthetic_OursIndividualK_test.pickle', 'wb') as handle:
         pickle.dump(results_ours_indiv_K_test, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    with open('synthetic_OursIndividual_K_testAux.pickle', 'wb') as handle:
+    with open('synthetic_OursIndividualK_testAux.pickle', 'wb') as handle:
         pickle.dump(results_ours_indiv_K_testA, handle, protocol=pickle.HIGHEST_PROTOCOL)
     
 print("Execution done in %f mins"%((time.time()-start_time_exec)/60.))

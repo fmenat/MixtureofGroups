@@ -159,21 +159,25 @@ for Tmax in to_check:
     aux_ours_indiv_K_trainA = []
     aux_ours_indiv_K_test = []
     aux_ours_indiv_K_testA = []
+    
+    aux_acc = 0
+    while aux_acc < 0.71:
+        GenerateData = SinteticData(state=state_sce) #por la semilla quedan similares..
+        #CONFUSION MATRIX CHOOSE
+        GenerateData.set_probas(asfile=True,file_matrix=path+'/synthetic/simple/matrix_datasim_normal.csv',file_groups =path+'/synthetic/simple/groups_datasim_normal.csv')
+        real_conf_matrix = GenerateData.conf_matrix.copy()
 
-    GenerateData = SinteticData(state=state_sce) #por la semilla quedan similares..
-    #CONFUSION MATRIX CHOOSE
-    GenerateData.set_probas(asfile=True,file_matrix=path+'/synthetic/simple/matrix_datasim_normal.csv',file_groups =path+'/synthetic/simple/groups_datasim_normal.csv')
-    real_conf_matrix = GenerateData.conf_matrix.copy()
-
-    print("New Synthetic data is being generated...",flush=True,end='')
-    y_obs, groups_annot = GenerateData.sintetic_annotate_data(Z_train,Tmax,T_data,deterministic=False,hard=True)
-    print("Done! ")
-    if len(groups_annot.shape) ==1 or groups_annot.shape[1] ==  1: 
-        groups_annot = keras.utils.to_categorical(groups_annot)  #only if it is hard clustering
-    confe_matrix_R = np.tensordot(groups_annot,real_conf_matrix, axes=[[1],[0]])
+        print("New Synthetic data is being generated...",flush=True,end='')
+        y_obs, groups_annot = GenerateData.sintetic_annotate_data(Z_train,Tmax,T_data,deterministic=False,hard=True)
+        print("Done! ")
+        if len(groups_annot.shape) ==1 or groups_annot.shape[1] ==  1: 
+            groups_annot = keras.utils.to_categorical(groups_annot)  #only if it is hard clustering
+        confe_matrix_R = np.tensordot(groups_annot,real_conf_matrix, axes=[[1],[0]])
+        
+        aux_acc = np.mean(GenerateData.yo_label == Z_train)
+        
     T_weights = np.sum(y_obs != -1,axis=0)
     print("Mean annotations by t= ",T_weights.mean())
-
     N,T = y_obs.shape
     K = np.max(y_obs)+1 # asumiendo que estan ordenadas
     print("Shape (data,annotators): ",(N,T))
@@ -231,7 +235,7 @@ for Tmax in to_check:
                 obs_t = Y_ann_train[i][l].argmax(axis=-1)
                 A_rep[t_idx, obs_t] += 1
 
-    for _ in range(30): #repetitions
+    for _ in range(20):
         ############# EXECUTE ALGORITHMS #############################
         if "mv" in executed_models:
             model_mvsoft = clone_UB.get_model() 
@@ -281,7 +285,7 @@ for Tmax in to_check:
             gMixture_Ind_T.define_model("mlp",16,1,BatchN=False,drop=0.2) 
             gMixture_Ind_T.define_model_group("perceptron",T, M_seted, embed=True, embed_M=A, BatchN=True,bias=False)
             logL_hists,i_r = gMixture_Ind_T.multiples_run(20,Xstd_train,Y_ann_train, T_idx, A=[], batch_size=BATCH_SIZE,
-                                                  pre_init_g=5, pre_init_z=3, max_iter=EPOCHS_BASE,tolerance=TOL)
+                                                  pre_init_g=0, pre_init_z=3, max_iter=EPOCHS_BASE,tolerance=TOL)
             Z_train_p_OI_T = gMixture_Ind_T.get_predictions_z(Xstd_train)
             Z_test_p_OI_T = gMixture_Ind_T.get_predictions_z(Xstd_test)
             prob_Gt_OI_T = gMixture_Ind_T.get_predictions_g(T_idx_unique) 
@@ -291,7 +295,7 @@ for Tmax in to_check:
             gMixture_Ind_K.define_model("mlp",16,1,BatchN=False,drop=0.2) 
             gMixture_Ind_K.define_model_group("mlp", A_rep.shape[1], K*M_seted, 1, BatchN=False, embed=False)
             logL_hists,i_r = gMixture_Ind_K.multiples_run(20,Xstd_train,Y_ann_train, T_idx, A=A_rep, batch_size=BATCH_SIZE,
-                                                  pre_init_g=5,pre_init_z=3, max_iter=EPOCHS_BASE,tolerance=TOL)
+                                                  pre_init_g=0,pre_init_z=3, max_iter=EPOCHS_BASE,tolerance=TOL)
             Z_train_p_OI_K = gMixture_Ind_K.get_predictions_z(Xstd_train)
             Z_test_p_OI_K  = gMixture_Ind_K.get_predictions_z(Xstd_test)
             prob_Gt_OI_K   = gMixture_Ind_K.get_predictions_g(A_rep) 
@@ -483,21 +487,21 @@ if "oursglobal" in executed_models:
         pickle.dump(results_ours_global_testA, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 if "oursindividual" in executed_models: 
-    with open('synthetic_OursIndividual_T_train.pickle', 'wb') as handle:
+    with open('synthetic_OursIndividualT_train.pickle', 'wb') as handle:
         pickle.dump(results_ours_indiv_T_train, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    with open('synthetic_OursIndividual_T_trainAnn.pickle', 'wb') as handle:
+    with open('synthetic_OursIndividualT_trainAnn.pickle', 'wb') as handle:
         pickle.dump(results_ours_indiv_T_trainA, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    with open('synthetic_OursIndividual_T_test.pickle', 'wb') as handle:
+    with open('synthetic_OursIndividualT_test.pickle', 'wb') as handle:
         pickle.dump(results_ours_indiv_T_test, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    with open('synthetic_OursIndividual_T_testAux.pickle', 'wb') as handle:
+    with open('synthetic_OursIndividualT_testAux.pickle', 'wb') as handle:
         pickle.dump(results_ours_indiv_T_testA, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    with open('synthetic_OursIndividual_K_train.pickle', 'wb') as handle:
+    with open('synthetic_OursIndividualK_train.pickle', 'wb') as handle:
         pickle.dump(results_ours_indiv_K_train, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    with open('synthetic_OursIndividual_K_trainAnn.pickle', 'wb') as handle:
+    with open('synthetic_OursIndividualK_trainAnn.pickle', 'wb') as handle:
         pickle.dump(results_ours_indiv_K_trainA, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    with open('synthetic_OursIndividual_K_test.pickle', 'wb') as handle:
+    with open('synthetic_OursIndividualK_test.pickle', 'wb') as handle:
         pickle.dump(results_ours_indiv_K_test, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    with open('synthetic_OursIndividual_K_testAux.pickle', 'wb') as handle:
+    with open('synthetic_OursIndividualK_testAux.pickle', 'wb') as handle:
         pickle.dump(results_ours_indiv_K_testA, handle, protocol=pickle.HIGHEST_PROTOCOL)
 print("Execution done in %f mins"%((time.time()-start_time_exec)/60.))
 
