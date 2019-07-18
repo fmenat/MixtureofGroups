@@ -145,18 +145,18 @@ for Tmax in to_check:
     aux_ds_train = []
     aux_ds_test = []
     aux_raykar_train = []
-    aux_raykar_trainA = []
+    #aux_raykar_trainA = []
     aux_raykar_test = []
     aux_ours_global_train = []
-    aux_ours_global_trainA = []
+    #aux_ours_global_trainA = []
     aux_ours_global_test = []
     aux_ours_global_testA = []
     aux_ours_indiv_T_train = []
-    aux_ours_indiv_T_trainA = []
+    #aux_ours_indiv_T_trainA = []
     aux_ours_indiv_T_test = []
     aux_ours_indiv_T_testA = []
     aux_ours_indiv_K_train = []
-    aux_ours_indiv_K_trainA = []
+    #aux_ours_indiv_K_trainA = []
     aux_ours_indiv_K_test = []
     aux_ours_indiv_K_testA = []
     
@@ -336,75 +336,75 @@ for Tmax in to_check:
         if "raykar" in executed_models:
             evaluate = Evaluation_metrics(raykarMC,'raykar',plot=False)
             prob_Yzt = raykarMC.get_confusionM()
-            prob_Yxt = raykarMC.get_predictions_annot(Xstd_train,data=Z_train_p_Ray)
+            #prob_Yxt = raykarMC.get_predictions_annot(Xstd_train,data=Z_train_p_Ray)
             Z_train_pred_Ray = Z_train_p_Ray.argmax(axis=-1)
             results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_Ray,conf_pred=prob_Yzt,conf_true=confe_matrix_R,
-                                         y_o=y_obs,yo_pred=prob_Yxt,conf_true_G =confe_matrix_G, conf_pred_G = prob_Yzt.mean(axis=0))
-            results1_aux = evaluate.calculate_metrics(y_o=y_obs,yo_pred=prob_Yxt)
+                                         y_o=y_obs,conf_true_G =confe_matrix_G, conf_pred_G = prob_Yzt.mean(axis=0))
+            #results1_aux = evaluate.calculate_metrics(y_o=y_obs,yo_pred=prob_Yxt)
             results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred_Ray)
 
             aux_raykar_train += results1
-            aux_raykar_trainA += results1_aux
+            #aux_raykar_trainA += results1_aux
             aux_raykar_test += results2
 
         if "oursglobal" in executed_models:
             evaluate = Evaluation_metrics(gMixture_Global,'our1',plot=False) 
-            aux = gMixture_Global.calculate_extra_components(Xstd_train,y_obs,T=T,calculate_pred_annotator=True,p_z=Z_train_p_OG)
-            predictions_m,prob_Gt,prob_Yzt,prob_Yxt =  aux #to evaluate...
+            aux = gMixture_Global.calculate_extra_components(Xstd_train,y_obs,T=T,calculate_pred_annotator=False,p_z=Z_train_p_OG)
+            predictions_m,prob_Gt,prob_Yzt,_ =  aux #to evaluate...
             prob_Yz = gMixture_Global.calculate_Yz()
             Z_train_pred_OG = Z_train_p_OG.argmax(axis=-1)
             results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_OG,conf_pred=prob_Yzt,conf_true=confe_matrix_R,
-                                                  y_o=y_obs,yo_pred=prob_Yxt,
+                                                  y_o=y_obs,
                                                  conf_true_G =confe_matrix_G, conf_pred_G = prob_Yz)
-            results1_aux = evaluate.calculate_metrics(y_o=y_obs,yo_pred=prob_Yxt)
+            #results1_aux = evaluate.calculate_metrics(y_o=y_obs,yo_pred=prob_Yxt)
             c_M = gMixture_Global.get_confusionM()
             y_o_groups = gMixture_Global.get_predictions_groups(Xstd_test,data=Z_test_p_OG).argmax(axis=-1) #obtain p(y^o|x,g=m) and then argmax
             Z_test_pred_OG = Z_test_p_OG.argmax(axis=-1)
             results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred_OG,conf_pred=c_M, y_o_groups=y_o_groups)
 
             aux_ours_global_train +=  results1
-            aux_ours_global_trainA += results1_aux
+            #aux_ours_global_trainA += results1_aux
             aux_ours_global_testA.append(results2[0])
             aux_ours_global_test.append(results2[1])
 
         if "oursindividual" in executed_models:
             evaluate = Evaluation_metrics(gMixture_Ind_T,'our1',plot=False) 
             evaluate.set_Gt(prob_Gt_OI_T)
-            aux = gMixture_Ind_T.calculate_extra_components(Xstd_train, A,calculate_pred_annotator=True,p_z=Z_train_p_OI_T,p_g=prob_Gt_OI_T)
-            predictions_m,prob_Gt,prob_Yzt,prob_Yxt =  aux #to evaluate...
+            aux = gMixture_Ind_T.calculate_extra_components(Xstd_train, A,calculate_pred_annotator=False,p_z=Z_train_p_OI_T,p_g=prob_Gt_OI_T)
+            predictions_m,prob_Gt,prob_Yzt,_ =  aux #to evaluate...
             prob_Yz = gMixture_Ind_T.calculate_Yz(prob_Gt)
             Z_train_pred_OI = Z_train_p_OI_T.argmax(axis=-1)
             results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_OI,conf_pred=prob_Yzt,conf_true=confe_matrix_R,
-                                                 y_o=y_obs,yo_pred=prob_Yxt,
+                                                 y_o=y_obs,
                                                 conf_true_G =confe_matrix_G, conf_pred_G = prob_Yz)
-            results1_aux = evaluate.calculate_metrics(y_o=y_obs,yo_pred=prob_Yxt)
+            #results1_aux = evaluate.calculate_metrics(y_o=y_obs,yo_pred=_)
             c_M = gMixture_Ind_T.get_confusionM()
             y_o_groups = gMixture_Ind_T.get_predictions_groups(Xstd_test,data=Z_test_p_OI_T).argmax(axis=-1) #obtain p(y^o|x,g=m) and then argmax
             Z_test_pred_OI = Z_test_p_OI_T.argmax(axis=-1)
             results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred_OI,conf_pred=c_M, y_o_groups=y_o_groups)
 
             aux_ours_indiv_T_train +=  results1
-            aux_ours_indiv_T_trainA += results1_aux
+            #aux_ours_indiv_T_trainA += results1_aux
             aux_ours_indiv_T_testA.append(results2[0])
             aux_ours_indiv_T_test.append(results2[1])
 
             evaluate = Evaluation_metrics(gMixture_Ind_K,'our1',plot=False) 
             evaluate.set_Gt(prob_Gt_OI_K)
-            aux = gMixture_Ind_K.calculate_extra_components(Xstd_train, A,calculate_pred_annotator=True,p_z=Z_train_p_OI_K,p_g=prob_Gt_OI_K)
-            predictions_m,prob_Gt,prob_Yzt,prob_Yxt =  aux #to evaluate...
+            aux = gMixture_Ind_K.calculate_extra_components(Xstd_train, A,calculate_pred_annotator=False,p_z=Z_train_p_OI_K,p_g=prob_Gt_OI_K)
+            predictions_m,prob_Gt,prob_Yzt,_ =  aux #to evaluate...
             prob_Yz = gMixture_Ind_K.calculate_Yz(prob_Gt)
             Z_train_pred_OI = Z_train_p_OI_K.argmax(axis=-1)
             results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_OI,conf_pred=prob_Yzt,conf_true=confe_matrix_R,
-                                                 y_o=y_obs,yo_pred=prob_Yxt,
+                                                 y_o=y_obs,
                                                 conf_true_G =confe_matrix_G, conf_pred_G = prob_Yz)
-            results1_aux = evaluate.calculate_metrics(y_o=y_obs,yo_pred=prob_Yxt)
+            #results1_aux = evaluate.calculate_metrics(y_o=y_obs,yo_pred=_)
             c_M = gMixture_Ind_K.get_confusionM()
             y_o_groups = gMixture_Ind_K.get_predictions_groups(Xstd_test,data=Z_test_p_OI_K).argmax(axis=-1) #obtain p(y^o|x,g=m) and then argmax
             Z_test_pred_OI = Z_test_p_OI_K.argmax(axis=-1)
             results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred_OI,conf_pred=c_M, y_o_groups=y_o_groups)
 
             aux_ours_indiv_K_train +=  results1
-            aux_ours_indiv_K_trainA += results1_aux
+            #aux_ours_indiv_K_trainA += results1_aux
             aux_ours_indiv_K_testA.append(results2[0])
             aux_ours_indiv_K_test.append(results2[1])
 
@@ -433,20 +433,20 @@ for Tmax in to_check:
         results_ds_test.append([get_mean_dataframes(aux_ds_test), get_mean_dataframes(aux_ds_test,mean_std=False)])
     if "raykar" in executed_models:
         results_raykar_train.append([get_mean_dataframes(aux_raykar_train), get_mean_dataframes(aux_raykar_train,mean_std=False)])
-        results_raykar_trainA.append([get_mean_dataframes(aux_raykar_trainA), get_mean_dataframes(aux_raykar_trainA,mean_std=False)])
+        #results_raykar_trainA.append([get_mean_dataframes(aux_raykar_trainA), get_mean_dataframes(aux_raykar_trainA,mean_std=False)])
         results_raykar_test.append([get_mean_dataframes(aux_raykar_test), get_mean_dataframes(aux_raykar_test,mean_std=False)])
     if "oursglobal" in executed_models:
         results_ours_global_train.append([get_mean_dataframes(aux_ours_global_train), get_mean_dataframes(aux_ours_global_train,mean_std=False)])
-        results_ours_global_trainA.append([get_mean_dataframes(aux_ours_global_trainA), get_mean_dataframes(aux_ours_global_trainA,mean_std=False)])
+        #results_ours_global_trainA.append([get_mean_dataframes(aux_ours_global_trainA), get_mean_dataframes(aux_ours_global_trainA,mean_std=False)])
         results_ours_global_test.append([get_mean_dataframes(aux_ours_global_test), get_mean_dataframes(aux_ours_global_test,mean_std=False)])
         results_ours_global_testA.append([get_mean_dataframes(aux_ours_global_testA), get_mean_dataframes(aux_ours_global_testA,mean_std=False)])
     if "oursindividual" in executed_models:
         results_ours_indiv_T_train.append([get_mean_dataframes(aux_ours_indiv_T_train), get_mean_dataframes(aux_ours_indiv_T_train,mean_std=False)])
-        results_ours_indiv_T_trainA.append([get_mean_dataframes(aux_ours_indiv_T_trainA), get_mean_dataframes(aux_ours_indiv_T_trainA,mean_std=False)])
+        #results_ours_indiv_T_trainA.append([get_mean_dataframes(aux_ours_indiv_T_trainA), get_mean_dataframes(aux_ours_indiv_T_trainA,mean_std=False)])
         results_ours_indiv_T_test.append([get_mean_dataframes(aux_ours_indiv_T_test), get_mean_dataframes(aux_ours_indiv_T_test,mean_std=False)])
         results_ours_indiv_T_testA.append([get_mean_dataframes(aux_ours_indiv_T_testA), get_mean_dataframes(aux_ours_indiv_T_testA,mean_std=False)])
         results_ours_indiv_K_train.append([get_mean_dataframes(aux_ours_indiv_K_train), get_mean_dataframes(aux_ours_indiv_K_train,mean_std=False)])
-        results_ours_indiv_K_trainA.append([get_mean_dataframes(aux_ours_indiv_K_trainA), get_mean_dataframes(aux_ours_indiv_K_trainA,mean_std=False)])
+        #results_ours_indiv_K_trainA.append([get_mean_dataframes(aux_ours_indiv_K_trainA), get_mean_dataframes(aux_ours_indiv_K_trainA,mean_std=False)])
         results_ours_indiv_K_test.append([get_mean_dataframes(aux_ours_indiv_K_test), get_mean_dataframes(aux_ours_indiv_K_test,mean_std=False)])
         results_ours_indiv_K_testA.append([get_mean_dataframes(aux_ours_indiv_K_testA), get_mean_dataframes(aux_ours_indiv_K_testA,mean_std=False)])
     gc.collect()
@@ -471,16 +471,16 @@ if "ds" in executed_models:
 if "raykar" in executed_models: 
     with open('synthetic_Raykar_train.pickle', 'wb') as handle:
         pickle.dump(results_raykar_train, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    with open('synthetic_Raykar_trainAnn.pickle', 'wb') as handle:
-        pickle.dump(results_raykar_trainA, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    #with open('synthetic_Raykar_trainAnn.pickle', 'wb') as handle:
+    #    pickle.dump(results_raykar_trainA, handle, protocol=pickle.HIGHEST_PROTOCOL)
     with open('synthetic_Raykar_test.pickle', 'wb') as handle:
         pickle.dump(results_raykar_test, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 if "oursglobal" in executed_models: 
     with open('synthetic_OursGlobal_train.pickle', 'wb') as handle:
         pickle.dump(results_ours_global_train, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    with open('synthetic_OursGlobal_trainAnn.pickle', 'wb') as handle:
-        pickle.dump(results_ours_global_trainA, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    #with open('synthetic_OursGlobal_trainAnn.pickle', 'wb') as handle:
+    #    pickle.dump(results_ours_global_trainA, handle, protocol=pickle.HIGHEST_PROTOCOL)
     with open('synthetic_OursGlobal_test.pickle', 'wb') as handle:
         pickle.dump(results_ours_global_test, handle, protocol=pickle.HIGHEST_PROTOCOL)
     with open('synthetic_OursGlobal_testAux.pickle', 'wb') as handle:
@@ -489,16 +489,16 @@ if "oursglobal" in executed_models:
 if "oursindividual" in executed_models: 
     with open('synthetic_OursIndividualT_train.pickle', 'wb') as handle:
         pickle.dump(results_ours_indiv_T_train, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    with open('synthetic_OursIndividualT_trainAnn.pickle', 'wb') as handle:
-        pickle.dump(results_ours_indiv_T_trainA, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    #with open('synthetic_OursIndividualT_trainAnn.pickle', 'wb') as handle:
+    #    pickle.dump(results_ours_indiv_T_trainA, handle, protocol=pickle.HIGHEST_PROTOCOL)
     with open('synthetic_OursIndividualT_test.pickle', 'wb') as handle:
         pickle.dump(results_ours_indiv_T_test, handle, protocol=pickle.HIGHEST_PROTOCOL)
     with open('synthetic_OursIndividualT_testAux.pickle', 'wb') as handle:
         pickle.dump(results_ours_indiv_T_testA, handle, protocol=pickle.HIGHEST_PROTOCOL)
     with open('synthetic_OursIndividualK_train.pickle', 'wb') as handle:
         pickle.dump(results_ours_indiv_K_train, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    with open('synthetic_OursIndividualK_trainAnn.pickle', 'wb') as handle:
-        pickle.dump(results_ours_indiv_K_trainA, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    #with open('synthetic_OursIndividualK_trainAnn.pickle', 'wb') as handle:
+    #    pickle.dump(results_ours_indiv_K_trainA, handle, protocol=pickle.HIGHEST_PROTOCOL)
     with open('synthetic_OursIndividualK_test.pickle', 'wb') as handle:
         pickle.dump(results_ours_indiv_K_test, handle, protocol=pickle.HIGHEST_PROTOCOL)
     with open('synthetic_OursIndividualK_testAux.pickle', 'wb') as handle:

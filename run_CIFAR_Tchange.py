@@ -331,13 +331,13 @@ for Tmax in to_check:
             evaluate = Evaluation_metrics(raykarMC,'raykar',plot=False)
             prob_Yzt = raykarMC.get_confusionM()
             Z_train_pred_Ray = Z_train_p_Ray.argmax(axis=-1)
-            if Tmax < 3000:
-                prob_Yxt = raykarMC.get_predictions_annot(Xstd_train,data=Z_train_p_Ray)
-                results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_Ray,conf_pred=prob_Yzt,conf_true=confe_matrix_R,
-                                     y_o=y_obs,yo_pred=prob_Yxt,conf_true_G =confe_matrix_G, conf_pred_G = prob_Yzt.mean(axis=0))
-            else:
-                results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_Ray,conf_pred=prob_Yzt,conf_true=confe_matrix_R,
-                                     conf_true_G =confe_matrix_G, conf_pred_G = prob_Yzt.mean(axis=0))
+            #if Tmax < 3000:
+            #    prob_Yxt = raykarMC.get_predictions_annot(Xstd_train,data=Z_train_p_Ray)
+            #    results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_Ray,conf_pred=prob_Yzt,conf_true=confe_matrix_R,
+            #                         y_o=y_obs,yo_pred=prob_Yxt,conf_true_G =confe_matrix_G, conf_pred_G = prob_Yzt.mean(axis=0))
+            #else:
+            results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_Ray,conf_pred=prob_Yzt,conf_true=confe_matrix_R,
+                                 conf_true_G =confe_matrix_G, conf_pred_G = prob_Yzt.mean(axis=0))
             results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred_Ray)
 
             aux_raykar_train += results1
@@ -347,17 +347,17 @@ for Tmax in to_check:
             evaluate = Evaluation_metrics(gMixture_Global,'our1',plot=False)  #no explota
             prob_Yz = gMixture_Global.calculate_Yz()
             Z_train_pred_OG = Z_train_p_OG.argmax(axis=-1)
-            if Tmax < 3000:
-                aux = gMixture_Global.calculate_extra_components(Xstd_train,y_obs,T=T,calculate_pred_annotator=True,p_z=Z_train_p_OG)
-                predictions_m,prob_Gt,prob_Yzt,prob_Yxt =  aux #to evaluate...
-                results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_OG,conf_pred=prob_Yzt,conf_true=confe_matrix_R,
-                                                  y_o=y_obs,yo_pred=prob_Yxt,
-                                                 conf_true_G =confe_matrix_G, conf_pred_G = prob_Yz)        
-            else: #pred annotator memory error
-                aux = gMixture_Global.calculate_extra_components(Xstd_train,y_obs,T=T,calculate_pred_annotator=False,p_z=Z_train_p_OG)
-                predictions_m,prob_Gt,prob_Yzt,_ =  aux #to evaluate...
-                results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_OG,conf_pred=prob_Yzt,conf_true=confe_matrix_R,
-                                                 conf_true_G =confe_matrix_G, conf_pred_G = prob_Yz)      
+            #if Tmax < 3000:
+            #    aux = gMixture_Global.calculate_extra_components(Xstd_train,y_obs,T=T,calculate_pred_annotator=True,p_z=Z_train_p_OG)
+            #    predictions_m,prob_Gt,prob_Yzt,prob_Yxt =  aux #to evaluate...
+            #    results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_OG,conf_pred=prob_Yzt,conf_true=confe_matrix_R,
+            #                                      y_o=y_obs,yo_pred=prob_Yxt,
+            #                                     conf_true_G =confe_matrix_G, conf_pred_G = prob_Yz)        
+            #else: #pred annotator memory error
+            aux = gMixture_Global.calculate_extra_components(Xstd_train,y_obs,T=T,calculate_pred_annotator=False,p_z=Z_train_p_OG)
+            predictions_m,prob_Gt,prob_Yzt,_ =  aux #to evaluate...
+            results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_OG,conf_pred=prob_Yzt,conf_true=confe_matrix_R,
+                                             conf_true_G =confe_matrix_G, conf_pred_G = prob_Yz)      
             c_M = gMixture_Global.get_confusionM()
             y_o_groups = gMixture_Global.get_predictions_groups(Xstd_test,data=Z_test_p_OG).argmax(axis=-1) #obtain p(y^o|x,g=m) and then argmax
             Z_test_pred_OG = Z_test_p_OG.argmax(axis=-1)
@@ -372,17 +372,17 @@ for Tmax in to_check:
             evaluate.set_Gt(prob_Gt_OI_T)
             Z_train_pred_OI = Z_train_p_OI_T.argmax(axis=-1)
             prob_Yz = gMixture_Ind_T.calculate_Yz(prob_Gt_OI_T)
-            if Tmax < 3000:
-                aux = gMixture_Ind_T.calculate_extra_components(Xstd_train, A,calculate_pred_annotator=True,p_z=Z_train_p_OI_T,p_g=prob_Gt_OI_T)
-                predictions_m,prob_Gt,prob_Yzt,prob_Yxt =  aux #to evaluate...
-                results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_OI,conf_pred=prob_Yzt,conf_true=confe_matrix_R,
-                                                     y_o=y_obs,yo_pred=prob_Yxt,
-                                                    conf_true_G =confe_matrix_G, conf_pred_G = prob_Yz)
-            else:
-                aux = gMixture_Ind_T.calculate_extra_components(Xstd_train,A,calculate_pred_annotator=False,p_z=Z_train_p_OI_T,p_g=prob_Gt_OI_T)
-                predictions_m,prob_Gt,prob_Yzt,_ =  aux #to evaluate...
-                results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_OI,conf_pred=prob_Yzt,conf_true=confe_matrix_R,
-                                                 conf_true_G =confe_matrix_G, conf_pred_G = prob_Yz)
+            #if Tmax < 3000:
+            #    aux = gMixture_Ind_T.calculate_extra_components(Xstd_train, A,calculate_pred_annotator=True,p_z=Z_train_p_OI_T,p_g=prob_Gt_OI_T)
+            #    predictions_m,prob_Gt,prob_Yzt,prob_Yxt =  aux #to evaluate...
+            #    results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_OI,conf_pred=prob_Yzt,conf_true=confe_matrix_R,
+            #                                         y_o=y_obs,yo_pred=prob_Yxt,
+            #                                        conf_true_G =confe_matrix_G, conf_pred_G = prob_Yz)
+            #else:
+            aux = gMixture_Ind_T.calculate_extra_components(Xstd_train,A,calculate_pred_annotator=False,p_z=Z_train_p_OI_T,p_g=prob_Gt_OI_T)
+            predictions_m,prob_Gt,prob_Yzt,_ =  aux #to evaluate...
+            results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_OI,conf_pred=prob_Yzt,conf_true=confe_matrix_R,
+                                             conf_true_G =confe_matrix_G, conf_pred_G = prob_Yz)
             c_M = gMixture_Ind_T.get_confusionM()
             y_o_groups = gMixture_Ind_T.get_predictions_groups(Xstd_test,data=Z_test_p_OI_T).argmax(axis=-1) #obtain p(y^o|x,g=m) and then argmax
             Z_test_pred_OI = Z_test_p_OI_T.argmax(axis=-1)
@@ -396,17 +396,17 @@ for Tmax in to_check:
             evaluate.set_Gt(prob_Gt_OI_K)
             Z_train_pred_OI = Z_train_p_OI_K.argmax(axis=-1)
             prob_Yz = gMixture_Ind_K.calculate_Yz(prob_Gt_OI_K)
-            if Tmax < 3000:
-                aux = gMixture_Ind_K.calculate_extra_components(Xstd_train, A,calculate_pred_annotator=True,p_z=Z_train_p_OI_K,p_g=prob_Gt_OI_K)
-                predictions_m,prob_Gt,prob_Yzt,prob_Yxt =  aux #to evaluate...
-                results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_OI,conf_pred=prob_Yzt,conf_true=confe_matrix_R,
-                                                     y_o=y_obs,yo_pred=prob_Yxt,
-                                                    conf_true_G =confe_matrix_G, conf_pred_G = prob_Yz)
-            else:
-                aux = gMixture_Ind_K.calculate_extra_components(Xstd_train,A,calculate_pred_annotator=False,p_z=Z_train_p_OI_K,p_g=prob_Gt_OI_K)
-                predictions_m,prob_Gt,prob_Yzt,_ =  aux #to evaluate...
-                results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_OI,conf_pred=prob_Yzt,conf_true=confe_matrix_R,
-                                                 conf_true_G =confe_matrix_G, conf_pred_G = prob_Yz)
+            #if Tmax < 3000:
+            #    aux = gMixture_Ind_K.calculate_extra_components(Xstd_train, A,calculate_pred_annotator=True,p_z=Z_train_p_OI_K,p_g=prob_Gt_OI_K)
+            #    predictions_m,prob_Gt,prob_Yzt,prob_Yxt =  aux #to evaluate...
+            #    results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_OI,conf_pred=prob_Yzt,conf_true=confe_matrix_R,
+            #                                         y_o=y_obs,yo_pred=prob_Yxt,
+            #                                        conf_true_G =confe_matrix_G, conf_pred_G = prob_Yz)
+            #else:
+            aux = gMixture_Ind_K.calculate_extra_components(Xstd_train,A,calculate_pred_annotator=False,p_z=Z_train_p_OI_K,p_g=prob_Gt_OI_K)
+            predictions_m,prob_Gt,prob_Yzt,_ =  aux #to evaluate...
+            results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_OI,conf_pred=prob_Yzt,conf_true=confe_matrix_R,
+                                             conf_true_G =confe_matrix_G, conf_pred_G = prob_Yz)
             c_M = gMixture_Ind_K.get_confusionM()
             y_o_groups = gMixture_Ind_K.get_predictions_groups(Xstd_test,data=Z_test_p_OI_K).argmax(axis=-1) #obtain p(y^o|x,g=m) and then argmax
             Z_test_pred_OI = Z_test_p_OI_K.argmax(axis=-1)
