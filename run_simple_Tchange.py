@@ -160,8 +160,9 @@ for Tmax in to_check:
     aux_ours_indiv_K_test = []
     aux_ours_indiv_K_testA = []
     
-    aux_acc = 0
-    while aux_acc < 0.71:
+    for _ in range(30):
+        #aux_acc = 0
+        #while aux_acc < 0.71 and aux_acc > 0.74:
         GenerateData = SinteticData(state=state_sce) #por la semilla quedan similares..
         #CONFUSION MATRIX CHOOSE
         GenerateData.set_probas(asfile=True,file_matrix=path+'/synthetic/simple/matrix_datasim_normal.csv',file_groups =path+'/synthetic/simple/groups_datasim_normal.csv')
@@ -173,69 +174,67 @@ for Tmax in to_check:
         if len(groups_annot.shape) ==1 or groups_annot.shape[1] ==  1: 
             groups_annot = keras.utils.to_categorical(groups_annot)  #only if it is hard clustering
         confe_matrix_R = np.tensordot(groups_annot,real_conf_matrix, axes=[[1],[0]])
-        
-        aux_acc = np.mean(GenerateData.yo_label == Z_train)
-        
-    T_weights = np.sum(y_obs != -1,axis=0)
-    print("Mean annotations by t= ",T_weights.mean())
-    N,T = y_obs.shape
-    K = np.max(y_obs)+1 # asumiendo que estan ordenadas
-    print("Shape (data,annotators): ",(N,T))
-    print("Classes: ",K)
 
-    ############### MV/DS and calculate representations##############################
-    if "mv" in executed_models or "ds" in executed_models:
-        label_I = LabelInference(y_obs,TOL,type_inf = 'all')  #Infer Labels
+            #aux_acc = np.mean(GenerateData.yo_label == Z_train)
 
-    #Deterministic
-    if "mv" in executed_models:
-        mv_probas, mv_conf_probas = label_I.mv_labels('probas')
-        mv_onehot, mv_conf_onehot = label_I.mv_labels('onehot')
-        print("ACC MV on train:",np.mean(mv_onehot.argmax(axis=1)==Z_train))
-        confe_matrix_G = get_Global_confusionM(Z_train,label_I.y_obs_repeat)
-    
-    if "ds" in executed_models:
-        ds_labels, ds_conf = label_I.DS_labels()
-        print("ACC D&S on train:",np.mean(ds_labels.argmax(axis=1)==Z_train))
+        T_weights = np.sum(y_obs != -1,axis=0)
+        print("Mean annotations by t= ",T_weights.mean())
+        N,T = y_obs.shape
+        K = np.max(y_obs)+1 # asumiendo que estan ordenadas
+        print("Shape (data,annotators): ",(N,T))
+        print("Classes: ",K)
 
-    if "raykar" in executed_models:
-        #get representation needed for Raykar
-        start_time = time.time()
-        y_obs_categorical = set_representation(y_obs,'onehot') 
-        print("shape:",y_obs_categorical.shape)
-        print("Representation for Raykar in %f mins"%((time.time()-start_time)/60.) )
+        ############### MV/DS and calculate representations##############################
+        if "mv" in executed_models or "ds" in executed_models:
+            label_I = LabelInference(y_obs,TOL,type_inf = 'all')  #Infer Labels
 
-    if "oursglobal" in executed_models:
-        #get our global representation 
+        #Deterministic
         if "mv" in executed_models:
-            r_obs = label_I.y_obs_repeat.copy() #
-        elif "raykar" in executed_models:
-            r_obs = set_representation(y_obs_categorical,"repeat")
-        else:
-            r_obs = set_representation(y_obs,"repeat")
-        print("vector of repeats:\n",r_obs)
-        print("shape:",r_obs.shape)
+            mv_probas, mv_conf_probas = label_I.mv_labels('probas')
+            mv_onehot, mv_conf_onehot = label_I.mv_labels('onehot')
+            print("ACC MV on train:",np.mean(mv_onehot.argmax(axis=1)==Z_train))
+            confe_matrix_G = get_Global_confusionM(Z_train,label_I.y_obs_repeat)
 
-        #analysis
-        if "mv" in executed_models:
-            aux = [entropy(example)/np.log(r_obs.shape[1]) for example in mv_probas]
-            print("Normalized entropy (0-1) of repeats annotations:",np.mean(aux))
-        confe_matrix_G = get_Global_confusionM(Z_train,r_obs)
+        if "ds" in executed_models:
+            ds_labels, ds_conf = label_I.DS_labels()
+            print("ACC D&S on train:",np.mean(ds_labels.argmax(axis=1)==Z_train))
 
-    if "oursindividual" in executed_models:
-        Y_ann_train, T_idx = set_representation(y_obs,"onehotvar")
-        T_idx_unique = np.arange(T).reshape(-1,1)
+        if "raykar" in executed_models:
+            #get representation needed for Raykar
+            start_time = time.time()
+            y_obs_categorical = set_representation(y_obs,'onehot') 
+            print("shape:",y_obs_categorical.shape)
+            print("Representation for Raykar in %f mins"%((time.time()-start_time)/60.) )
 
-        A = keras.utils.to_categorical(np.arange(T), num_classes=T) #fast way
-        print("Annotator representation (T, R_t)=", A.shape)
+        if "oursglobal" in executed_models:
+            #get our global representation 
+            if "mv" in executed_models:
+                r_obs = label_I.y_obs_repeat.copy() #
+                aux = [entropy(example)/np.log(r_obs.shape[1]) for example in mv_probas]
+                print("Normalized entropy (0-1) of repeats annotations:",np.mean(aux))
+            elif "raykar" in executed_models:
+                r_obs = set_representation(y_obs_categorical,"repeat")
+                confe_matrix_G = get_Global_confusionM(Z_train,r_obs)
+            else:
+                r_obs = set_representation(y_obs,"repeat")
+                confe_matrix_G = get_Global_confusionM(Z_train,r_obs)
+            print("vector of repeats:\n",r_obs)
+            print("shape:",r_obs.shape)
 
-        A_rep = np.zeros((T, K))
-        for i in range(N):
-            for l, t_idx in enumerate(T_idx[i]):
-                obs_t = Y_ann_train[i][l].argmax(axis=-1)
-                A_rep[t_idx, obs_t] += 1
+        if "oursindividual" in executed_models:
+            Y_ann_train, T_idx = set_representation(y_obs,"onehotvar")
+            T_idx_unique = np.arange(T).reshape(-1,1)
 
-    for _ in range(20):
+            A = keras.utils.to_categorical(np.arange(T), num_classes=T) #fast way
+            print("Annotator representation (T, R_t)=", A.shape)
+
+            A_rep = np.zeros((T, K))
+            for i in range(N):
+                for l, t_idx in enumerate(T_idx[i]):
+                    obs_t = Y_ann_train[i][l].argmax(axis=-1)
+                    A_rep[t_idx, obs_t] += 1
+
+    #for _ in range(20):
         ############# EXECUTE ALGORITHMS #############################
         if "mv" in executed_models:
             model_mvsoft = clone_UB.get_model() 
