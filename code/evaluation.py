@@ -181,6 +181,8 @@ class Evaluation_metrics(object):
         DT = pd.DataFrame()#Table()
         metric_acc = []
         metric_CE = []
+        metric_F1mi = []
+        metric_F1ma = []
         for t in range(self.T):
             aux_annotations = np.asarray([(i,annotation) for i, annotation in enumerate(y_o[:,t]) if annotation != -1])
             t_annotations = aux_annotations[:,1]
@@ -189,16 +191,27 @@ class Evaluation_metrics(object):
             
             if prob_data.shape[-1]>1: #if probabilities is handled
                 accuracy = accuracy_score(t_annotations, prob_data.argmax(axis=1))
-                cross_entropy_loss = -np.mean(np.sum(keras.utils.to_categorical(t_annotations,num_classes=prob_data.shape[-1])*np.log(prob_data),axis=-1))
-                metric_CE.append(cross_entropy_loss)
+                #cross_entropy_loss = -np.mean(np.sum(keras.utils.to_categorical(t_annotations,num_classes=prob_data.shape[-1])*np.log(prob_data),axis=-1))
+                f1_mi = f1_score(y_true=t_annotations, y_pred=prob_data.argmax(axis=1), average='micro')
+                f1_ma = f1_score(y_true=t_annotations, y_pred=prob_data.argmax(axis=1), average='macro')
+
+                #metric_CE.append(cross_entropy_loss)
             else:
                 accuracy = accuracy_score(t_annotations, prob_data)
+                f1_mi = f1_score(y_true=t_annotations, y_pred=prob_data, average='micro')
+                f1_ma = f1_score(y_true=t_annotations, y_pred=prob_data, average='macro')
             metric_acc.append(accuracy)
+            metric_F1mi.append(f1_mi)
+            metric_F1ma.append(f1_ma)
         DT["ACC imiting Annot mean"] = [np.mean(metric_acc)]
-        DT["Cross-entropy mean"] = [np.mean(metric_CE)]
+        DT["F1-mi imiting Annot mean"] = [np.mean(metric_F1mi)]
+        DT["F1-ma imiting Annot mean"] = [np.mean(metric_F1ma)]
+        #DT["Cross-entropy mean"] = [np.mean(metric_CE)]
         if len(self.T_weights) != 0:
             DT["ACC imiting Annot wmean"] = [np.sum(self.T_weights*metric_acc)]
-            DT["Cross entropy wmean"] = [np.sum(self.T_weights*metric_CE)]
+            #DT["Cross entropy wmean"] = [np.sum(self.T_weights*metric_CE)]
+            DT["F1-mi imiting Annot wmean"] = [np.sum(self.T_weights*metric_F1mi)]
+            DT["F1-ma imiting Annot wmean"] = [np.sum(self.T_weights*metric_F1ma)]
         return DT
             
      
