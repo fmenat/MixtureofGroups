@@ -801,6 +801,7 @@ class GroupMixtureInd(object):
         stop_c = False
         tol,old_betas = np.inf,np.inf
         self.current_iter = 1
+        self.alphas_training = []
         while(not stop_c):
             start_time = time.time()
             print("Iter %d/%d\nM step:"%(self.current_iter,max_iter),end='',flush=True)
@@ -808,6 +809,7 @@ class GroupMixtureInd(object):
             print(" done,  E step:",end='',flush=True)
             predictions_z = self.get_predictions_z(X_train) #p(z|x)
             predictions_g = self.get_predictions_g(A_2_pred) #p(g|a)
+            self.alphas_training.append(predictions_g)
             self.E_step(Y_ann_train, predictions_z, predictions_g, T_idx)
             self.current_exectime = time.time()-start_time
             print(" done //  (in %.2f sec)\t"%(self.current_exectime),end='',flush=True)
