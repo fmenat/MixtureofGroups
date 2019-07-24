@@ -51,7 +51,7 @@ class LabelInference(object): #no predictive model
             to_return = self.mv_probas.argmax(axis=-1)
             prob_Yz = generate_confusionM(to_return, self.y_obs_repeat) #confusion matrix of all annotators
             return keras.utils.to_categorical(to_return), prob_Yz        
-        
+       
     def DS_labels(self):
         # https://github.com/dallascard/dawid_skene
         start_time =time.time()

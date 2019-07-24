@@ -230,7 +230,7 @@ Inputs:
 Returns:
     patient_classes: Soft assignments of patients to classes
         [patients x classes]
-"""      
+"""   
 def e_step(counts, class_marginals, error_rates):
     [nPatients, nObservers, nClasses] = np.shape(counts)
     

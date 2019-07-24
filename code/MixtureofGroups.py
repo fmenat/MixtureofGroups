@@ -12,7 +12,6 @@ from .learning_models import default_CNN,default_RNN,CNN_simple, RNN_simple, def
 from .representation import *
 from .utils import softmax,estimate_batch_size
 
-
 def build_conf_Yvar(y_obs_var, T_idx, Z_val):
     """ From variable length arrays of annotations and indexs"""
     T = np.max(np.concatenate(T_idx))+1
@@ -360,10 +359,12 @@ class GroupMixtureGlo(object):
         stop_c = False
         tol,old_betas,old_alphas = np.inf,np.inf,np.inf
         self.current_iter = 1
+        self.alphas_training = []
         while(not stop_c):
             print("Iter %d/%d\nM step:"%(self.current_iter,max_iter),end='',flush=True)
             start_time = time.time()
             self.M_step(X_train,r_train)
+            self.alphas_training.append(self.alphas.copy())
             print(" done,  E step:",end='',flush=True)
             predictions = self.get_predictions(X_train) #p(z|x) 
             self.E_step(predictions)          
@@ -715,7 +716,7 @@ class GroupMixtureInd(object):
         print("Q estimate: ",self.Qil_mgamma.shape)
         gc.collect()
         self.init_exectime = time.time()-start_time
-            
+       
     def E_step(self, Y_ann, z_pred, g_pred, T_idx):
         """ Realize the E step in matrix version"""   
         if len(Y_ann.shape) ==1:
@@ -735,7 +736,7 @@ class GroupMixtureInd(object):
             self.Qil_mgamma[lim_inf: lim_sup] = np.exp( z_pred[i][None,None,:] + g_aux[:,:,None] + b_new)  
         self.aux_for_like = self.Qil_mgamma.sum(axis=(1,2)) #p(y|x,a) --marginalized
         self.Qil_mgamma   = self.Qil_mgamma/self.aux_for_like[:,None,None] #normalize
-        
+    
     def M_step(self,X, Y_ann, A): 
         """ Realize the M step, A could be index or representation for every annotator T"""
         if len(Y_ann.shape) ==1:
@@ -801,6 +802,7 @@ class GroupMixtureInd(object):
         stop_c = False
         tol,old_betas = np.inf,np.inf
         self.current_iter = 1
+        self.alphas_training = []
         while(not stop_c):
             start_time = time.time()
             print("Iter %d/%d\nM step:"%(self.current_iter,max_iter),end='',flush=True)
@@ -808,6 +810,7 @@ class GroupMixtureInd(object):
             print(" done,  E step:",end='',flush=True)
             predictions_z = self.get_predictions_z(X_train) #p(z|x)
             predictions_g = self.get_predictions_g(A_2_pred) #p(g|a)
+            self.alphas_training.append(predictions_g)
             self.E_step(Y_ann_train, predictions_z, predictions_g, T_idx)
             self.current_exectime = time.time()-start_time
             print(" done //  (in %.2f sec)\t"%(self.current_exectime),end='',flush=True)
