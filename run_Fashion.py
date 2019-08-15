@@ -170,18 +170,14 @@ results_hardmv_test = []
 results_ds_train = []
 results_ds_test = []
 results_raykar_train = []
-results_raykar_trainA = []
 results_raykar_test = []
 results_ours_global_train = []
-results_ours_global_trainA = []
 results_ours_global_test = []
 results_ours_global_testA = []
 results_ours_indiv_T_train = []
-results_ours_indiv_T_trainA = []
 results_ours_indiv_T_test = []
 results_ours_indiv_T_testA = []
 results_ours_indiv_K_train = []
-results_ours_indiv_K_trainA = []
 results_ours_indiv_K_test = []
 results_ours_indiv_K_testA = []
 
@@ -288,7 +284,7 @@ for _ in range(20): #repetitions
         gMixture_Ind_T.define_model("mlp",128,1,BatchN=True,drop=0.5)
         gMixture_Ind_T.define_model_group("perceptron",T, M_seted, embed=True, embed_M=A, BatchN=True,bias=False)
         logL_hists,i_r = gMixture_Ind_T.multiples_run(20,Xstd_train,Y_ann_train, T_idx, A=[], batch_size=BATCH_SIZE,
-                                             pre_init_g=0, pre_init_z=3, max_iter=EPOCHS_BASE,tolerance=TOL)
+                                             pre_init_g=0, pre_init_z=3, max_iter=EPOCHS_BASE,tolerance=TOL*5/3)
         Z_train_p_OI_T = gMixture_Ind_T.get_predictions_z(Xstd_train)
         Z_test_p_OI_T = gMixture_Ind_T.get_predictions_z(Xstd_test)
         prob_Gt_OI_T = gMixture_Ind_T.get_predictions_g(T_idx_unique) 
@@ -298,7 +294,7 @@ for _ in range(20): #repetitions
         gMixture_Ind_K.define_model("mlp",128,1,BatchN=True,drop=0.5)
         gMixture_Ind_K.define_model_group("mlp", A_rep.shape[1], K*M_seted, 1, BatchN=False, embed=False)
         logL_hists,i_r = gMixture_Ind_K.multiples_run(20,Xstd_train,Y_ann_train, T_idx, A=A_rep, batch_size=BATCH_SIZE,
-                                              pre_init_g=0,pre_init_z=3, max_iter=EPOCHS_BASE,tolerance=TOL)
+                                              pre_init_g=0,pre_init_z=3, max_iter=EPOCHS_BASE,tolerance=TOL*5/3)
         Z_train_p_OI_K = gMixture_Ind_K.get_predictions_z(Xstd_train)
         Z_test_p_OI_K  = gMixture_Ind_K.get_predictions_z(Xstd_test)
         prob_Gt_OI_K   = gMixture_Ind_K.get_predictions_g(A_rep) 
@@ -339,75 +335,63 @@ for _ in range(20): #repetitions
     if "raykar" in executed_models:
         evaluate = Evaluation_metrics(raykarMC,'raykar',plot=False)
         prob_Yzt = raykarMC.get_confusionM()
-        prob_Yxt = raykarMC.get_predictions_annot(Xstd_train,data=Z_train_p_Ray)
         Z_train_pred_Ray = Z_train_p_Ray.argmax(axis=-1)
         results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_Ray,conf_pred=prob_Yzt,conf_true=confe_matrix_R,
-                                         y_o=y_obs,yo_pred=prob_Yxt,conf_true_G =confe_matrix_G, conf_pred_G = prob_Yzt.mean(axis=0))
-        results1_aux = evaluate.calculate_metrics(y_o=y_obs,yo_pred=prob_Yxt)
+                                        conf_true_G =confe_matrix_G, conf_pred_G = prob_Yzt.mean(axis=0))
         results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred_Ray)
         
         results_raykar_train += results1
-        results_raykar_trainA += results1_aux
         results_raykar_test += results2
 
     if "oursglobal" in executed_models:
         evaluate = Evaluation_metrics(gMixture_Global,'our1',plot=False) 
-        aux = gMixture_Global.calculate_extra_components(Xstd_train,y_obs,T=T,calculate_pred_annotator=True,p_z=Z_train_p_OG)
-        predictions_m,prob_Gt,prob_Yzt,prob_Yxt =  aux #to evaluate...
+        aux = gMixture_Global.calculate_extra_components(Xstd_train,y_obs,T=T,calculate_pred_annotator=False,p_z=Z_train_p_OG)
+        predictions_m,prob_Gt,prob_Yzt,_ =  aux #to evaluate...
         prob_Yz = gMixture_Global.calculate_Yz()
         Z_train_pred_OG = Z_train_p_OG.argmax(axis=-1)
         results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_OG,conf_pred=prob_Yzt,conf_true=confe_matrix_R,
-                                              y_o=y_obs,yo_pred=prob_Yxt,
                                              conf_true_G =confe_matrix_G, conf_pred_G = prob_Yz)
-        results1_aux = evaluate.calculate_metrics(y_o=y_obs,yo_pred=prob_Yxt)
         c_M = gMixture_Global.get_confusionM()
         y_o_groups = gMixture_Global.get_predictions_groups(Xstd_test,data=Z_test_p_OG).argmax(axis=-1) #obtain p(y^o|x,g=m) and then argmax
         Z_test_pred_OG = Z_test_p_OG.argmax(axis=-1)
         results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred_OG,conf_pred=c_M, y_o_groups=y_o_groups)
 
         results_ours_global_train +=  results1
-        results_ours_global_trainA += results1_aux
         results_ours_global_testA.append(results2[0])
         results_ours_global_test.append(results2[1])
 
     if "oursindividual" in executed_models:
         evaluate = Evaluation_metrics(gMixture_Ind_T,'our1',plot=False) 
         evaluate.set_Gt(prob_Gt_OI_T)
-        aux = gMixture_Ind_T.calculate_extra_components(Xstd_train, A,calculate_pred_annotator=True,p_z=Z_train_p_OI_T,p_g=prob_Gt_OI_T)
-        predictions_m,prob_Gt,prob_Yzt,prob_Yxt =  aux #to evaluate...
+        aux = gMixture_Ind_T.calculate_extra_components(Xstd_train, A,calculate_pred_annotator=False,p_z=Z_train_p_OI_T,p_g=prob_Gt_OI_T)
+        predictions_m,prob_Gt,prob_Yzt,_ =  aux #to evaluate...
         prob_Yz = gMixture_Ind_T.calculate_Yz(prob_Gt)
         Z_train_pred_OI = Z_train_p_OI_T.argmax(axis=-1)
         results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_OI,conf_pred=prob_Yzt,conf_true=confe_matrix_R,
-                                             y_o=y_obs,yo_pred=prob_Yxt,
                                             conf_true_G =confe_matrix_G, conf_pred_G = prob_Yz)
-        results1_aux = evaluate.calculate_metrics(y_o=y_obs,yo_pred=prob_Yxt)
         c_M = gMixture_Ind_T.get_confusionM()
         y_o_groups = gMixture_Ind_T.get_predictions_groups(Xstd_test,data=Z_test_p_OI_T).argmax(axis=-1) #obtain p(y^o|x,g=m) and then argmax
         Z_test_pred_OI = Z_test_p_OI_T.argmax(axis=-1)
         results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred_OI,conf_pred=c_M, y_o_groups=y_o_groups)
 
         results_ours_indiv_T_train +=  results1
-        results_ours_indiv_T_trainA += results1_aux
         results_ours_indiv_T_testA.append(results2[0])
         results_ours_indiv_T_test.append(results2[1])
 
         evaluate = Evaluation_metrics(gMixture_Ind_K,'our1',plot=False) 
         evaluate.set_Gt(prob_Gt_OI_K)
-        aux = gMixture_Ind_K.calculate_extra_components(Xstd_train, A,calculate_pred_annotator=True,p_z=Z_train_p_OI_K,p_g=prob_Gt_OI_K)
-        predictions_m,prob_Gt,prob_Yzt,prob_Yxt =  aux #to evaluate...
+        aux = gMixture_Ind_K.calculate_extra_components(Xstd_train, A,calculate_pred_annotator=False,p_z=Z_train_p_OI_K,p_g=prob_Gt_OI_K)
+        predictions_m,prob_Gt,prob_Yzt,_ =  aux #to evaluate...
         prob_Yz = gMixture_Ind_K.calculate_Yz(prob_Gt)
         Z_train_pred_OI = Z_train_p_OI_K.argmax(axis=-1)
         results1 = evaluate.calculate_metrics(Z=Z_train,Z_pred=Z_train_pred_OI,conf_pred=prob_Yzt,conf_true=confe_matrix_R,
-                                             y_o=y_obs,yo_pred=prob_Yxt,
                                             conf_true_G =confe_matrix_G, conf_pred_G = prob_Yz)
-        results1_aux = evaluate.calculate_metrics(y_o=y_obs,yo_pred=prob_Yxt)
         c_M = gMixture_Ind_K.get_confusionM()
         y_o_groups = gMixture_Ind_K.get_predictions_groups(Xstd_test,data=Z_test_p_OI_K).argmax(axis=-1) #obtain p(y^o|x,g=m) and then argmax
         Z_test_pred_OI = Z_test_p_OI_K.argmax(axis=-1)
         results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred_OI,conf_pred=c_M, y_o_groups=y_o_groups)
 
         results_ours_indiv_K_train +=  results1
-        results_ours_indiv_K_trainA += results1_aux
         results_ours_indiv_K_testA.append(results2[0])
         results_ours_indiv_K_test.append(results2[1])
 
@@ -446,16 +430,12 @@ if "ds" in executed_models:
 if "raykar" in executed_models:
     get_mean_dataframes(results_raykar_train).to_csv("Fashion_Raykar_train.csv",index=False)
     get_mean_dataframes(results_raykar_train,  mean_std=False).to_csv("Fashion_Raykar_train_std.csv",index=False)
-    get_mean_dataframes(results_raykar_trainA).to_csv("Fashion_Raykar_trainAnn.csv",index=False)
-    get_mean_dataframes(results_raykar_trainA,  mean_std=False).to_csv("Fashion_Raykar_trainAnn_std.csv",index=False)
     get_mean_dataframes(results_raykar_test).to_csv("Fashion_Raykar_test.csv",index=False)
     get_mean_dataframes(results_raykar_test, mean_std=False).to_csv("Fashion_Raykar_test_std.csv",index=False)
 
 if "oursglobal" in executed_models:
     get_mean_dataframes(results_ours_global_train).to_csv("Fashion_OursGlobal_train.csv",index=False)
     get_mean_dataframes(results_ours_global_train, mean_std=False).to_csv("Fashion_OursGlobal_train_std.csv",index=False)
-    get_mean_dataframes(results_ours_global_trainA).to_csv("Fashion_OursGlobal_trainAnn.csv",index=False)
-    get_mean_dataframes(results_ours_global_trainA, mean_std=False).to_csv("Fashion_OursGlobal_trainAnn_std.csv",index=False)
     get_mean_dataframes(results_ours_global_test).to_csv("Fashion_OursGlobal_test.csv",index=False)
     get_mean_dataframes(results_ours_global_test, mean_std=False).to_csv("Fashion_OursGlobal_test_std.csv",index=False)
     get_mean_dataframes(results_ours_global_testA).to_csv("Fashion_OursGlobal_testAux.csv",index=False)
@@ -464,8 +444,6 @@ if "oursglobal" in executed_models:
 if "oursindividual" in executed_models:
     get_mean_dataframes(results_ours_indiv_T_train).to_csv("Fashion_OursIndividualT_train.csv",index=False)
     get_mean_dataframes(results_ours_indiv_T_train, mean_std=False).to_csv("Fashion_OursIndividualT_train_std.csv",index=False)
-    get_mean_dataframes(results_ours_indiv_T_trainA).to_csv("Fashion_OursIndividualT_trainAnn.csv",index=False)
-    get_mean_dataframes(results_ours_indiv_T_trainA, mean_std=False).to_csv("Fashion_OursIndividualT_trainAnn_std.csv",index=False)
     get_mean_dataframes(results_ours_indiv_T_test).to_csv("Fashion_OursIndividualT_test.csv",index=False)
     get_mean_dataframes(results_ours_indiv_T_test, mean_std=False).to_csv("Fashion_OursIndividualT_test_std.csv",index=False)
     get_mean_dataframes(results_ours_indiv_T_testA).to_csv("Fashion_OursIndividualT_testAux.csv",index=False)
@@ -473,8 +451,6 @@ if "oursindividual" in executed_models:
 
     get_mean_dataframes(results_ours_indiv_K_train).to_csv("Fashion_OursIndividualK_train.csv",index=False)
     get_mean_dataframes(results_ours_indiv_K_train, mean_std=False).to_csv("Fashion_OursIndividualK_train_std.csv",index=False)
-    get_mean_dataframes(results_ours_indiv_K_trainA).to_csv("Fashion_OursIndividualK_trainAnn.csv",index=False)
-    get_mean_dataframes(results_ours_indiv_K_trainA, mean_std=False).to_csv("Fashion_OursIndividualK_trainAnn_std.csv",index=False)
     get_mean_dataframes(results_ours_indiv_K_test).to_csv("Fashion_OursIndividualK_test.csv",index=False)
     get_mean_dataframes(results_ours_indiv_K_test, mean_std=False).to_csv("Fashion_OursIndividualK_test_std.csv",index=False)
     get_mean_dataframes(results_ours_indiv_K_testA).to_csv("Fashion_OursIndividualK_testAux.csv",index=False)
