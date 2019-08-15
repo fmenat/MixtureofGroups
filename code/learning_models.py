@@ -44,6 +44,8 @@ def MLP_Keras(input_dim,output_dim,units,hidden_deep,BN=False,drop=0.0,embed=Fal
 
     if len(input_dim) > 1:
         model.add(Flatten())
+        if BN:
+            model.add(BatchNormalization())
     for i in range(hidden_deep): #all the deep layers
         model.add(Dense(units,activation='relu'))
         if BN:
@@ -142,7 +144,7 @@ def default_CNN_text(input_dim,output_dim,embed_M=[]):
     model.add(Dense(output_dim, activation='softmax')) 
     return model
 
-def CNN_simple(input_dim,output_dim,units,hidden_deep,double=False,BN=False,drop=0.0,dense_units=128): #CP
+def CNN_simple(input_dim,output_dim,units,hidden_deep,double=False,BN=False,drop=0.0,dense_units=128, global_pool=False): #CP
     model = Sequential() 
     model.add(InputLayer(input_shape=input_dim))
     start_unit = units
@@ -158,7 +160,10 @@ def CNN_simple(input_dim,output_dim,units,hidden_deep,double=False,BN=False,drop
         if drop!= 0 and drop != None and drop != False:
             model.add(Dropout(drop))
         start_unit = start_unit*2
-    model.add(Flatten())
+    if global_pool:
+        model.add(GlobalAveragePooling2D())
+    else:
+        model.add(Flatten())
     model.add(Dense(dense_units,activation='relu'))
     if BN:
         model.add(BatchNormalization())

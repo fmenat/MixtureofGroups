@@ -16,11 +16,12 @@ def get_confusionM(pred,y_ann):
 
 
 def get_Global_confusionM(Z_data,y_ann):
-    """ This function calculate the confusion matrix amongs all the annotations for every data. """    
+    """ This function calculate the confusion matrix amongs all the annotations for every data. """  
     if len(Z_data.shape) == 2:
         aux = np.tensordot(Z_data, y_ann, axes=[[0],[0]])
     elif len(Z_data.shape) ==1:
-        aux = np.tensordot(keras.utils.to_categorical(Z_data), y_ann, axes=[[0],[0]])
+        Kl = max(Z_data.max()+1, y_ann.shape[1])
+        aux = np.tensordot(keras.utils.to_categorical(Z_data, num_classes=Kl), y_ann, axes=[[0],[0]])
     
     if len(aux.shape) == 3: #if y_obs_categorical is delivered
         aux = aux.sum(axis=1)
