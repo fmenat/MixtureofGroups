@@ -52,23 +52,26 @@ mask_test = sets == "test"
 Z_train = Z_data[mask_train]
 Z_test = Z_data[mask_test]
 
-X_train_vgg16 = X_vgg16[mask_train]
-X_test_vgg16 = X_vgg16[mask_test]
+Xstd_train = X_vgg16[mask_train]
+Xstd_test = X_vgg16[mask_test]
 
+"""
+if Q_s != "Q4":
+    print("Creating new test..")
+    #created before..
+    mask_test = np.random.rand(Z_train.shape[0]) < 0.33 ##tenerlo guardado antes..
 
-#created before..
-mask_val = np.random.rand(Z_train.shape[0]) < 0.33 ##tenerlo guardado antes..
+    #re build test set..
+    Xstd_test = Xstd_train[mask_test]
+    Xstd_train = Xstd_train[~mask_test]
+    Z_test = Z_train[mask_test]
+    Z_train = Z_train[~mask_test]
+"""
 
-#re build test set..
-Xstd_test = X_train_vgg16[mask_val]
-Xstd_train = X_train_vgg16[~mask_val]
-Z_test = Z_train[mask_val]
-Z_train = Z_train[~mask_val]
-
-print("Input train shape:",X_train_vgg16.shape)
+print("Input train shape:",Xstd_train.shape)
 print("Label train shape:",Z_train.shape)
 
-print("Input test shape:",X_test_vgg16.shape)
+print("Input test shape:",Xstd_test.shape)
 print("Label test shape:",Z_test.shape)
 
 
@@ -137,7 +140,8 @@ if version == 1:
 else:
     file_annot = "/answers_v"+str(version)+"_"+p_error+"_"+Q_s+".txt"
 y_obs = np.loadtxt(folder+file_annot,dtype='int16') #not annotation symbol ==-1
-y_obs = y_obs[~mask_val] 
+#if Q_s != "Q4":
+#    y_obs = y_obs[~mask_test] 
 
 T_weights = np.sum(y_obs != -1,axis=0) #distribucion de anotaciones
 
