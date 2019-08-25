@@ -14,9 +14,10 @@ def run_from_ipython():
         return False
 
 class Evaluation_metrics(object):
-    def __init__(self,class_infered,which='our',N=None,plot=True):
+    def __init__(self,class_infered,which='our',N=None,plot=True, text=False):
         self.which=which.lower()
         self.plot = plot
+        self.text = text
         self.labels_plot = []
         self.T_weights = []
         self.T = 0
@@ -69,7 +70,7 @@ class Evaluation_metrics(object):
           
         to_return = []
         if self.which == 'our1' and len(conf_pred) == self.M: 
-            to_return.append(self.report_results_wt_annot(conf_pred,plot=self.plot)) #intrisic metrics
+            to_return.append(self.report_results_wt_annot(conf_pred,plot=self.plot, text=self.text)) #intrisic metrics
             
         if len(Z) != 0: #if we have Ground Truth
             if self.which == 'our1' and len(y_o_groups) != 0 and len(conf_pred) == self.M:  #test set usually
@@ -124,11 +125,11 @@ class Evaluation_metrics(object):
                 #diagional_elements_true = (diagional_elements_true-np.mean(diagional_elements_true))/(np.std(diagional_elements_true)+1e-10)
                 #pearson_corr.append(pearsonr(diagional_elements_pred, diagional_elements_true)[0])
                 if np.random.rand() >0.5 and sampled_plot < 15 and plot:
-                    compare_conf_mats(conf_pred[m], conf_true[m])
+                    compare_conf_mats(conf_pred[m], conf_true[m], text=self.text)
                     sampled_plot+=1
-                    #print("KL divergence: %.4f\tPearson Correlation between diagonals: %.4f"%(KLs_founded[m],pearson_corr[-1]))        
-                    #print("JS divergence: %.4f\tPearson Correlation between diagonals: %.4f"%(JSs_founded[m],pearson_corr[-1])) 
-                    print("JS divergence: %.4f\tNorm Frobenius: %.4f"%(JSs_founded[m],NormFs_founded[m]))   
+                    #print("KL divergence: %.3f\tPearson Correlation between diagonals: %.3f"%(KLs_founded[m],pearson_corr[-1]))        
+                    #print("JS divergence: %.3f\tPearson Correlation between diagonals: %.3f"%(JSs_founded[m],pearson_corr[-1])) 
+                    print("JS divergence: %.3f\tNorm Frobenius: %.3f"%(JSs_founded[m],NormFs_founded[m]))   
                     if len(self.Gt) != 0:
                         print("Groups probabilities: ",np.round(self.Gt[m],4))
 
@@ -145,8 +146,8 @@ class Evaluation_metrics(object):
             NormFs_founded = NormF_confmatrixs(conf_pred_G,conf_true_G)
  
             if plot:
-                compare_conf_mats(conf_pred_G, conf_true_G)
-                print("JS divergence: %.4f\tNorm Frobenius: %.4f"%(JSs_founded,NormFs_founded))   
+                compare_conf_mats(conf_pred_G, conf_true_G, text=self.text)
+                print("JS divergence: %.3f\tNorm Frobenius: %.3f"%(JSs_founded,NormFs_founded))   
             t["(G) NormF"] = NormFs_founded
             t["(G) JS"] = JSs_founded
         return t
@@ -231,7 +232,7 @@ class Evaluation_metrics(object):
         t["F1 (micro)"] = f1_s
         return t
         
-    def report_results_wt_annot(self,conf_matrixs,groups_proba=[],plot=True):
+    def report_results_wt_annot(self,conf_matrixs,groups_proba=[],plot=True, text=False):
         """Calculate Intrinsic measure of only the confusion matrices infered """
         t = pd.DataFrame()#Table()
         identity_matrixs = np.asarray([np.identity(conf_matrixs.shape[1]) for m in range(len(conf_matrixs))])
@@ -247,7 +248,7 @@ class Evaluation_metrics(object):
             if plot:
                 if len(self.labels_plot) == 0:
                     self.labels_plot = np.arange(conf_matrixs[m].shape[0])
-                plot_confusion_matrix(conf_matrixs[m],self.labels_plot,title="Group "+str(m),text=False)
+                plot_confusion_matrix(conf_matrixs[m],self.labels_plot,title="Group "+str(m),text=text)
             #New Instrisic measure
             entropies.append(Entropy_confmatrix(conf_matrixs[m]))
             mean_diagional.append(calculate_diagional_mean(conf_matrixs[m]))

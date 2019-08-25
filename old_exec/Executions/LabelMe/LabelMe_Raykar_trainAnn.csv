@@ -1,2 +1,2 @@
-Mean ACC imiting Annot,Mean cross-entropy,Wmean ACC imiting Annot,wMean cross entropy
-0.8443702351116664,1.1627537727355957,0.8252846486062034,0.9297548767737486
+ACC imiting Annot mean,Cross-entropy mean,ACC imiting Annot wmean,Cross entropy wmean
+0.8463001614416963,1.1635261690085874,0.8261091480172753,0.9306024107145493

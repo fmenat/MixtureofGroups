@@ -2,6 +2,7 @@ from sklearn.metrics import confusion_matrix,f1_score
 from sklearn.preprocessing import normalize
 import itertools, keras, math,gc
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from scipy.stats import entropy
@@ -141,7 +142,7 @@ def calculateNormF_matrixs(confs_pred,confs_true):
     else:
         print("ERROR! There are %d real and %d predicted conf matrices"%(M_t,M_p))
 
-def compare_conf_mats(pred_conf_mat,true_conf_mat=[]):
+def compare_conf_mats(pred_conf_mat,true_conf_mat=[], text=False):
     classes = np.arange(pred_conf_mat[0].shape[0])
     sp = plt.subplot(1,2,2)
     plt.imshow(pred_conf_mat, interpolation='nearest', cmap=cm.YlOrRd, vmin=0, vmax=1)
@@ -150,17 +151,29 @@ def compare_conf_mats(pred_conf_mat,true_conf_mat=[]):
     plt.yticks(np.arange(len(classes)), classes)
     #plt.ylabel('True label')
     #plt.xlabel('Predicted label')
+    if text:
+        thresh = pred_conf_mat.max() / 2.
+        for i, j in itertools.product(range(pred_conf_mat.shape[0]), range(pred_conf_mat.shape[1])):
+            plt.text(j, i, format(pred_conf_mat[i, j], '.2f'),
+                     horizontalalignment="center",
+                     color="white" if pred_conf_mat[i, j] > thresh else "black")
     plt.tight_layout()
 
     if len(true_conf_mat) != 0:
-	    sp1 = plt.subplot(1,2,1)
-	    plt.imshow(true_conf_mat, interpolation='nearest', cmap=cm.YlOrRd, vmin=0, vmax=1)
-	    plt.title("True")
-	    plt.xticks(np.arange(len(classes)), classes)
-	    plt.yticks(np.arange(len(classes)), classes)
-	    #plt.ylabel('True label')
-	    #plt.xlabel('Observed label')
-	    plt.tight_layout()
+        sp1 = plt.subplot(1,2,1)
+        plt.imshow(true_conf_mat, interpolation='nearest', cmap=cm.YlOrRd, vmin=0, vmax=1)
+        plt.title("True")
+        plt.xticks(np.arange(len(classes)), classes)
+        plt.yticks(np.arange(len(classes)), classes)
+        if text:
+            thresh = true_conf_mat.max() / 2.
+            for i, j in itertools.product(range(true_conf_mat.shape[0]), range(true_conf_mat.shape[1])):
+                plt.text(j, i, format(true_conf_mat[i, j], '.2f'),
+                         horizontalalignment="center",
+                         color="white" if true_conf_mat[i, j] > thresh else "black")
+        #plt.ylabel('True label')
+        #plt.xlabel('Observed label')
+    plt.tight_layout()
     plt.show()
 
 def KL_confmatrixs(conf_pred,conf_true, raw=False):
@@ -367,7 +380,7 @@ def plot_Mchange(logL_Mchange,
     plt.plot(M_values,accTE_Mchange,'o-',label="Acc val")
     if best_group:
         plt.plot(M_values,best_group_acc_Mchange,'o-',label="Acc val best group")
-    plt.plot(M_values,entropy_values,'o-',label="Entropy of p(g)")
+        plt.plot(M_values,entropy_values,'o-',label="Entropy of p(g)")
     add_plot(plt) #add ticks, x label and legend
     plt.ylim(0,1)
     plt.show()
@@ -406,3 +419,24 @@ def estimate_batch_size(model, scale_by=5.0,precision = 2):
     )))
     max_size = max(32,np.int(available_mem / (precision * num_params * scale_by)))
     return np.int(2 ** math.floor(np.log(max_size)/np.log(2)))
+
+def get_mean_dataframes(df_values, mean_std = True):
+    if df_values[0].iloc[:,0].dtype == object:
+        RT = pd.DataFrame(data=None,columns = df_values[0].columns[1:], index= df_values[0].index)
+    else:
+        RT = pd.DataFrame(data=None,columns = df_values[0].columns, index= df_values[0].index)
+        
+    data = []
+    for df_value in df_values:
+        if df_value.iloc[:,0].dtype == object:
+            data.append( df_value.iloc[:,1:].values )
+        else:
+            data.append(df_value.values)
+    if mean_std:
+        RT[:] = np.mean(data,axis=0)
+    else:
+        RT[:] = np.std(data,axis=0)
+    
+    if df_values[0].iloc[:,0].dtype == object:
+        RT.insert(0, "", df_values[0].iloc[:,0].values )
+    return RT

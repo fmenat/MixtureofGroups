@@ -87,28 +87,6 @@ del evaluate,Z_train_pred,Z_test_pred,results1,results2
 gc.collect()
 keras.backend.clear_session()
 
-def get_mean_dataframes(df_values, mean_std = True):
-    if df_values[0].iloc[:,0].dtype == object:
-        RT = pd.DataFrame(data=None,columns = df_values[0].columns[1:], index= df_values[0].index)
-    else:
-        RT = pd.DataFrame(data=None,columns = df_values[0].columns, index= df_values[0].index)
-        
-    data = []
-    for df_value in df_values:
-        if df_value.iloc[:,0].dtype == object:
-            data.append( df_value.iloc[:,1:].values )
-        else:
-            data.append(df_value.values)
-    if mean_std:
-        RT[:] = np.mean(data,axis=0)
-    else:
-        RT[:] = np.std(data,axis=0)
-    
-    if df_values[0].iloc[:,0].dtype == object:
-        RT.insert(0, "", df_values[0].iloc[:,0].values )
-    return RT
-
-
 from code.generate_data import SinteticData
 
 #ANNOTATOR DENSITY CHOOSE
