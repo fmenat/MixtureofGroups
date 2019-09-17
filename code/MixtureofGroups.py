@@ -176,7 +176,7 @@ class GroupMixtureGlo(object):
         """Get Q estimation param, this is Q_ij(g,z) = p(g,z|xi,y=j)"""
         return self.Qij_mgamma.copy()
         
-    def define_model(self,tipo,start_units=1,deep=1,double=False,drop=0.0,embed=[],BatchN=False,h_units=128):
+    def define_model(self,tipo,start_units=1,deep=1,double=False,drop=0.0,embed=[],BatchN=False,h_units=128, glo_p=False):
         """Define the base model and other structures"""
         self.type = tipo.lower()     
         if self.type =="sklearn_shallow" or self.type =="sklearn_logistic":
@@ -202,7 +202,7 @@ class GroupMixtureGlo(object):
             self.base_model = MLP_Keras(self.input_dim,self.Kl,start_units,deep,BN=BatchN,drop=drop)
         elif self.type=='simplecnn' or self.type=='simple cnn' or 'cnn' in self.type:
             print("Needed params (units,deep,drop,double?,BatchN?)") #default activation is relu
-            self.base_model = CNN_simple(self.input_dim,self.Kl,start_units,deep,double=double,BN=BatchN,drop=drop,dense_units=h_units)
+            self.base_model = CNN_simple(self.input_dim,self.Kl,start_units,deep,double=double,BN=BatchN,drop=drop,dense_units=h_units,global_pool=glo_p)
         elif self.type=='simplernn' or self.type=='simple rnn' or 'rnn' in self.type:
             print("Needed params (units,deep,drop,embed?)")
             self.base_model = RNN_simple(self.input_dim,self.Kl,start_units,deep,drop=drop,embed=embed,len=0,out=start_units*2)
@@ -546,7 +546,7 @@ class GroupMixtureInd(object):
         """Get Q estimation param, this is Q_il(g,z) = p(g,z|x_i,a_il, r_il)"""
         return self.reshape_il(self.Qil_mgamma.copy())
         
-    def define_model(self,tipo,start_units=1,deep=1,double=False,drop=0.0,embed=[],BatchN=True,h_units=128):
+    def define_model(self,tipo,start_units=1,deep=1,double=False,drop=0.0,embed=[],BatchN=True,h_units=128,glo_p=False):
         """Define the base model p(z|x) and other structures"""
         self.type = tipo.lower()     
         if self.type =="sklearn_shallow" or self.type =="sklearn_logistic":
@@ -571,7 +571,7 @@ class GroupMixtureInd(object):
             self.base_model = MLP_Keras(self.input_dim,self.Kl,start_units,deep,BN=BatchN,drop=drop)
         elif self.type=='simplecnn' or self.type=='simple cnn' or 'cnn' in self.type:
             print("Needed params (units,deep,drop,double?,BatchN?)") #default activation is relu
-            self.base_model = CNN_simple(self.input_dim,self.Kl,start_units,deep,double=double,BN=BatchN,drop=drop,dense_units=h_units)
+            self.base_model = CNN_simple(self.input_dim,self.Kl,start_units,deep,double=double,BN=BatchN,drop=drop,dense_units=h_units,global_pool=glo_p)
         elif self.type=='simplernn' or self.type=='simple rnn' or 'rnn' in self.type:
             print("Needed params (units,deep,drop,embed?)")
             self.base_model = RNN_simple(self.input_dim,self.Kl,start_units,deep,drop=drop,embed=embed,len=0,out=start_units*2)
