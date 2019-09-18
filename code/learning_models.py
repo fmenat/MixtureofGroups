@@ -12,6 +12,14 @@ def LogisticRegression_Sklearn(epochs):
 from keras.models import Sequential,Model, clone_model
 from keras.layers import *
 from keras import backend as K
+import tensorflow as tf
+
+try:
+    from keras.layers import CuDNNLSTM
+    GPU_AVAIL = tf.test.is_gpu_available() #'GPU' in str(K.tensorflow_backend.device_lib.list_local_devices()): 
+except:
+    GPU_AVAIL = False
+
 def LogisticRegression_Keras(input_dim,output_dim, bias=True,embed=False,embed_M=[], BN=False):
     model = Sequential() 
     if embed:
@@ -93,7 +101,7 @@ def default_RNN(input_dim,output_dim):
     #revisar la red de Rodrigues
     model = Sequential() 
     model.add(InputLayer(input_shape=input_dim))
-    if 'GPU' in str(K.tensorflow_backend.device_lib.list_local_devices()):
+    if GPU_AVAIL:
         model.add(CuDNNGRU(64,return_sequences=True))
         model.add(CuDNNGRU(32,return_sequences=False))
     else:
@@ -111,7 +119,7 @@ def default_RNN_text(input_dim,output_dim,embed_M=[]):
     else:
 
         model.add(InputLayer(input_shape=input_dim))
-    if 'GPU' in str(K.tensorflow_backend.device_lib.list_local_devices()):
+    if GPU_AVAIL:
         model.add(CuDNNGRU(128,return_sequences=True))
         model.add(Dropout(0.25))
         model.add(CuDNNGRU(64,return_sequences=False)) #o solo una de 64..
@@ -181,7 +189,7 @@ def RNN_simple(input_dim,output_dim,units,hidden_deep,drop=0.0,embed=False,len=0
         model.add(Embedding(input_dim=len,output_dim=out,input_length=input_dim[0]))
     start_unit = units
     for i in range(hidden_deep): #all the deep layers
-        if 'GPU' in str(K.tensorflow_backend.device_lib.list_local_devices()):
+        if GPU_AVAIL:
             model.add(CuDNNGRU(start_unit,return_sequences= (i<hidden_deep-1) ))
         else:
             model.add(GRU(start_unit,return_sequences= (i<hidden_deep-1) ))
@@ -270,57 +278,3 @@ class Clonable_Model(object):
                 return_model.layers[n].set_weights( self.non_train_W[layer.name] )
         return return_model #return a copy of the model
 
-
-def vgg_face(weights_path=None, img_sh=None):
-    K.set_image_data_format('channels_first')
-    if img_sh is None:
-        img_sh = (3, 224,224)
-
-    model = Sequential()
-    model.add(ZeroPadding2D((1,1), input_shape=img_sh))
-    model.add(Convolution2D(64, (3, 3), activation='relu', name='conv1_1'))
-    model.add(ZeroPadding2D((1,1)))
-    model.add(Convolution2D(64, (3, 3), activation='relu', name='conv1_2'))
-    model.add(MaxPooling2D((2,2), strides=(2,2)))
-     
-    model.add(ZeroPadding2D((1,1)))
-    model.add(Convolution2D(128, (3, 3), activation='relu', name='conv2_1'))
-    model.add(ZeroPadding2D((1,1)))
-    model.add(Convolution2D(128, (3, 3), activation='relu', name='conv2_2'))
-    model.add(MaxPooling2D((2,2), strides=(2,2)))
-     
-    model.add(ZeroPadding2D((1,1)))
-    model.add(Convolution2D(256, (3, 3), activation='relu', name='conv3_1'))
-    model.add(ZeroPadding2D((1,1)))
-    model.add(Convolution2D(256, (3, 3), activation='relu', name='conv3_2'))
-    model.add(ZeroPadding2D((1,1)))
-    model.add(Convolution2D(256, (3, 3), activation='relu', name='conv3_3'))
-    model.add(MaxPooling2D((2,2), strides=(2,2)))
-     
-    model.add(ZeroPadding2D((1,1)))
-    model.add(Convolution2D(512, (3, 3), activation='relu', name='conv4_1'))
-    model.add(ZeroPadding2D((1,1)))
-    model.add(Convolution2D(512, (3, 3), activation='relu', name='conv4_2'))
-    model.add(ZeroPadding2D((1,1)))
-    model.add(Convolution2D(512, (3, 3), activation='relu', name='conv4_3'))
-    model.add(MaxPooling2D((2,2), strides=(2,2)))
-     
-    model.add(ZeroPadding2D((1,1)))
-    model.add(Convolution2D(512, (3, 3), activation='relu', name='conv5_1'))
-    model.add(ZeroPadding2D((1,1)))
-    model.add(Convolution2D(512, (3, 3), activation='relu', name='conv5_2'))
-    model.add(ZeroPadding2D((1,1)))
-    model.add(Convolution2D(512, (3, 3), activation='relu', name='conv5_3'))
-    model.add(MaxPooling2D((2,2), strides=(2,2)))
-     
-    model.add(Flatten())
-    model.add(Dense(4096, activation='relu', name='fc6'))
-    model.add(Dropout(0.5))
-    model.add(Dense(4096, activation='relu', name='fc7'))
-    model.add(Dropout(0.5))
-    model.add(Dense(2622, activation='softmax', name='fc8'))
-
-    if weights_path:
-        model.load_weights(weights_path)
-    K.set_image_data_format('channels_last')
-    return model

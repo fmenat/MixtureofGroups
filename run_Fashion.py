@@ -256,7 +256,7 @@ for _ in range(20): #repetitions
     if "oursglobal" in executed_models:
         gMixture_Global = GroupMixtureGlo(Xstd_train.shape[1:],Kl=K,M=M_seted,epochs=1,optimizer=OPT,dtype_op=DTYPE_OP) 
         gMixture_Global.define_model("mlp",128,1,BatchN=True,drop=0.5)
-        logL_hists,i = gMixture_Global.multiples_run(20,Xstd_train,r_obs,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL)#*5/3)
+        logL_hists,i = gMixture_Global.multiples_run(20,Xstd_train,r_obs,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL*5/3)
         Z_train_p_OG = gMixture_Global.get_predictions(Xstd_train)
         Z_test_p_OG = gMixture_Global.get_predictions(Xstd_test)
         keras.backend.clear_session()
@@ -266,7 +266,7 @@ for _ in range(20): #repetitions
         gMixture_Ind_T.define_model("mlp",128,1,BatchN=True,drop=0.5)
         gMixture_Ind_T.define_model_group("perceptron",T, M_seted, embed=True, embed_M=A, BatchN=True,bias=False)
         logL_hists,i_r = gMixture_Ind_T.multiples_run(20,Xstd_train,Y_ann_train, T_idx, A=[], batch_size=BATCH_SIZE,
-                                             pre_init_g=0, pre_init_z=3, max_iter=EPOCHS_BASE,tolerance=TOL)#*5/3)
+                                             pre_init_g=0, pre_init_z=3, max_iter=EPOCHS_BASE,tolerance=TOL*5/3)
         Z_train_p_OI_T = gMixture_Ind_T.get_predictions_z(Xstd_train)
         Z_test_p_OI_T = gMixture_Ind_T.get_predictions_z(Xstd_test)
         prob_Gt_OI_T = gMixture_Ind_T.get_predictions_g(T_idx_unique) 
@@ -276,7 +276,7 @@ for _ in range(20): #repetitions
         gMixture_Ind_K.define_model("mlp",128,1,BatchN=True,drop=0.5)
         gMixture_Ind_K.define_model_group("mlp", A_rep.shape[1], K*M_seted, 1, BatchN=False, embed=False)
         logL_hists,i_r = gMixture_Ind_K.multiples_run(20,Xstd_train,Y_ann_train, T_idx, A=A_rep, batch_size=BATCH_SIZE,
-                                              pre_init_g=0,pre_init_z=3, max_iter=EPOCHS_BASE,tolerance=TOL)#*5/3)
+                                              pre_init_g=0,pre_init_z=3, max_iter=EPOCHS_BASE,tolerance=TOL*5/3)
         Z_train_p_OI_K = gMixture_Ind_K.get_predictions_z(Xstd_train)
         Z_test_p_OI_K  = gMixture_Ind_K.get_predictions_z(Xstd_test)
         prob_Gt_OI_K   = gMixture_Ind_K.get_predictions_g(A_rep) 
