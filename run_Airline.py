@@ -12,7 +12,7 @@ folder = opts.path
 GLOVE_folder = opts.pathGlove
 M_seted = opts.Ngroups 
 version = opts.version 
-if version== None or len(version) == 0:
+if version=="None" or len(version) == 0 or version=="default":
     version = ''
 executed_models = opts.executed  #arg
 if len(executed_models) == 0: #put alls
@@ -161,7 +161,7 @@ K = np.max(y_obs)+1 # asumiendo que estan ordenadas
 print("Shape (data,annotators): ",(N,T))
 print("Classes: ",K)
 
-model_UB = default_RNN_text(max_L, Kl, embed_M=embedding_matrix)
+model_UB = default_RNN_text(max_L, K, embed_M=embedding_matrix)
 clone_UB = Clonable_Model(model_UB)
 
 results_softmv_train = []
@@ -241,7 +241,8 @@ for _ in range(20): #repetitions
         model_mvsoft.compile(loss='categorical_crossentropy',optimizer=OPT)
         hist = model_mvsoft.fit(X_train, mv_probas, epochs=EPOCHS_BASE,batch_size=BATCH_SIZE,verbose=0,callbacks=[ourCallback])
         print("Trained model over soft-MV, Epochs to converge =",len(hist.epoch))
-        Z_train_pred_mvsoft = model_mvsoft.predict_classes(X_train)
+        Z_train_p_mvsoft = model_mvsoft.predict(X_train)
+        Z_train_pred_mvsoft = Z_train_p_mvsoft.argmax(axis=-1) #model_mvsoft.predict_classes(X_train)
         Z_test_pred_mvsoft = model_mvsoft.predict_classes(X_test)
         keras.backend.clear_session()
 
@@ -249,7 +250,8 @@ for _ in range(20): #repetitions
         model_mvhard.compile(loss='categorical_crossentropy',optimizer=OPT)
         hist=model_mvhard.fit(X_train, mv_onehot, epochs=EPOCHS_BASE,batch_size=BATCH_SIZE,verbose=0,callbacks=[ourCallback])
         print("Trained model over hard-MV, Epochs to converge =",len(hist.epoch))
-        Z_train_pred_mvhard = model_mvhard.predict_classes(X_train)
+        Z_train_p_mvhard = model_mvhard.predict(X_train)
+        Z_train_pred_hard = Z_train_p_mvhard.argmax(axis=-1) # model_mvhard.predict_classes(X_train)
         Z_test_pred_mvhard = model_mvhard.predict_classes(X_test)
         keras.backend.clear_session()
 
@@ -266,7 +268,7 @@ for _ in range(20): #repetitions
         raykarMC = RaykarMC(X_train.shape[1:],y_obs_categorical.shape[-1],T,epochs=1,optimizer=OPT,DTYPE_OP=DTYPE_OP)
         raykarMC.define_model("default rnn text", embed=embedding_matrix)
         logL_hists,i_r = raykarMC.multiples_run(20,X_train,y_obs_categorical,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL)
-        #Z_train_p_Ray = raykarMC.get_predictions(X_train)
+        Z_train_p_Ray = raykarMC.get_predictions(X_train)
         Z_test_pred_Ray = raykarMC.get_predictions(X_test).argmax(axis=-1)
         keras.backend.clear_session()
     
@@ -274,7 +276,7 @@ for _ in range(20): #repetitions
         gMixture_Global = GroupMixtureGlo(X_train.shape[1:],Kl=K,M=M_seted,epochs=1,optimizer=OPT,dtype_op=DTYPE_OP) 
         gMixture_Global.define_model("default rnn text", embed=embedding_matrix)
         logL_hists,i = gMixture_Global.multiples_run(20,X_train,r_obs,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL)
-        #Z_train_p_OG = gMixture_Global.get_predictions(X_train)
+        Z_train_p_OG = gMixture_Global.get_predictions(X_train)
         Z_test_p_OG = gMixture_Global.get_predictions(X_test)
         keras.backend.clear_session()
 
@@ -284,7 +286,7 @@ for _ in range(20): #repetitions
         gMixture_Ind_T.define_model_group("perceptron",T, M_seted, embed=True, embed_M=A, BatchN=True,bias=False)
         logL_hists,i_r = gMixture_Ind_T.multiples_run(20,X_train,Y_ann_train, T_idx, A=[], batch_size=BATCH_SIZE,
                                              pre_init_g=0, pre_init_z=3, max_iter=EPOCHS_BASE,tolerance=TOL)
-        #Z_train_p_OI_T = gMixture_Ind_T.get_predictions_z(X_train)
+        Z_train_p_OI_T = gMixture_Ind_T.get_predictions_z(X_train)
         Z_test_p_OI_T = gMixture_Ind_T.get_predictions_z(X_test)
         prob_Gt_OI_T = gMixture_Ind_T.get_predictions_g(T_idx_unique) 
         keras.backend.clear_session()
@@ -294,7 +296,7 @@ for _ in range(20): #repetitions
         gMixture_Ind_K.define_model_group("mlp", A_rep.shape[1], K*M_seted, 1, BatchN=False, embed=False)
         logL_hists,i_r = gMixture_Ind_K.multiples_run(20,X_train,Y_ann_train, T_idx, A=A_rep, batch_size=BATCH_SIZE,
                                               pre_init_g=0,pre_init_z=3, max_iter=EPOCHS_BASE,tolerance=TOL)
-        #Z_train_p_OI_K = gMixture_Ind_K.get_predictions_z(X_train)
+        Z_train_p_OI_K = gMixture_Ind_K.get_predictions_z(X_train)
         Z_test_p_OI_K  = gMixture_Ind_K.get_predictions_z(X_test)
         prob_Gt_OI_K   = gMixture_Ind_K.get_predictions_g(A_rep) 
         keras.backend.clear_session()
@@ -303,7 +305,7 @@ for _ in range(20): #repetitions
     ################## MEASURE PERFORMANCE ##################################
     if "mv" in executed_models:
         evaluate = Evaluation_metrics(model_mvsoft,'keras',X_train.shape[0],plot=False)
-        prob_Yx = np.tensordot(Z_train_pred_mvsoft, mv_conf_probas,axes=[[1],[0]])
+        prob_Yx = np.tensordot(Z_train_p_mvsoft, mv_conf_probas,axes=[[1],[0]])
         prob_Yxt = np.tile(prob_Yx, (T,1,1)).transpose([1,0,2])
         results1 = evaluate.calculate_metrics(y_o=y_obs,yo_pred=prob_Yxt)
         results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred_mvsoft)
@@ -311,7 +313,7 @@ for _ in range(20): #repetitions
         results_softmv_test += results2
 
         evaluate = Evaluation_metrics(model_mvhard,'keras',X_train.shape[0],plot=False)
-        prob_Yx = np.tensordot(Z_train_pred_mvhard, mv_conf_onehot,axes=[[1],[0]])
+        prob_Yx = np.tensordot(Z_train_p_mvhard, mv_conf_onehot,axes=[[1],[0]])
         prob_Yxt = np.tile(prob_Yx, (T,1,1)).transpose([1,0,2])
         results1 = evaluate.calculate_metrics(y_o=y_obs,yo_pred=prob_Yxt)
         results2 = evaluate.calculate_metrics(Z=Z_test,Z_pred=Z_test_pred_mvhard)
