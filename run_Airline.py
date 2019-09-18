@@ -93,9 +93,9 @@ print("Num. test texts:  %d" % len(texts_test))
 print("Label shape:",Z_train.shape)
 
 ##process data
-from keras import preprocessing
+from keras.preprocessing import text, sequence
 MAX_NB_WORDS = 15000
-tokenizer = preprocessing.text.Tokenizer(num_words=MAX_NB_WORDS)
+tokenizer = text.Tokenizer(num_words=MAX_NB_WORDS)
 tokenizer.fit_on_texts(texts_train+texts_test)
 sequences_train = tokenizer.texts_to_sequences(texts_train)
 sequences_test = tokenizer.texts_to_sequences(texts_test)
@@ -104,8 +104,8 @@ print('Found %s unique tokens.' % len(tokenizer.word_index))
 
 max_L = 50 
 print("Used max: ",max_L)
-X_train = preprocessing.sequence.pad_sequences(sequences_train, maxlen=max_L,dtype='int32', value=0,padding='pre')
-X_test = preprocessing.sequence.pad_sequences(sequences_test, maxlen=max_L,dtype='int32', value=0,padding='pre')
+X_train = sequence.pad_sequences(sequences_train, maxlen=max_L,dtype='int32', value=0,padding='pre')
+X_test = sequence.pad_sequences(sequences_test, maxlen=max_L,dtype='int32', value=0,padding='pre')
 print('Shape of train tensor:', X_train.shape)
 
 EMBEDDING_DIM = 100
@@ -162,6 +162,7 @@ print("Shape (data,annotators): ",(N,T))
 print("Classes: ",K)
 
 model_UB = default_RNN_text(max_L, K, embed_M=embedding_matrix)
+model_UB.summary()
 clone_UB = Clonable_Model(model_UB)
 
 results_softmv_train = []
