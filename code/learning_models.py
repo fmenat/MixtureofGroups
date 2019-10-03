@@ -263,7 +263,7 @@ def through_VGGFace(X,weights_path, pooling_mode=None):
     return return_value #.reshape(return_value.shape[0],np.prod(return_value.shape[1:]))
 
 class Clonable_Model(object):
-    def __init__(self,model,input_tensors=None):
+    def __init__(self, model, input_tensors=None):
         self.non_train_W = {}
         for n, layer in enumerate(model.layers):
             if not layer.trainable:
@@ -272,9 +272,16 @@ class Clonable_Model(object):
         self.aux_model = clone_model(model, input_tensors= self.inp_T)
         
     def get_model(self):
-        return_model = clone_model(self.aux_model)#, input_tensors= self.inp_T)
+        return_model = clone_model(self.aux_model)
         for n, layer in enumerate(return_model.layers):
             if layer.name in self.non_train_W:
                 return_model.layers[n].set_weights( self.non_train_W[layer.name] )
+        if type(self.inp_T) == type([]):
+            if len(self.inp_T) >1:
+                raise False
+            inp_sh =  K.int_shape(self.inp_T[0]) # ojo
+        else:
+            inp_sh = K.int_shape(self.inp_T)
+        return_model.build(inp_sh)
         return return_model #return a copy of the model
 

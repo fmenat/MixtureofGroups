@@ -3,8 +3,9 @@ import numpy as np
 from .learning_models import LogisticRegression_Sklearn,LogisticRegression_Keras,MLP_Keras
 from .learning_models import default_CNN,default_RNN,CNN_simple, RNN_simple, default_CNN_text, default_RNN_text, Clonable_Model #deep learning
 from .representation import *
-from .utils import generate_confusionM, estimate_batch_size
+from .utils import generate_confusionM, estimate_batch_size, EarlyStopRelative
 from . import dawid_skene 
+from .crowd_layers import CrowdsClassification, MaskedMultiCrossEntropy
 
 class LabelInference(object): #no predictive model
     def __init__(self,labels,tolerance,type_inf, max_iter=50): 
@@ -94,17 +95,18 @@ class RaykarMC(object):
     def get_qestimation(self):
         return self.Qi_gamma
 
-    def define_model(self,tipo,start_units=1,deep=1,double=False,drop=0.0,embed=[],BatchN=False,glo_p=False):
+    def define_model(self,tipo,model,start_units=1,deep=1,double=False,drop=0.0,embed=[],BatchN=False,glo_p=False):
         """Define the network of the base model"""
         self.type = tipo.lower()     
         if self.type == "keras_shallow" or 'perceptron' in self.type: 
             self.base_model = LogisticRegression_Keras(self.input_dim,self.Kl)
             #It's not a priority, since HF has been shown to underperform RMSprop and Adagrad, while being more computationally intensive.
             #https://github.com/keras-team/keras/issues/460
-        elif self.type =="sklearn_shallow" or self.type =="sklearn_logistic":
-            self.base_model = LogisticRegression_Sklearn(self.epochs)
             self.compile = True
             return
+        
+        if self.type == "keras_import":
+            self.base_model = model
         elif self.type=='defaultcnn' or self.type=='default cnn':
             self.base_model = default_CNN(self.input_dim,self.Kl)
         elif self.type=='defaultrnn' or self.type=='default rnn':
@@ -299,7 +301,7 @@ class RaykarMC(object):
     
 
 class RodriguesCrowdLayer(object):
-    def __init__(self, input_dim, Kl, T, optimizer='adam',DTYPE_OP='float32'): #default stable parameteres
+    def __init__(self, input_dim, Kl, T, epochs=1, optimizer='adam',DTYPE_OP='float32'): #default stable parameteres
         if type(input_dim) != tuple:
             input_dim = (input_dim,)
         self.input_dim = input_dim
@@ -313,9 +315,134 @@ class RodriguesCrowdLayer(object):
         self.compile=False
         self.Keps = keras.backend.epsilon()
         self.priors=False #boolean of priors
+        
+    def define_model(self,tipo,model,start_units=1,deep=1,double=False,drop=0.0,embed=[],BatchN=False,glo_p=False):
+        """Define the network of the base model"""
+        self.type = tipo.lower()     
+        if self.type == "keras_shallow" or 'perceptron' in self.type: 
+            base_model = LogisticRegression_Keras(self.input_dim,self.Kl)
+            #It's not a priority, since HF has been shown to underperform RMSprop and Adagrad, while being more computationally intensive.
+            #https://github.com/keras-team/keras/issues/460
+            self.compile = True
+            return
+        
+        if self.type == "keras_import":
+            base_model = model
+        elif self.type=='defaultcnn' or self.type=='default cnn':
+            base_model = default_CNN(self.input_dim,self.Kl)
+        elif self.type=='defaultrnn' or self.type=='default rnn':
+            base_model = default_RNN(self.input_dim,self.Kl)
+        elif self.type=='defaultcnntext' or self.type=='default cnn text': #with embedding
+            base_model = default_CNN_text(self.input_dim[0],self.Kl,embed) #len is the length of the vocabulary
+        elif self.type=='defaultrnntext' or self.type=='default rnn text': #with embedding
+            base_model = default_RNN_text(self.input_dim[0],self.Kl,embed) #len is the length of the vocabulary
 
-   #build model and train and get confusion matrices..
+        elif self.type == "ff" or self.type == "mlp" or self.type=='dense': #classic feed forward
+            print("Needed params (units,deep,drop,BatchN?)") #default activation is relu
+            base_model = MLP_Keras(self.input_dim,self.Kl,start_units,deep,BN=BatchN,drop=drop)
 
+        elif self.type=='simplecnn' or self.type=='simple cnn' or 'cnn' in self.type:
+            print("Needed params (units,deep,drop,double?,BatchN?)") #default activation is relu
+            base_model = CNN_simple(self.input_dim,self.Kl,start_units,deep,double=double,BN=BatchN,drop=drop,global_pool=glo_p)
+        
+        elif self.type=='simplernn' or self.type=='simple rnn' or 'rnn' in self.type:
+            print("Needed params (units,deep,drop,embed?)")
+            base_model = RNN_simple(self.input_dim,self.Kl,start_units,deep,drop=drop,embed=embed,len=0,out=start_units*2)
+
+        base_model.compile(optimizer=self.optimizer,loss='categorical_crossentropy') 
+        base_model.name= "base_model"
+        
+        ##AGREGAR CROWDLAYER Y DEFINIR NUEVA RED
+        #out = CrowdsClassification(self.Kl, self.T, conn_type="MW")(base_model.output) #confusion matrix set
+        #self.model_crowdL = keras.models.Model(base_model.inputs, out) $queda agregado al final como un add layer
+        crowd_layer = CrowdsClassification(self.Kl, self.T, conn_type="MW", name='CrowdL')
+        x = base_model.inputs
+        p_zx = base_model(x)
+        p_yx = crowd_layer(p_zx)
+        self.model_crowdL = keras.models.Model(x, p_yx) 
+        
+        self.model_crowdL.compile(optimizer=self.optimizer, loss= MaskedMultiCrossEntropy().loss)
+        self.compile = True
+        self.base_model = self.model_crowdL.get_layer("base_model")
+        self.max_Bsize_base = estimate_batch_size(self.base_model)
+        
+    def get_basemodel(self):
+        return self.base_model
+    
+    def get_predictions(self,X):
+        if "sklearn" in self.type:
+            return self.base_model.predict_proba(X) #or predict
+        else:
+            return self.base_model.predict(X,batch_size=self.max_Bsize_base)
+          
+    def train(self,X_train,yo_train,batch_size=64,max_iter=500,relative=True,val=False,tolerance=1e-2, pre_init_z=0):   
+        if not self.compile:
+            print("You need to create the model first, set .define_model")
+            return
+        print("Initializing...")
+        self.N = X.shape[0]
+        self.batch_size = batch_size
+        self.base_model = model_crowdL.get_layer("base_model")
+        if pre_init_z != 0:
+            mv_probs = majority_voting(y_ann,repeats=False,probas=True) #Majority voting start
+            print("Pre-train networks over *z* on %d epochs..."%(self.pre_init_z),end='',flush=True)
+            self.base_model.fit(X,mv_probs_j,batch_size=self.batch_size,epochs=self.pre_init_z,verbose=0)
+            self.base_model.compile(loss='categorical_crossentropy',optimizer=self.optimizer) #reset optimizer but hold weights--necessary for stability   
+            print(" Done!")
+        
+        ourCallback = EarlyStopRelative(monitor='loss',patience=1,min_delta=tolerance)
+        hist = self.model_crowdL.fit(X_train, yo_train, epochs=max_iter, batch_size=batch_size, verbose=1,callbacks=[ourCallback])
+        print("Finished training")
+        return hist.history["loss"]
+            
+    def stable_train(self,X,y_ann,batch_size=64,max_iter=50,tolerance=1e-2,pre_init_z=0):
+        logL_hist = self.train(X,y_ann,batch_size=batch_size,max_iter=max_iter,relative=True,val=False,tolerance=tolerance,pre_init_z=pre_init_z)
+        return logL_hist
+    
+    def multiples_run(self,Runs,X,y_ann,batch_size=64,max_iter=50,tolerance=1e-2, pre_init_z=0):  #tolerance can change
+        if Runs==1:
+            return self.stable_train(X,y_ann,batch_size=batch_size,max_iter=max_iter,tolerance=tolerance,pre_init_z=pre_init_z), 0
+     
+        found_betas = []
+        found_model = []
+        found_lossL = []
+        iter_conv = []
+        if type(self.base_model.layers[0]) == keras.layers.InputLayer:
+            obj_clone = Clonable_Model(self.model_crowdL) #architecture to clone
+        else:
+            it = keras.layers.Input(shape=self.model_crowdL.input_shape[1:])
+            obj_clone = Clonable_Model(self.model_crowdL, input_tensors=it) #architecture to clon
+
+        for run in range(Runs):
+            self.model_crowdL = obj_clone.get_model() #reset-weigths            
+            self.model_crowdL.compile(loss=MaskedMultiCrossEntropy().loss,optimizer=self.optimizer) ##otra loss..
+
+            lossL_hist = self.train(X,y_ann,batch_size=batch_size,max_iter=max_iter,relative=True,tolerance=tolerance,pre_init_z=pre_init_z) 
+            found_betas.append(self.betas.copy())
+            found_model.append(self.model_crowdL.get_weights()) #revisar si se resetean los pesos o algo asi..
+            found_lossL.append(lossL_hist)
+            iter_conv.append(self.current_iter-1)
+            
+            del self.model_crowdL
+            keras.backend.clear_session()
+            gc.collect()
+        #setup the configuration with minimum log-loss
+        logLoss_iter = np.asarray([np.max(a) for a in found_lossL]) #o el ultimo valor?
+        indexs_sort = np.argsort(logLoss_iter)[::-1] 
+        
+        self.betas = found_betas[indexs_sort[0]].copy()
+        self.model_crowdL = obj_clone.get_model() #change
+        self.model_crowdL.set_weights(found_model[indexs_sort[0]])
+        self.base_model = self.model_crowdL.get_layer("base_model") #to set up model predictor
+        print("Multiples runs over Raykar, Epochs to converge= ",np.mean(iter_conv))
+        return found_lossL,indexs_sort[0]
+
+    def get_confusionM(self):
+        """Get confusion matrices of every annotator p(yo^t|,z)"""  
+        return self.betas #???
+        #COMO HACER ESO???
+
+        
 class KajinoClustering(object):
     def __init__(self, input_dim, Kl, T, optimizer='adam',DTYPE_OP='float32'): #default stable parameteres
         if type(input_dim) != tuple:

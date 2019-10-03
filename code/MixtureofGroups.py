@@ -176,7 +176,7 @@ class GroupMixtureGlo(object):
         """Get Q estimation param, this is Q_ij(g,z) = p(g,z|xi,y=j)"""
         return self.Qij_mgamma.copy()
         
-    def define_model(self,tipo,start_units=1,deep=1,double=False,drop=0.0,embed=[],BatchN=False,h_units=128, glo_p=False):
+    def define_model(self,tipo,model=None,start_units=1,deep=1,double=False,drop=0.0,embed=[],BatchN=False,h_units=128, glo_p=False):
         """Define the base model and other structures"""
         self.type = tipo.lower()     
         if self.type =="sklearn_shallow" or self.type =="sklearn_logistic":
@@ -184,7 +184,9 @@ class GroupMixtureGlo(object):
             self.compile = True
             return
         
-        if self.type == "keras_shallow" or 'perceptron' in self.type: 
+        if self.type == "keras_import":
+            self.base_model = model
+        elif self.type == "keras_shallow" or 'perceptron' in self.type: 
             self.base_model = LogisticRegression_Keras(self.input_dim,self.Kl)
             #It's not a priority, since HF has been shown to underperform RMSprop and Adagrad, while being more computationally intensive.
             #https://github.com/keras-team/keras/issues/460
@@ -546,15 +548,16 @@ class GroupMixtureInd(object):
         """Get Q estimation param, this is Q_il(g,z) = p(g,z|x_i,a_il, r_il)"""
         return self.reshape_il(self.Qil_mgamma.copy())
         
-    def define_model(self,tipo,start_units=1,deep=1,double=False,drop=0.0,embed=[],BatchN=True,h_units=128,glo_p=False):
+    def define_model(self,tipo,model=None,start_units=1,deep=1,double=False,drop=0.0,embed=[],BatchN=True,h_units=128,glo_p=False):
         """Define the base model p(z|x) and other structures"""
         self.type = tipo.lower()     
         if self.type =="sklearn_shallow" or self.type =="sklearn_logistic":
             self.base_model = LogisticRegression_Sklearn(self.epochs)
             self.compile_z = True
             return
-
-        if self.type == "keras_shallow" or 'perceptron' in self.type: 
+        if self.type == "keras_import":
+            self.base_model = model
+        elif self.type == "keras_shallow" or 'perceptron' in self.type: 
             self.base_model = LogisticRegression_Keras(self.input_dim,self.Kl)
             #It's not a priority, since HF has been shown to underperform RMSprop and Adagrad, while being more computationally intensive.
             #https://github.com/keras-team/keras/issues/460
