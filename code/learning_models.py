@@ -9,10 +9,10 @@ def LogisticRegression_Sklearn(epochs):
                        ,solver='newton-cg',multi_class='multinomial',warm_start=True,n_jobs=-1)
     #for sgd solver used "sag"
 
+import tensorflow as tf
 from keras.models import Sequential,Model, clone_model
 from keras.layers import *
 from keras import backend as K
-import tensorflow as tf
 
 try:
     from keras.layers import CuDNNLSTM
@@ -268,20 +268,18 @@ class Clonable_Model(object):
         for n, layer in enumerate(model.layers):
             if not layer.trainable:
                 self.non_train_W[layer.name] =  model.layers[n].get_weights()
-        self.inp_T = input_tensors
-        self.aux_model = clone_model(model, input_tensors= self.inp_T)
+        if input_tensors != None:
+            self.inp_shape = K.int_shape(input_tensors)
+        elif type(model.layers[0]) == InputLayer:
+            self.inp_shape = model.layers[0].input_shape
+        else:
+            self.inp_shape = model.input_shape
+        self.aux_model = clone_model(model) #, input_tensors= self.inp_T)
         
     def get_model(self):
-        return_model = clone_model(self.aux_model)
+        return_model = clone_model(self.aux_model)#, input_tensors= self.inp_T)
         for n, layer in enumerate(return_model.layers):
             if layer.name in self.non_train_W:
                 return_model.layers[n].set_weights( self.non_train_W[layer.name] )
-        if type(self.inp_T) == type([]):
-            if len(self.inp_T) >1:
-                raise False
-            inp_sh =  K.int_shape(self.inp_T[0]) # ojo
-        else:
-            inp_sh = K.int_shape(self.inp_T)
-        return_model.build(inp_sh)
-        return return_model #return a copy of the model
-
+        return_model.build(self.inp_shape)
+        return return_model #return a copy of the mode

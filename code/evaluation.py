@@ -1,7 +1,10 @@
 from astropy.table import Table
 from sklearn.metrics import f1_score,accuracy_score
 from scipy.stats import pearsonr
-from tabulate import tabulate
+try:
+    from tabulate import tabulate
+except:
+    print("NO TABULATE INSTALLED!")
 import pandas as pd
 import numpy as np
 from .utils import *

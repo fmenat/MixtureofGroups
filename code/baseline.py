@@ -5,7 +5,7 @@ from .learning_models import default_CNN,default_RNN,CNN_simple, RNN_simple, def
 from .representation import *
 from .utils import generate_confusionM, estimate_batch_size, EarlyStopRelative
 from . import dawid_skene 
-from .crowd_layers import CrowdsClassification, MaskedMultiCrossEntropy
+from .crowd_layers import CrowdsClassification, MaskedMultiCrossEntropy, MaskedMultiCrossEntropy_Reg
 
 class LabelInference(object): #no predictive model
     def __init__(self,labels,tolerance,type_inf, max_iter=50): 
@@ -314,9 +314,8 @@ class RodriguesCrowdLayer(object):
 
         self.compile=False
         self.Keps = keras.backend.epsilon()
-        self.priors=False #boolean of priors
         
-    def define_model(self,tipo,model,start_units=1,deep=1,double=False,drop=0.0,embed=[],BatchN=False,glo_p=False):
+    def define_model(self,tipo,model,start_units=1,deep=1,double=False,drop=0.0,embed=[],BatchN=False,glo_p=False, loss="masked",lamb=1):
         """Define the network of the base model"""
         self.type = tipo.lower()     
         if self.type == "keras_shallow" or 'perceptron' in self.type: 
@@ -349,40 +348,34 @@ class RodriguesCrowdLayer(object):
             print("Needed params (units,deep,drop,embed?)")
             base_model = RNN_simple(self.input_dim,self.Kl,start_units,deep,drop=drop,embed=embed,len=0,out=start_units*2)
 
+        x = base_model.input
+        base_model = keras.models.Model(x, base_model(x), name='base_model')
         base_model.compile(optimizer=self.optimizer,loss='categorical_crossentropy') 
-        base_model.name= "base_model"
-        
-        ##AGREGAR CROWDLAYER Y DEFINIR NUEVA RED
-        #out = CrowdsClassification(self.Kl, self.T, conn_type="MW")(base_model.output) #confusion matrix set
-        #self.model_crowdL = keras.models.Model(base_model.inputs, out) $queda agregado al final como un add layer
-        crowd_layer = CrowdsClassification(self.Kl, self.T, conn_type="MW", name='CrowdL')
-        x = base_model.inputs
+
+        ## DEFINE NEW NET
         p_zx = base_model(x)
-        p_yx = crowd_layer(p_zx)
-        self.model_crowdL = keras.models.Model(x, p_yx) 
-        
-        self.model_crowdL.compile(optimizer=self.optimizer, loss= MaskedMultiCrossEntropy().loss)
+        crowd_layer = CrowdsClassification(self.Kl, self.T, conn_type="MW", name='CrowdL') ## ADD CROWDLAYER 
+        p_yxt = crowd_layer(p_zx)
+        self.model_crowdL = keras.models.Model(x, p_yxt) 
+
+        self.loss = loss
+        self.lamb = lamb
+        if self.loss == "masked" or self.loss=='normal' or self.loss=='default':
+            self.model_crowdL.compile(optimizer=self.optimizer, loss= MaskedMultiCrossEntropy_Reg().loss )
+        elif self.loss == "kl":
+            self.model_crowdL.compile(optimizer=self.optimizer, loss= MaskedMultiCrossEntropy_Reg().loss_prior_MV(p_zx,self.lamb) )
         self.compile = True
         self.base_model = self.model_crowdL.get_layer("base_model")
         self.max_Bsize_base = estimate_batch_size(self.base_model)
         
-    def get_basemodel(self):
-        return self.base_model
-    
-    def get_predictions(self,X):
-        if "sklearn" in self.type:
-            return self.base_model.predict_proba(X) #or predict
-        else:
-            return self.base_model.predict(X,batch_size=self.max_Bsize_base)
-          
-    def train(self,X_train,yo_train,batch_size=64,max_iter=500,relative=True,val=False,tolerance=1e-2, pre_init_z=0):   
+    def train(self,X_train,yo_train,batch_size=64,max_iter=500,tolerance=1e-2, pre_init_z=0):   
         if not self.compile:
             print("You need to create the model first, set .define_model")
             return
         print("Initializing...")
-        self.N = X.shape[0]
+        self.N = X_train.shape[0]
         self.batch_size = batch_size
-        self.base_model = model_crowdL.get_layer("base_model")
+        self.base_model = self.model_crowdL.get_layer("base_model")
         if pre_init_z != 0:
             mv_probs = majority_voting(y_ann,repeats=False,probas=True) #Majority voting start
             print("Pre-train networks over *z* on %d epochs..."%(self.pre_init_z),end='',flush=True)
@@ -396,53 +389,65 @@ class RodriguesCrowdLayer(object):
         return hist.history["loss"]
             
     def stable_train(self,X,y_ann,batch_size=64,max_iter=50,tolerance=1e-2,pre_init_z=0):
-        logL_hist = self.train(X,y_ann,batch_size=batch_size,max_iter=max_iter,relative=True,val=False,tolerance=tolerance,pre_init_z=pre_init_z)
+        logL_hist = self.train(X,y_ann,batch_size=batch_size,max_iter=max_iter,tolerance=tolerance,pre_init_z=pre_init_z)
         return logL_hist
     
     def multiples_run(self,Runs,X,y_ann,batch_size=64,max_iter=50,tolerance=1e-2, pre_init_z=0):  #tolerance can change
         if Runs==1:
             return self.stable_train(X,y_ann,batch_size=batch_size,max_iter=max_iter,tolerance=tolerance,pre_init_z=pre_init_z), 0
      
-        found_betas = []
         found_model = []
         found_lossL = []
         iter_conv = []
-        if type(self.base_model.layers[0]) == keras.layers.InputLayer:
-            obj_clone = Clonable_Model(self.model_crowdL) #architecture to clone
-        else:
-            it = keras.layers.Input(shape=self.model_crowdL.input_shape[1:])
-            obj_clone = Clonable_Model(self.model_crowdL, input_tensors=it) #architecture to clon
+        obj_clone = Clonable_Model(self.model_crowdL) #architecture to clone
 
         for run in range(Runs):
-            self.model_crowdL = obj_clone.get_model() #reset-weigths            
-            self.model_crowdL.compile(loss=MaskedMultiCrossEntropy().loss,optimizer=self.optimizer) ##otra loss..
+            self.model_crowdL = obj_clone.get_model() #reset-weigths    
+            if self.loss == "masked" or self.loss == 'normal' or self.loss =='default':
+                self.model_crowdL.compile(optimizer=self.optimizer, loss= MaskedMultiCrossEntropy_Reg().loss )
+            elif self.loss == "kl":
+                p_zx = self.model_crowdL.get_layer("base_model").get_output_at(-1)
+                self.model_crowdL.compile(optimizer=self.optimizer, loss=  MaskedMultiCrossEntropy_Reg().loss_prior_MV(p_zx,self.lamb) )
 
-            lossL_hist = self.train(X,y_ann,batch_size=batch_size,max_iter=max_iter,relative=True,tolerance=tolerance,pre_init_z=pre_init_z) 
-            found_betas.append(self.betas.copy())
+            lossL_hist = self.train(X,y_ann,batch_size=batch_size,max_iter=max_iter,tolerance=tolerance,pre_init_z=pre_init_z) 
             found_model.append(self.model_crowdL.get_weights()) #revisar si se resetean los pesos o algo asi..
             found_lossL.append(lossL_hist)
-            iter_conv.append(self.current_iter-1)
+            iter_conv.append(len(lossL_hist))
             
             del self.model_crowdL
             keras.backend.clear_session()
             gc.collect()
         #setup the configuration with minimum log-loss
-        logLoss_iter = np.asarray([np.max(a) for a in found_lossL]) #o el ultimo valor?
-        indexs_sort = np.argsort(logLoss_iter)[::-1] 
+        logLoss_iter = np.asarray([np.min(a) for a in found_lossL]) #o el ultimo valor?
+        indexs_sort = np.argsort(logLoss_iter) #minimum
         
-        self.betas = found_betas[indexs_sort[0]].copy()
         self.model_crowdL = obj_clone.get_model() #change
         self.model_crowdL.set_weights(found_model[indexs_sort[0]])
         self.base_model = self.model_crowdL.get_layer("base_model") #to set up model predictor
         print("Multiples runs over Raykar, Epochs to converge= ",np.mean(iter_conv))
-        return found_lossL,indexs_sort[0]
-
+        return found_lossL, indexs_sort[0]
+    
+    def get_basemodel(self):
+        return self.base_model
+    
+    def get_predictions(self,X):
+        if "sklearn" in self.type:
+            return self.base_model.predict_proba(X) #or predict
+        else:
+            return self.base_model.predict(X,batch_size=self.max_Bsize_base)
+        
     def get_confusionM(self):
         """Get confusion matrices of every annotator p(yo^t|,z)"""  
-        return self.betas #???
-        #COMO HACER ESO???
-
+        weights = self.model_crowdL.get_layer("CrowdL").get_weights()[0] #witohut bias
+        crowdL_conf = weights.transpose([2,0,1]) 
+        return crowdL_conf #???
+        #COMO HACER EStO???
         
+    def get_predictions_annot(self,X):
+        """ Predictions of all annotators , p(y^o | xi, t) """
+        return self.model_crowdL.predict(X).transpose([0,2,1]) 
+          
+
 class KajinoClustering(object):
     def __init__(self, input_dim, Kl, T, optimizer='adam',DTYPE_OP='float32'): #default stable parameteres
         if type(input_dim) != tuple:

@@ -14,10 +14,10 @@ def init_identities(shape, dtype=None):
 	
 class CrowdsClassification(Layer):
 	def __init__(self, output_dim, num_annotators, conn_type="MW", **kwargs):
+		super(CrowdsClassification, self).__init__(**kwargs)
 		self.output_dim = output_dim
 		self.num_annotators = num_annotators
 		self.conn_type = conn_type
-		super(CrowdsClassification, self).__init__(**kwargs)
 
 	def build(self, input_shape):
 		if self.conn_type == "MW":
@@ -84,6 +84,17 @@ class CrowdsClassification(Layer):
 	def compute_output_shape(self, input_shape):
 		return (input_shape[0], self.output_dim, self.num_annotators)
 
+######### ADDED ###############
+	def get_config(self):
+		config = {
+			'output_dim': self.output_dim,
+			'num_annotators': self.num_annotators,
+			'conn_type': self.conn_type,
+		}
+		base_config = super(CrowdsClassification, self).get_config()
+		return dict(list(base_config.items()) + list(config.items()))
+######### ADDED ###############
+
 
 class CrowdsRegression(Layer): #not used in our
 	def __init__(self, num_annotators, conn_type="B", **kwargs):
@@ -144,6 +155,31 @@ class MaskedMultiCrossEntropy(object):
 		loss = tf.where(mask, x=zer, y=vec)
 		return loss
 
+######### ADDED ###############
+class MaskedMultiCrossEntropy_Reg(object):
+	def loss(self, y_true, y_pred):
+		vec = tf.nn.softmax_cross_entropy_with_logits(logits=y_pred, labels=y_true, dim=1)
+		mask = tf.equal(y_true[:,0,:], -1) 
+		zer = tf.zeros_like(vec)
+		loss = K.sum( tf.where(mask, x=zer, y=vec), axis=-1) #or mean?
+		return loss
+
+	def loss_prior_MV(self,p_z, l=1):
+		def loss(y_true, y_pred):
+			mask = K.cast(K.not_equal(y_true, -1), K.floatx())
+			r_obs = K.sum(y_true*mask, axis=-1)
+			mv = r_obs/K.sum(r_obs,axis=-1, keepdims=True) #on batch size.. (all annotators)
+               
+			#KL CALCULATION
+			p_z_clip = K.clip(p_z, K.epsilon(), 1)
+			mv = K.clip(mv, K.epsilon(), 1)
+			KL_mv = K.sum(p_z_clip* K.log(p_z_clip/mv), axis=-1)
+
+			loss_masked = self.loss(y_true,y_pred)
+            
+			return loss_masked + l* KL_mv
+		return loss
+######### ADDED ###############
 
 class MaskedMultiMSE(object):# not used
 	def loss(self, y_true, y_pred):
