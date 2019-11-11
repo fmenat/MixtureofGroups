@@ -5,8 +5,20 @@ import keras
 from keras import backend as K
 from keras.engine.topology import Layer
 
+from code.learning_models import UnitSum
+
+def init_v(value, K):
+	return 1+ np.log(value/(1-value)) + np.log(K-1)
+
+def init_identities_soft(shape, dtype=None):
+	out = np.ones(shape, dtype=dtype)
+	for r in range(shape[2]):
+		for i in range(shape[0]):
+			out[i,i,r] = init_v(0.9, shape[0]) #1.0
+	return out
+
 def init_identities(shape, dtype=None):
-	out = np.zeros(shape)
+	out = np.zeros(shape, dtype=dtype)
 	for r in range(shape[2]):
 		for i in range(shape[0]):
 			out[i,i,r] = 1.0
@@ -23,8 +35,9 @@ class CrowdsClassification(Layer):
 		if self.conn_type == "MW":
 			# matrix of weights per annotator
 			self.kernel = self.add_weight("CrowdLayer", (self.output_dim, self.output_dim, self.num_annotators),
-											initializer=init_identities, 
+											initializer = init_identities, 
 											trainable=True)
+											#constraint= UnitSum(axis=0) ) #keras.constraints.NonNeg())
 		elif self.conn_type == "VW":
 			# vector of weights (one scale per class) per annotator
 			self.kernel = self.add_weight("CrowdLayer", (self.output_dim, self.num_annotators),
@@ -55,7 +68,7 @@ class CrowdsClassification(Layer):
 
 		super(CrowdsClassification, self).build(input_shape)  # Be sure to call this somewhere!
 
-	def call(self, x):
+	def call(self, x):            
 		if self.conn_type == "MW":
 			res = K.dot(x, self.kernel)
 		elif self.conn_type == "VW" or self.conn_type == "VB" or self.conn_type == "VW+B" or self.conn_type == "SW":
@@ -78,7 +91,7 @@ class CrowdsClassification(Layer):
 				raise Exception("Wrong number of dimensions for output")
 		else:
 			raise Exception("Unknown connection type for CrowdsClassification layer!") 
-		
+		#res = tf.nn.softmax(res, dim=1) #para que output sea prob
 		return res
 
 	def compute_output_shape(self, input_shape):
@@ -140,7 +153,6 @@ class CrowdsRegression(Layer): #not used in our
 			res = (x + self.kernel[1]) * self.kernel[0]
 		else:
 			raise Exception("Unknown connection type for CrowdsClassification layer!") 
-
 		return res
 
 	def compute_output_shape(self, input_shape):
@@ -158,25 +170,28 @@ class MaskedMultiCrossEntropy(object):
 ######### ADDED ###############
 class MaskedMultiCrossEntropy_Reg(object):
 	def loss(self, y_true, y_pred):
-		vec = tf.nn.softmax_cross_entropy_with_logits(logits=y_pred, labels=y_true, dim=1)
+		#vec = tf.nn.softmax_cross_entropy_with_logits(logits=y_pred, labels=y_true, dim=1)
+		y_pred = K.clip(y_pred, K.epsilon(), 1)
+		y_true = K.clip(y_true, K.epsilon(), 1)
+		vec = -tf.reduce_sum(y_true * tf.log(y_pred), axis = 1)
 		mask = tf.equal(y_true[:,0,:], -1) 
 		zer = tf.zeros_like(vec)
-		loss = K.sum( tf.where(mask, x=zer, y=vec), axis=-1) #or mean?
+		loss = K.sum( tf.where(mask, x=zer, y=vec), axis=-1) #mean annotators
 		return loss
 
 	def loss_prior_MV(self,p_z, l=1):
 		def loss(y_true, y_pred):
-			mask = K.cast(K.not_equal(y_true, -1), K.floatx())
+			mask  = K.cast(K.not_equal(y_true, -1), K.floatx())
 			r_obs = K.sum(y_true*mask, axis=-1)
-			mv = r_obs/K.sum(r_obs,axis=-1, keepdims=True) #on batch size.. (all annotators)
+			T_i   = K.sum(r_obs,axis=-1, keepdims=True)
+			mv = r_obs/(K.epsilon() +T_i) #on batch size.. (all annotators)
                
 			#KL CALCULATION
 			p_z_clip = K.clip(p_z, K.epsilon(), 1)
 			mv = K.clip(mv, K.epsilon(), 1)
-			KL_mv = K.sum(p_z_clip* K.log(p_z_clip/mv), axis=-1)
+			KL_mv = K.sum(T_i * p_z_clip* K.log(p_z_clip/mv), axis=-1)
 
 			loss_masked = self.loss(y_true,y_pred)
-            
 			return loss_masked + l* KL_mv
 		return loss
 ######### ADDED ###############

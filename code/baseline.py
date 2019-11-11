@@ -439,9 +439,8 @@ class RodriguesCrowdLayer(object):
     def get_confusionM(self):
         """Get confusion matrices of every annotator p(yo^t|,z)"""  
         weights = self.model_crowdL.get_layer("CrowdL").get_weights()[0] #witohut bias
-        crowdL_conf = weights.transpose([2,0,1]) 
+        crowdL_conf = weights.T 
         return crowdL_conf #???
-        #COMO HACER EStO???
         
     def get_predictions_annot(self,X):
         """ Predictions of all annotators , p(y^o | xi, t) """
