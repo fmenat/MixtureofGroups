@@ -103,6 +103,8 @@ def calculate_biased_score(conf_matrix, mode="simple"):
         return entropy(p_y)
     elif mode == "median":
         return (p_y.max() - np.median(p_y)), p_y.argmax()
+    elif mode == "simple":
+        return p_y.max(), p_y.argmax() #que tan probable es que diga esa clase..
     #elif mode == "mean": #not so good
     #    return p_y.max() - p_y.mean()
     #elif mode =="real":
