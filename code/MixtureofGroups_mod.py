@@ -12,6 +12,35 @@ from .learning_models import default_CNN,default_RNN,CNN_simple, RNN_simple, def
 from .representation import *
 from .utils import softmax,estimate_batch_size
 
+
+    def M_step_old(self,X_i, R_ij): 
+        """ Realize the M step"""
+        #-------> base model
+        Qij_gamma = self.Qij_mgamma.sum(axis=-2) #qij(gamma)
+        r_estimate = np.zeros((self.N,self.Kl),dtype=self.DTYPE_OP) #create the repeat "estimate"/"ground truth"
+        for i in range(self.N):
+            r_estimate[i] = np.tensordot(Qij_gamma[i], R_ij[i],axes=[[0],[0]])
+
+        if "sklearn" in self.type:#train to learn p(z|x)
+            self.base_model.fit(X_i, np.argmax(r_estimate,axis=1) ) 
+        else:
+            self.base_model.fit(X_i,r_estimate,batch_size=self.batch_size,epochs=self.epochs,verbose=0) 
+    
+        #-------> alpha 
+        Qij_m = self.Qij_mgamma.sum(axis=-1) #qij(m)
+        self.alphas = np.tensordot(Qij_m, R_ij, axes=[[0,1],[0,1]]) # sum_ij r_ij(g) = Qij_m[i]*R_ij[i] 
+        if self.priors:
+            self.alphas += self.Apriors
+        self.alphas = self.alphas/self.alphas.sum(axis=-1,keepdims=True) #p(g) -- normalize
+
+        #-------> beta
+        for j_ob in range(self.Kl):
+            self.betas[:,:,j_ob] = np.tensordot(self.Qij_mgamma[:,j_ob,:,:],R_ij[:,j_ob], axes=[[0],[0]]) # ~p(yo=j|g,z)              
+        if self.priors:
+            self.betas += self.Bpriors #priors has to be shape: (M,Kl,Kl)--read define-prior functio
+        self.betas = self.betas/self.betas.sum(axis=-1,keepdims=True) #normalize (=p(yo|g,z))
+        
+        
 def build_conf_Yvar(y_obs_var, T_idx, Z_val):
     """ From variable length arrays of annotations and indexs"""
     T = np.max(np.concatenate(T_idx))+1
