@@ -276,7 +276,7 @@ for _ in range(20): #repetitions
     if "oursglobal" in executed_models:
         gMixture_Global = GroupMixtureGlo(X_train.shape[1:],Kl=K,M=M_seted,epochs=1,optimizer=OPT,dtype_op=DTYPE_OP) 
         gMixture_Global.define_model("default rnn text", embed=embedding_matrix)
-        logL_hists,i = gMixture_Global.multiples_run(20,X_train,r_obs,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL)
+        logL_hists,i = gMixture_Global.multiples_run(20,X_train,r_obs,batch_size=BATCH_SIZE,max_iter=EPOCHS_BASE,tolerance=TOL*5/3)
         Z_train_p_OG = gMixture_Global.get_predictions(X_train)
         Z_test_p_OG = gMixture_Global.get_predictions(X_test)
         keras.backend.clear_session()

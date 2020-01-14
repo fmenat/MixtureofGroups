@@ -176,7 +176,7 @@ class GroupMixtureGlo(object):
         """Get Q estimation param, this is Q_ij(g,z) = p(g,z|xi,y=j)"""
         return self.Qij_mgamma.copy()
         
-    def define_model(self,tipo,model=None,start_units=1,deep=1,double=False,drop=0.0,embed=[],BatchN=False,h_units=128, glo_p=False):
+    def define_model(self,tipo,start_units=1,deep=1,double=False,drop=0.0,embed=[],BatchN=False,h_units=128, glo_p=False, model=None):
         """Define the base model and other structures"""
         self.type = tipo.lower()     
         if self.type =="sklearn_shallow" or self.type =="sklearn_logistic":
@@ -274,9 +274,9 @@ class GroupMixtureGlo(object):
         print("Q estimate: ",self.Qij_mgamma.shape)
         self.init_exectime = time.time()-start_time
         
-    def E_step(self, p_Z_ik):
+    def E_step(self, prob_Z_ik):
         """ Realize the E step in matrix version"""       
-        z_new = np.log( np.clip(p_Z_ik, self.Keps,1.))[:,None,None,:] #safe logarithmn
+        z_new = np.log( np.clip(prob_Z_ik, self.Keps,1.))[:,None,None,:] #safe logarithmn
         a_new = np.log( np.clip(self.alphas, self.Keps,1.))[None,None,:,None] #safe logarithmn
         b_new = (np.log( np.clip(self.betas, self.Keps,1.))[None,:,:,:]).transpose(0,3,1,2) #safe logarithmn
         
@@ -333,7 +333,7 @@ class GroupMixtureGlo(object):
             self.alphas_training.append(self.alphas.copy())
             print(" done,  E step:",end='',flush=True)
             predictions = self.get_predictions(X_train) #p(z|x) 
-            self.E_step(predictions) #Need only p_Z_ik          
+            self.E_step(predictions) #Need only prob_Z_ik          
             self.current_exectime = time.time()-start_time
             print(" done //  (in %.2f sec)\t"%(self.current_exectime),end='',flush=True)
             logL.append(self.compute_logL(R_train,predictions))
@@ -446,8 +446,8 @@ class GroupMixtureGlo(object):
         if len(data) != 0:
             prob_Z_ik = data
         else:
-            prob_Z_ik = self.get_predictions(X)
-        prob_Y_imj = np.tensordot(p_Z_ik ,self.betas,axes=[[1],[1]] ) #sum_z p(z|xi) * p(yo|z,g)
+            prob_Z_ik = self.get_predictions(X_i)
+        prob_Y_imj = np.tensordot(prob_Z_ik ,self.betas,axes=[[1],[1]] ) #sum_z p(z|xi) * p(yo|z,g)
         return prob_Y_imj#.transpose(1,0,2)
 
     def calculate_extra_components(self,X_i, Y_it, T,calculate_pred_annotator=True,p_z=[]):
@@ -482,7 +482,6 @@ class GroupMixtureGlo(object):
 """
     MIXTURE MODEL KNOWING IDENTITY
 """
-
 class GroupMixtureInd(object):
     def __init__(self,input_dim,Kl,M=2,epochs=1,optimizer='adam',dtype_op='float32'): 
         if type(input_dim) != tuple:
@@ -560,29 +559,19 @@ class GroupMixtureInd(object):
         self.max_Bsize_group = estimate_batch_size(self.group_model)
         self.compile_g = True
         
-    def get_predictions_z(self,X):
+    def get_predictions_z(self,X_i):
         """Return the predictions of the model p(z|x) if is from sklearn or keras"""
         if "sklearn" in self.type:
-            return self.base_model.predict_proba(X) 
+            return self.base_model.predict_proba(X_i) 
         else:
-            return self.base_model.predict(X, batch_size=self.max_Bsize_base) #self.batch_size
+            return self.base_model.predict(X_i, batch_size=self.max_Bsize_base) #self.batch_size
 
-    def get_predictions_g(self,A, same_shape=True):
-        """Return the predictions of the model p(g|a) if is from parameter or model"""
-        if len(A.shape) != 1:
-            if not self.compile_g: 
-                return self.alphas_t[np.squeeze(A)] 
-            else:
-                return self.group_model.predict(A, batch_size=self.max_Bsize_group)
-
-        else: #come from batch of examples..
-            print("YA NO DEBERIA ENTRAR ACA..... ERROR!!!!!!!!!!!!!")
-            return
-            #A = self.flatten_il(A)
-            #to_return = self.aux_pred_g(A)
-            #if same_shape:
-            #    to_return = self.reshape_il(to_return) #add some execution time... carefully
-            #return to_return
+    def get_predictions_g(self,A_t, same_shape=True):
+        """Return the predictions of the model p(g|t) if is from parameter or model"""
+        if not self.compile_g: 
+            return self.alphas_t[np.squeeze(A_t)] 
+        else:
+            return self.group_model.predict(A_t, batch_size=self.max_Bsize_group)
 
     def flatten_il(self,array):
         return np.concatenate(array)
@@ -592,7 +581,7 @@ class GroupMixtureInd(object):
         sum_Ti_n1 = 0
         for i in range(self.N):
             sum_Ti_n   = sum_Ti_n1
-            sum_Ti_n1  = sum_Ti_n1 + self.T_i_all[i]
+            sum_Ti_n1  = sum_Ti_n1 + self.T_i[i]
             to_return.append( array[sum_Ti_n : sum_Ti_n1] )
         del array
         gc.collect()
@@ -617,43 +606,39 @@ class GroupMixtureInd(object):
                 print("Error on prior")
         self.priors = True
 
-    def init_E(self,X,Y_ann, T_idx, A=[]):
+    def init_E(self,X_i, Y_ilj, A_il, A_t=[]):
         """Realize the initialziation of the E step on the EM algorithm"""
         start_time = time.time()
         #-------> init Majority voting ---
-        mv_probs_j = majority_voting(Y_ann,repeats=False,probas=True) # soft -- p(y=j|xi)
+        softMV_ik = majority_voting(Y_ilj,repeats=False,probas=True) # soft -- p(y=k|xi)
         
         #------->init p(g|a)
-        info_A = True
-        if len(A) == 0:
-            info_A = False
-        else:
-            if np.cumprod(A,axis=0, dtype=self.DTYPE_OP).sum() <= self.Keps: #if vectors are orthonormals
-                info_A = False
+        info_A = True #check if A has info to clusterize..
+        if len(A_t) == 0:
+            first_l = self.group_model.layers[0]
+            if type(first_l) == keras.layers.Embedding: #if there is embedding layer
+                A_t = first_l.get_weights()[0]
+            else:
+                info_A = False # if A_t is empty and there is not an embedding layer
+        if info_A: #second check
+            A_t_cov = np.tensordot(A_t, A_t.T, axes=[[1],[0]])
+            A_t_cov = A_t_cov/A_t_cov.sum(axis=-1)
+            if np.abs(A_t_cov - np.identity(A_t_cov.shape[0])).sum() <= self.Keps: 
+                info_A = False #if vectors are orthonormals there is not a representation for annotator to use
+
         if not info_A:
-            print("A = Son ortonormales / No fueron entregados!")
-            probas_t =  clusterize_annotators(Y_ann,M=self.M,bulk=True,cluster_type='flatten',data=[T_idx,mv_probs_j],DTYPE_OP=self.DTYPE_OP)
+            print("A_t = Son ortonormales / No fueron entregados!")
+            probas_t =  clusterize_annotators(Y_ilj,M=self.M,bulk=True,cluster_type='conf_flatten',data=[A_il,softMV_ik],DTYPE_OP=self.DTYPE_OP)
         else:
-            probas_t =  clusterize_annotators(A,M=self.M,bulk=True,cluster_type='previous',DTYPE_OP=self.DTYPE_OP)
+            probas_t =  clusterize_annotators(A_t,M=self.M,bulk=True,cluster_type='previous',DTYPE_OP=self.DTYPE_OP)
         
         #-------> init q_il
-        #-------> Initialize p(z=gamma|xi,y=j,g): Combination of mv and belive observable
-        lambda_group = np.ones((self.M),dtype=self.DTYPE_OP)  #or zeros
-        #if self.lambda_random:
-        #    for m in range(self.M):
-        #        lambda_group[m] = np.random.beta(1,1)
-        print("Lambda by group: ",lambda_group)
-        #Zilm =  [] #np.zeros((self.N,self.Kl,self.M,self.Kl),dtype=self.DTYPE_OP)
-        #for i in range(self.N): 
-        #    Zilm.append( (mv_probs_j[i][None,:,None]*lambda_group + Y_ann[i][:,:,None]*(1-lambda_group) ).transpose(0,2,1) )
-        #Zilm = np.asarray(Zilm)
-        
         self.Qil_mgamma = []
         self.alpha_init = []
         for i in range(self.N):
-            t_idxs = T_idx[i]
+            t_idxs = A_il[i] #indexs of annotators that label pattern "i"
             self.alpha_init.append( probas_t[t_idxs] )#preinit over alphas
-            self.Qil_mgamma.append( probas_t[t_idxs][:,:,None] * mv_probs_j[i][None,None,:] )  #y si hago sum con log?    
+            self.Qil_mgamma.append( probas_t[t_idxs][:,:,None] * softMV_ik[i][None,None,:] ) 
         self.Qil_mgamma = self.flatten_il(self.Qil_mgamma)
 
         #-------> init betas
@@ -662,73 +647,74 @@ class GroupMixtureInd(object):
         if not self.compile_g:
             self.alphas_t = np.zeros((self.T,self.M), dtype=self.DTYPE_OP)
         else:
+            self.BS_groups = math.ceil(self.batch_size*np.mean(self.T_i)) #batch should be prop to T_i
             if self.pre_init_g != 0:
                 print("Pre-train networks over *g* on %d epochs..."%(self.pre_init_g),end='',flush=True)
-                if len(A) == 0: #use T instead
-                    A_aux = T_idx
+                if len(A_t) == 0: 
+                    A_aux = A_il #use indexs instead
                 else:
-                    A_aux, _ = get_A_il(T_idx, A=A, index=True) 
-                self.group_model.fit(self.flatten_il(A_aux), self.flatten_il(self.alpha_init),batch_size=math.ceil(self.batch_size*self.T_i),epochs=self.pre_init_g,verbose=0)         
+                    A_aux, _ = get_A_il(A_il, A=A_t, index=True) 
+                self.group_model.fit(self.flatten_il(A_aux), self.flatten_il(self.alpha_init),batch_size=self.BS_groups,epochs=self.pre_init_g,verbose=0)         
                 self.group_model.compile(loss='categorical_crossentropy',optimizer=self.optimizer) #reset optimizer but hold weights--necessary for stability  
                 print(" Done!")
         if self.pre_init_z != 0:
             print("Pre-train networks over *z* on %d epochs..."%(self.pre_init_z),end='',flush=True)
-            self.base_model.fit(X,mv_probs_j,batch_size=self.batch_size,epochs=self.pre_init_z,verbose=0)
+            self.base_model.fit(X_i, softMV_ik,batch_size=self.batch_size,epochs=self.pre_init_z,verbose=0)
             self.base_model.compile(loss='categorical_crossentropy',optimizer=self.optimizer) #reset optimizer but hold weights--necessary for stability   
             print(" Done!")
-        print("MV init: ",mv_probs_j.shape)
+        print("MV init: ",softMV_ik.shape)
         print("Betas: ",self.betas.shape)
         print("Q estimate: ",self.Qil_mgamma.shape)
         gc.collect()
         self.init_exectime = time.time()-start_time
        
-    def E_step(self, Y_ann, z_pred, g_pred, T_idx):
+    def E_step(self, Y_ilj, prob_Z_ik, prob_G_tm, A_il):
         """ Realize the E step in matrix version"""   
-        if len(Y_ann.shape) ==1:
-            Y_ann = self.flatten_il(Y_ann)
-        g_pred = np.log( np.clip(g_pred, self.Keps, 1.) ) #safe logarithmn
-        z_pred = np.log( np.clip(z_pred, self.Keps, 1.) ) #safe logarithmn
-        b_aux = np.tensordot(Y_ann, np.log(self.betas + self.Keps),axes=[[1],[2]]) #safe logarithmn
+        if len(Y_ilj.shape) ==1:
+            Y_ilj = self.flatten_il(Y_ilj)
+        prob_G_tm = np.log( np.clip(prob_G_tm, self.Keps, 1.) ) #safe logarithmn
+        prob_Z_ik = np.log( np.clip(prob_Z_ik, self.Keps, 1.) ) #safe logarithmn
+        b_aux = np.tensordot(Y_ilj, np.log(self.betas + self.Keps),axes=[[1],[2]]) #safe logarithmn
 
         #g_aux2, _ = get_A_il(T_idx, A=g_pred, index=True)  #repeat p(g|a) on index of A
-        lim_sup = 0
-        for i, T_i in enumerate(self.T_i_all):
-            lim_sup  += T_i
-            lim_inf  = lim_sup - T_i
-            b_new    = b_aux [ lim_inf:lim_sup ]
-            g_aux    = g_pred[ T_idx[i] ] #get groups of annotators at indexs
+        lim_sup_i = 0
+        for i, t_i in enumerate(self.T_i):
+            lim_sup_i  += t_i
+            lim_inf_i  = lim_sup_i - t_i
+            b_new      = b_aux [ lim_inf_i:lim_sup_i ]
+            prob_G_lm   = prob_G_tm[ A_il[i] ] #get group predictions of annotators at indexs "l"
 
-            self.Qil_mgamma[lim_inf: lim_sup] = np.exp( z_pred[i][None,None,:] + g_aux[:,:,None] + b_new)  
+            self.Qil_mgamma[lim_inf_i: lim_sup_i] = np.exp(prob_Z_ik[i][None,None,:] + prob_G_lm[:,:,None] + b_new)  
         self.aux_for_like = self.Qil_mgamma.sum(axis=(1,2)) #p(y|x,a) --marginalized
         self.Qil_mgamma   = self.Qil_mgamma/self.aux_for_like[:,None,None] #normalize
     
-    def M_step(self,X, Y_ann, A): 
-        """ Realize the M step, A could be index or representation for every annotator T"""
-        if len(Y_ann.shape) ==1:
-            Y_ann = self.flatten_il(Y_ann)
+    def M_step(self,X_i, Y_ilj, A_il): 
+        """ Realize the M step, A could be the indexs or representation"""
+        if len(Y_ilj.shape) ==1:
+            Y_ilj = self.flatten_il(Y_ilj)
 
         #-------> base model  
         r_estimate = np.zeros((self.N,self.Kl),dtype=self.DTYPE_OP)
         lim_sup = 0
-        for i, T_i in enumerate(self.T_i_all):#range(self.N): 
-            lim_sup  += T_i
-            r_estimate[i] = self.Qil_mgamma[lim_sup-T_i : lim_sup].sum(axis=(0,1)) #create the "estimate"/"ground truth"
+        for i, t_i in enumerate(self.T_i):#range(self.N): 
+            lim_sup  += t_i
+            r_estimate[i] = self.Qil_mgamma[lim_sup-t_i : lim_sup].sum(axis=(0,1)) #create the "estimate"/"ground truth"
         if "sklearn" in self.type:#train to learn p(z|x)
-            self.base_model.fit(X, np.argmax(r_estimate,axis=1) ) 
+            self.base_model.fit(X_i, np.argmax(r_estimate,axis=1) ) 
         else:
-            self.base_model.fit(X, r_estimate, batch_size=self.batch_size,epochs=self.epochs,verbose=0) 
+            self.base_model.fit(X_i, r_estimate, batch_size=self.batch_size,epochs=self.epochs,verbose=0) 
 
         #-------> alpha 
         Qil_m_flat = self.Qil_mgamma.sum(axis=-1)  #qil(m)
         if not self.compile_g:        
             for t in range(self.T):
-                self.alphas_t[t] = np.tensordot( Qil_m_flat, A==t, axes=[[0],[0]] )
+                self.alphas_t[t] = np.tensordot( Qil_m_flat, A_il==t, axes=[[0],[0]] )
             self.alphas_t = self.alphas_t/self.alphas_t.sum(axis=-1,keepdims=True)
         else:
-            self.group_model.fit(A, Qil_m_flat, batch_size=math.ceil(self.batch_size*self.T_i),epochs=self.epochs,verbose=0) #batch should be prop to T_i
+            self.group_model.fit(A_il, Qil_m_flat, batch_size=self.BS_groups,epochs=self.epochs,verbose=0)
 
         #-------> beta
-        self.betas =  np.tensordot(self.Qil_mgamma, Y_ann , axes=[[0],[0]]) # ~p(yo=j|g,z) 
+        self.betas =  np.tensordot(self.Qil_mgamma, Y_ilj , axes=[[0],[0]]) # ~p(yo=j|g,z) 
         if self.priors:
             self.betas += self.Bpriors #priors has to be shape: (M,Kl,Kl)--read define-prior functio
         self.betas = self.betas/self.betas.sum(axis=-1,keepdims=True) #normalize (=p(yo|g,z))
@@ -748,18 +734,17 @@ class GroupMixtureInd(object):
         self.pre_init_g = pre_init_g
         self.batch_size = batch_size
         self.N = X_train.shape[0]
-        self.T_i_all = [y_ann.shape[0] for y_ann in Y_ann_train] 
-        self.T_i = np.mean(self.T_i_all)
+        self.T_i = [y_ann.shape[0] for y_ann in Y_ann_train] 
         self.T = max(list(map(max,T_idx)))+1 #not important...--> is important for clustering
         print("Initializing new EM...")
-        self.init_E(X_train,Y_ann_train,T_idx, A=A_train)
+        self.init_E(X_train,Y_ann_train,T_idx, A_t = A_train)
        
         if len(A_train) == 0: #use T instead
-            A_2_pred = np.arange(self.T).reshape(-1,1) #self.flatten_il(T_idx).reshape(-1,1)  
-            A_train = T_idx.copy()
+            A_2_pred = np.arange(self.T).reshape(-1,1) #A_t
+            A_train = T_idx.copy()                     #A_il
         else:
-            A_2_pred = A_train
-            A_train, _ = get_A_il(T_idx, A=A_train, index=True)  #repeat p(g|a) on index of A   
+            A_2_pred = A_train                                 #A_t
+            A_train, _ = get_A_il(T_idx,A=A_train, index=True)#repeat p(g|t) on indexs: A_il   
         #flatten for E and M step
         Y_ann_train, A_train = self.flatten_il(Y_ann_train), self.flatten_il(A_train)
 
@@ -771,12 +756,12 @@ class GroupMixtureInd(object):
         while(not stop_c):
             start_time = time.time()
             print("Iter %d/%d\nM step:"%(self.current_iter,max_iter),end='',flush=True)
-            self.M_step(X_train, Y_ann_train, A_train)
+            self.M_step(X_train, Y_ann_train, A_train)    #need X_i, Y_ilj and A_il(rep)
             print(" done,  E step:",end='',flush=True)
-            predictions_z = self.get_predictions_z(X_train) #p(z|x)
-            predictions_g = self.get_predictions_g(A_2_pred) #p(g|a)
+            predictions_z = self.get_predictions_z(X_train)  # p(z|x)
+            predictions_g = self.get_predictions_g(A_2_pred) # p(g|t)
             self.alphas_training.append(predictions_g)
-            self.E_step(Y_ann_train, predictions_z, predictions_g, T_idx)
+            self.E_step(Y_ann_train, predictions_z, predictions_g, T_idx)#need Y_ijl, prob_Z_ik, prob_G_tm, A_il(indexs)
             self.current_exectime = time.time()-start_time
             print(" done //  (in %.2f sec)\t"%(self.current_exectime),end='',flush=True)
             logL.append(self.compute_logL())
@@ -875,53 +860,54 @@ class GroupMixtureInd(object):
         print("Multiples runs over Ours Individual, Epochs to converge= ",np.mean(iter_conv)) #maybe change name
         return found_logL,indexs_sort[0]
 
-    def get_predictions_group(self,m,X):
+    def get_predictions_group(self,m,X_i):
         """ Predictions of group "m", p(y^o | xi, g=m) """
-        p_z = self.get_predictions_z(X)
-        p_y_m = np.zeros(p_z.shape)
+        prob_Z_ik = self.get_predictions_z(X_i)
+        prob_Ym_ij = np.zeros(prob_Z_ik.shape)
         for i in range(self.N):
-            p_y_m[i] = np.tensordot(p_z[i,:] ,self.betas[m,:,:],axes=[[0],[0]] ) # sum_z p(z|xi) * p(yo|z,g=m)
-        return p_y_m 
+            prob_Ym_ij[i] = np.tensordot(prob_Z_ik[i,:] ,self.betas[m,:,:],axes=[[0],[0]] ) # sum_z p(z|xi) * p(yo|z,g=m)
+        return prob_Ym_ij 
     
-    def get_predictions_groups(self,X,data=[]):
+    def get_predictions_groups(self,X_i,data=[]):
         """ Predictions of all groups , p(y^o | xi, g) """
         if len(data) != 0:
-            p_z = data
+            prob_Z_ik = data
         else:
-            p_z = self.get_predictions_z(X)
-        predictions_m = np.tensordot(p_z ,self.betas,axes=[[1],[1]] ) #sum_z p(z|xi) * p(yo|z,g)
-        return predictions_m
+            prob_Z_ik = self.get_predictions_z(X_i)
+        prob_Y_imj = np.tensordot(prob_Z_ik ,self.betas,axes=[[1],[1]] ) #sum_z p(z|xi) * p(yo|z,g)
+        return prob_Y_imj
 
-    def calculate_extra_components(self,X, A, calculate_pred_annotator=True,p_z=[],p_g=[]):
+    def calculate_extra_components(self,X_i, A_t, calculate_pred_annotator=True,p_z=[],p_g=[]):
         """
             Measure indirect probabilities through bayes and total probability of annotators
         """
-        predictions_m = self.get_predictions_groups(X,data=p_z) #p(y^o|x,g=m)
+        prob_Y_imj = self.get_predictions_groups(X_i, data=p_z) #p(y^o|x,g=m)
         
         if len(p_g) != 0:
-            prob_Gt = p_g
+            prob_G_tm = p_g
         else:
-            prob_Gt = self.get_predictions_g(A)
+            prob_G_tm = self.get_predictions_g(A_t)
 
-        prob_Yzt = np.tensordot(prob_Gt, self.get_confusionM(),axes=[[1],[0]])  #p(y^o|z,t) = sum_g p(g|t) * p(yo|z,g)
+        prob_Y_ztj = np.tensordot(prob_G_tm, self.get_confusionM(),axes=[[1],[0]])  #p(y^o|z,t) = sum_g p(g|t) * p(yo|z,g)
     
-        prob_Yxt = None
+        prob_Y_xtj = None
         if calculate_pred_annotator:
-            prob_Yxt = np.tensordot(predictions_m, prob_Gt, axes=[[1],[1]]).transpose(0,2,1) #p(y^o|x,t) = sum_g p(g|t) *p(yo|x,g)            
-        return predictions_m, prob_Gt, prob_Yzt, prob_Yxt
+            prob_Y_xtj = np.tensordot(prob_Y_imj, prob_G_tm, axes=[[1],[1]]).transpose(0,2,1) #p(y^o|x,t) = sum_g p(g|t) *p(yo|x,g)            
+        return prob_Y_imj, prob_G_tm, prob_Y_ztj, prob_Y_xtj
     
     def calculate_Yz(self,prob_Gt):
         """ Calculate global confusion matrix"""
         alphas = np.mean(prob_Gt, axis=0)
         return np.sum(self.betas*alphas[:,None,None],axis=0)
     
-    def get_annotator_reliability(self,X,a):
+    def get_annotator_reliability(self,X_i,a):
         """Get annotator reliability, based on his representation:"""
         if len(a.shape) ==1:
             a = [a]     
-        prob_Gt = self.get_predictions_g(a)[0]
-        prob_Yzt = np.tensordot(prob_Gt, self.get_confusionM(),axes=[[0],[0]])  #p(y^o|z,t) = sum_g p(g|t) * p(yo|z,g)
-        return prob_Yzt #do something with it
+        prob_G_tm = self.get_predictions_g(a)[0]
+        prob_Y_ztj = np.tensordot(prob_G_tm, self.get_confusionM(),axes=[[0],[0]])  #p(y^o|z,t) = sum_g p(g|t) * p(yo|z,g)
+        return prob_Y_ztj #do something with it
+
     
 ##################################################################
 ###################### CONVEX FORMULATION ########################
