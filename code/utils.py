@@ -23,7 +23,9 @@ def get_Global_confusionM(Z_data,y_ann):
     elif len(Z_data.shape) ==1:
         Kl = max(Z_data.max()+1, y_ann.shape[1])
         aux = np.tensordot(keras.utils.to_categorical(Z_data, num_classes=Kl), y_ann, axes=[[0],[0]])
-    
+    else:
+        raise Exception('The len(shape) of Z value has to be 1 or 2')
+        
     if len(aux.shape) == 3: #if y_obs_categorical is delivered
         aux = aux.sum(axis=1)
     return aux/aux.sum(axis=-1,keepdims=True) #normalize

@@ -148,7 +148,8 @@ def majority_voting(observed,repeats=True,onehot=True,probas=False):
         r_obs = observed
         
     if probas:
-        return r_obs/np.expand_dims(np.sum(r_obs,axis=-1,dtype='float32'),axis=1)
+        r_obs = r_obs.astype('float32')
+        return r_obs/r_obs.sum(axis=-1, keepdims=True)
 
     mv = r_obs.argmax(axis=1) #over classes axis
     if onehot: 
