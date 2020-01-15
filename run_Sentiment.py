@@ -4,7 +4,7 @@ op = OptionParser()
 op.add_option("-M", "--Ngroups", type=int, default=3, help="number of groups in propose formulation")
 op.add_option("-p", "--path", type="string", default='data/', help="path for data (path/rotten.....)")
 op.add_option("-g", "--pathGlove", type="string", default='data/', help="path to Glove embeddings")
-op.add_option("-v", "--version", type="int", default=1, help="version of annotations (1, 2 or 3)")
+op.add_option("-v", "--version", type="int", default=1, help="version of annotations (1 or 2(global)")
 op.add_option("-e", "--executed", type="string", default='', help="executed models separated by /.. ex (hardmv/ds/raykar)")
 
 (opts, args) = op.parse_args()

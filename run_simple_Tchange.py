@@ -37,11 +37,11 @@ elif DTYPE_OP == 'float32':
     keras.backend.set_epsilon(np.finfo(np.float32).eps)
     
 ### Load Data
-X_train = np.loadtxt(path+"/synthetic/simple/datasim_X_train.csv",delimiter=',')
-Z_train = np.loadtxt(path+"/synthetic/simple/datasim_Z_train.csv",dtype='int') #groudn truth
+X_train = np.loadtxt(path+"/datasim_X_train.csv",delimiter=',')
+Z_train = np.loadtxt(path+"/datasim_Z_train.csv",dtype='int') #groudn truth
 
-X_test = np.loadtxt(path+"/synthetic/simple/datasim_X_test.csv",delimiter=',')
-Z_test = np.loadtxt(path+"/synthetic/simple/datasim_Z_test.csv",dtype='int') #groudn truth
+X_test = np.loadtxt(path+"/datasim_X_test.csv",delimiter=',')
+Z_test = np.loadtxt(path+"/datasim_Z_test.csv",dtype='int') #groudn truth
 
 print("Input shape:",X_train.shape)
 
@@ -143,7 +143,7 @@ for Tmax in to_check:
         #while aux_acc < 0.71 and aux_acc > 0.74:
         GenerateData = SinteticData(state=state_sce) #por la semilla quedan similares..
         #CONFUSION MATRIX CHOOSE
-        GenerateData.set_probas(asfile=True,file_matrix=path+'/synthetic/simple/matrix_datasim_normal.csv',file_groups =path+'/synthetic/simple/groups_datasim_normal.csv')
+        GenerateData.set_probas(asfile=True,file_matrix=path+'/matrix_datasim_normal.csv',file_groups =path+'/groups_datasim_normal.csv')
         real_conf_matrix = GenerateData.conf_matrix.copy()
 
         print("New Synthetic data is being generated...",flush=True,end='')

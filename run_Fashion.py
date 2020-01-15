@@ -2,11 +2,11 @@ from optparse import OptionParser
 
 op = OptionParser()
 op.add_option("-M", "--Ngroups", type=int, default=3, help="number of groups in propose formulation")
-op.add_option("-p", "--path", type="string", default='data/', help="path for data (path/LabelMe_Z_train.....)")
-op.add_option("-v", "--version", type="int", default=1, help="version of annotations (1, 2 or 3)")
+op.add_option("-p", "--path", type="string", default='data/', help="path for data (path/...npy)")
+op.add_option("-v", "--version", type="int", default=1, help="version of annotations (1 or 2)")
 op.add_option("-e", "--executed", type="string", default='', help="executed models separated by /.. ex (hardmv/ds/raykar)")
 op.add_option("-b", "--perror", type=float, default=0.5, help="probability of error")
-op.add_option("-q", "--question", type="string", default='Q4', help="Question to execute Fashion. ex (Q1,Q3,Q4,Q6)")
+op.add_option("-q", "--question", type="int", default=4, help="Question to execute Fashion. ex Q(1,3,4,6)")
 
 (opts, args) = op.parse_args()
 folder = opts.path
@@ -38,7 +38,7 @@ if DTYPE_OP == 'float64':
 elif DTYPE_OP == 'float32':
     keras.backend.set_epsilon(np.finfo(np.float32).eps)
     
-Q_s = opts.question#"Q4" #question selected
+Q_s = "Q" + str(opts.question) # question selected
 p_error = str(opts.perror) #"0.5"
 
 ### Load Data
