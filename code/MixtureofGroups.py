@@ -614,12 +614,15 @@ class GroupMixtureInd(object):
         
         #------->init p(g|a)
         info_A = True #check if A has info to clusterize..
-        if len(A_t) == 0:
-            first_l = self.group_model.layers[0]
-            if type(first_l) == keras.layers.Embedding: #if there is embedding layer
-                A_t = first_l.get_weights()[0]
+        if len(A_t) == 0 :
+            if self.compile_g:
+                first_l = self.group_model.layers[0]
+                if type(first_l) == keras.layers.Embedding: #if there is embedding layer
+                    A_t = first_l.get_weights()[0]
+                else:
+                    info_A = False # if A_t is empty and there is not an embedding layer
             else:
-                info_A = False # if A_t is empty and there is not an embedding layer
+                info_A = False # if there is no model to extract embeddings..
         if info_A: #second check
             A_t_cov = np.tensordot(A_t, A_t.T, axes=[[1],[0]])
             A_t_cov = A_t_cov/A_t_cov.sum(axis=-1)

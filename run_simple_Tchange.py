@@ -270,12 +270,12 @@ for Tmax in to_check:
             
             gMixture_Ind_K = GroupMixtureInd(Xstd_train.shape[1:],Kl=K,M=M_seted,epochs=1,optimizer=OPT,dtype_op=DTYPE_OP) 
             gMixture_Ind_K.define_model("mlp",16,1,BatchN=False,drop=0.2) 
-            gMixture_Ind_K.define_model_group("mlp", A_rep.shape[1], K*M_seted, 1, BatchN=False, embed=False)
+            gMixture_Ind_K.define_model_group("mlp", A_rep.shape[1], K*M_seted, 1, embed=True, embed_M=A_rep)
             logL_hists,i_r = gMixture_Ind_K.multiples_run(20,Xstd_train,Y_ann_train, T_idx, A=A_rep, batch_size=BATCH_SIZE,
                                                   pre_init_g=0,pre_init_z=3, max_iter=EPOCHS_BASE,tolerance=TOL)
             Z_train_p_OI_K = gMixture_Ind_K.get_predictions_z(Xstd_train)
             Z_test_p_OI_K  = gMixture_Ind_K.get_predictions_z(Xstd_test)
-            prob_Gt_OI_K   = gMixture_Ind_K.get_predictions_g(A_rep) 
+            prob_Gt_OI_K   = gMixture_Ind_K.get_predictions_g(T_idx_unique) 
             keras.backend.clear_session()
             
         ################## MEASURE PERFORMANCE ##################################
