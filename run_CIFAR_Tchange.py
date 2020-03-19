@@ -46,17 +46,17 @@ Xstd_test = X_test.astype(DTYPE_OP)/255
 Z_train = Z_train[:,0]
 Z_test = Z_test[:,0]
 
-from code.learning_models import LogisticRegression_Sklearn,LogisticRegression_Keras,MLP_Keras, Clonable_Model
-from code.learning_models import default_CNN,default_RNN,CNN_simple, RNN_simple #deep learning
+from codeE.learning_models import LogisticRegression_Sklearn,LogisticRegression_Keras,MLP_Keras, Clonable_Model
+from codeE.learning_models import default_CNN,default_RNN,CNN_simple, RNN_simple #deep learning
 
-from code.evaluation import Evaluation_metrics
-from code.representation import *
-from code.utils import *
-from code.baseline import LabelInference, RaykarMC
-from code.MixtureofGroups import GroupMixtureGlo, project_and_cluster,clusterize_annotators, GroupMixtureInd
+from codeE.evaluation import Evaluation_metrics
+from codeE.representation import *
+from codeE.utils import *
+from codeE.baseline import LabelInference, RaykarMC
+from codeE.MixtureofGroups import GroupMixtureGlo, project_and_cluster,clusterize_annotators, GroupMixtureInd
 
 ### Delta convergence criteria
-from code.utils import EarlyStopRelative
+from codeE.utils import EarlyStopRelative
 ourCallback = EarlyStopRelative(monitor='loss',patience=1,min_delta=TOL)
 
 start_time_exec = time.time()
@@ -81,7 +81,7 @@ del evaluate,Z_train_pred,Z_test_pred,results1,results2
 gc.collect()
 keras.backend.clear_session()
 
-from code.generate_data import SinteticData
+from codeE.generate_data import SinteticData
 
 #ANNOTATOR DENSITY CHOOSE
 to_check = [100,500,1500,3500,6000,10000]

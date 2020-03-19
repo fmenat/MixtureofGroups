@@ -75,7 +75,7 @@ gc.collect()
 X_images = np.asarray(X_images)
 print("Images shapes: ",X_images.shape)
 
-from code.learning_models import through_CNNFace
+from codeE.learning_models import through_CNNFace
 if len(pool_mo) == 0:
     pool_mo = None
 #"senet50" # 'vgg16', "resnet50", "senet50"
@@ -95,17 +95,17 @@ print("Label train shape:",Z_train.shape)
 print("Input test shape:",X_test.shape)
 print("Label test shape:",Z_test.shape)
 
-from code.learning_models import LogisticRegression_Sklearn,LogisticRegression_Keras,MLP_Keras
-from code.learning_models import default_CNN,default_RNN,CNN_simple, RNN_simple, Clonable_Model, default_RNN_text #deep learning
+from codeE.learning_models import LogisticRegression_Sklearn,LogisticRegression_Keras,MLP_Keras
+from codeE.learning_models import default_CNN,default_RNN,CNN_simple, RNN_simple, Clonable_Model, default_RNN_text #deep learning
 
-from code.evaluation import Evaluation_metrics
-from code.representation import *
-from code.utils import *
-from code.baseline import LabelInference, RaykarMC
-from code.MixtureofGroups import GroupMixtureGlo, project_and_cluster,clusterize_annotators, GroupMixtureInd
+from codeE.evaluation import Evaluation_metrics
+from codeE.representation import *
+from codeE.utils import *
+from codeE.baseline import LabelInference, RaykarMC
+from codeE.MixtureofGroups import GroupMixtureGlo, project_and_cluster,clusterize_annotators, GroupMixtureInd
 
 ### Delta convergence criteria
-from code.utils import EarlyStopRelative
+from codeE.utils import EarlyStopRelative
 ourCallback = EarlyStopRelative(monitor='loss',patience=1,min_delta=TOL)
 
 start_time_exec = time.time()
