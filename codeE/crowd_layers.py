@@ -15,7 +15,7 @@ def init_identities_soft(shape, dtype=None):
 	for r in range(shape[2]):
 		for i in range(shape[0]):
 			out[i,i,r] = init_v(0.9, shape[0]) #1.0
-	return out
+	return out ## no se mueven mucho...
 
 def init_identities(shape, dtype=None):
 	out = np.zeros(shape, dtype=dtype)
@@ -91,7 +91,7 @@ class CrowdsClassification(Layer):
 				raise Exception("Wrong number of dimensions for output")
 		else:
 			raise Exception("Unknown connection type for CrowdsClassification layer!") 
-		#res = tf.nn.softmax(res, dim=1) #para que output sea prob
+		res = tf.nn.softmax(res, dim=1) #para que output sea prob
 		return res
 
 	def compute_output_shape(self, input_shape):
@@ -170,13 +170,12 @@ class MaskedMultiCrossEntropy(object):
 ######### ADDED ###############
 class MaskedMultiCrossEntropy_Reg(object):
 	def loss(self, y_true, y_pred):
-		#vec = tf.nn.softmax_cross_entropy_with_logits(logits=y_pred, labels=y_true, dim=1)
 		y_pred = K.clip(y_pred, K.epsilon(), 1)
 		y_true = K.clip(y_true, K.epsilon(), 1)
 		vec = -tf.reduce_sum(y_true * tf.log(y_pred), axis = 1)
 		mask = tf.equal(y_true[:,0,:], -1) 
 		zer = tf.zeros_like(vec)
-		loss = K.sum( tf.where(mask, x=zer, y=vec), axis=-1) #mean annotators
+		loss = K.sum( tf.where(mask, x=zer, y=vec), axis=-1) #sum annotators
 		return loss
 
 	def loss_prior_MV(self,p_z, l=1):
