@@ -1,3 +1,5 @@
+> Currently working in a library: __[PyLearningCrowds](https://github.com/FMena14/PyLearningCrowds)__
+
 # Mixture of Groups
 Mixture of Groups for Learning in Crowdsourcing Scenarios
 ### Authors: Francisco Mena and Ricardo Ñanculef
