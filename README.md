@@ -1,3 +1,5 @@
+> Currently working in a library: __[PyLearningCrowds](https://github.com/FMena14/PyLearningCrowds)__
+
 # Mixture of Groups
 Mixture of Groups for Learning in Crowdsourcing Scenarios
 ### Authors: Francisco Mena and Ricardo Ñanculef
@@ -18,6 +20,6 @@ Paper publications:
 
 
 ### References
-[1] [Dawid, A. P., & Skene, A. M. (1979). Maximum likelihood estimation of observer error‐rates using the EM algorithm. Journal of the Royal Statistical Society: Series C (Applied Statistics), 28(1), 20-28.](http://crowdsourcing-class.org/readings/downloads/ml/EM.pdf)
-[2] [Raykar, V. C., Yu, S., Zhao, L. H., Valadez, G. H., Florin, C., Bogoni, L., & Moy, L. (2010). Learning from crowds. Journal of Machine Learning Research, 11(Apr), 1297-1322.]](http://www.jmlr.org/papers/volume11/raykar10a/raykar10a.pdf)
+[1] [Dawid, A. P., & Skene, A. M. (1979). Maximum likelihood estimation of observer error‐rates using the EM algorithm. Journal of the Royal Statistical Society: Series C (Applied Statistics), 28(1), 20-28.](http://crowdsourcing-class.org/readings/downloads/ml/EM.pdf)  
+[2] [Raykar, V. C., Yu, S., Zhao, L. H., Valadez, G. H., Florin, C., Bogoni, L., & Moy, L. (2010). Learning from crowds. Journal of Machine Learning Research, 11(Apr), 1297-1322.]](http://www.jmlr.org/papers/volume11/raykar10a/raykar10a.pdf)  
 [3] [Rodrigues, F., & Pereira, F. C. (2018, April). Deep learning from crowds. In Thirty-Second AAAI Conference on Artificial Intelligence.](https://www.aaai.org/ocs/index.php/AAAI/AAAI18/paper/viewFile/16102/15860)
