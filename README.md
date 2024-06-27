@@ -1,5 +1,5 @@
 # :computer: Mixture of Groups
-> Small library: __[PyLearningCrowds](https://github.com/FMena14/PyLearningCrowds)__
+<a href="https://github.com/FMena14/PyLearningCrowds">  <img src="https://img.shields.io/badge/Package-PyLearningCrowds-red"/>  </a>
 
 Mixture of Groups for Learning in Crowdsourcing Scenarios
 ### Authors
