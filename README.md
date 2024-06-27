@@ -25,7 +25,8 @@ Mena, Francisco, and Ricardo Ñanculef. "*Revisiting Machine Learning from Crowd
   booktitle={Progress in Pattern Recognition, Image Analysis, Computer Vision, and Applications: 24th Iberoamerican Congress, CIARP 2019, Havana, Cuba, October 28-31, 2019, Proceedings 24},
   pages={493--503},
   year={2019},
-  organization={Springer}
+  organization={Springer},
+  doi={10.1007/978-3-030-33904-3_46}
 }
 ```
 > this is a reference to our initial work in a conference
@@ -40,7 +41,8 @@ Mena, Francisco, Ricardo Ñanculef, and Carlos Valle. "*Collective annotation pa
   number={S1},
   pages={63--86},
   year={2020},
-  publisher={IOS Press}
+  publisher={IOS Press},
+  doi={10.3233/IDA-200009}
 }
 ```
 > this is a reference of our extended work with text+image data
