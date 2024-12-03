@@ -23,7 +23,7 @@ cryptography==2.2.2
 cufflinks==0.12.1
 cycler==0.10.0
 Cython==0.28.2
-dask==0.19.4
+dask==2021.10.0
 decorator==4.3.0
 #docutils==0.14
 entrypoints==0.2.3
