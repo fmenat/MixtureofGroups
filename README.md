@@ -1,21 +1,18 @@
-# :computer: Mixture of Groups
+# Mixture of Groups in Learning from Crowds
 <a href="https://github.com/FMena14/PyLearningCrowds">  <img src="https://img.shields.io/badge/Package-PyLearningCrowds-red"/>  </a>
+[![Logo](https://img.shields.io/badge/ResearchGate-Preprint-4b44ce.svg)](https://www.researchgate.net/publication/347461451_Collective_annotation_patterns_in_learning_from_crowds)
+[![DOI:10.3233/IDA-200009](http://img.shields.io/badge/DOI-10.3233/IDA.200009-blue.svg)](https://doi.org/10.3233/IDA-200009)
+[![DOI:10.1007/978-3-030-33904-3_46](http://img.shields.io/badge/DOI-10.1007/978.3.030.33904.3_46-blue.svg)](https://doi.org/10.1007/978-3-030-33904-3_46)
 
-Mixture of Groups for Learning in Crowdsourcing Scenarios
+> Public repository of our work [*Collective annotation patterns in learning from crowds*](https://doi.org/10.3233/IDA-200009)
+
+---
+
 ### Authors
 Francisco Mena and Ricardo Ñanculef
 
-# :scroll: Source
 
-* Preliminary work in a conference, only group modeling
-  * :unlock: [Final published version](https://doi.org/10.1007/978-3-030-33904-3_46)
-  * [Presentation](https://github.com/fmenat/fmenat/blob/main/presentations/2019_CIARP_CMM.pdf)
-* Extended work in a journal, group modeling + individual annotators
-  * :lock: [Final published version](https://doi.org/10.3233/IDA-200009)
-  * :unlock: [Preprint](https://www.researchgate.net/publication/347461451_Collective_annotation_patterns_in_learning_from_crowds)
-  
-
-# 🖊️ Citation
+# 🖊️ Citation and more
 
 Mena, Francisco, and Ricardo Ñanculef. "*Revisiting Machine Learning from Crowds a Mixture Model for Grouping Annotations.*" Progress in Pattern Recognition, Image Analysis, Computer Vision, and Applications: 24th Iberoamerican Congress, CIARP 2019, Havana, Cuba, October 28-31, 2019, Proceedings 24. Springer International Publishing, 2019.
 ```bibtex
@@ -29,7 +26,11 @@ Mena, Francisco, and Ricardo Ñanculef. "*Revisiting Machine Learning from Crowd
   doi={10.1007/978-3-030-33904-3_46}
 }
 ```
-> this is a reference to our initial work in a conference
+> [!NOTE]
+> * [Presentation](https://github.com/fmenat/fmenat/blob/main/presentations/2019_CIARP_CMM.pdf)
+
+> [!IMPORTANT]  
+> This is a reference to our initial conference work only modeling groups
 
 Mena, Francisco, Ricardo Ñanculef, and Carlos Valle. "*Collective annotation patterns in learning from crowds.*" Intelligent Data Analysis 24.S1 (2020): 63-86.
 ```bibtex
